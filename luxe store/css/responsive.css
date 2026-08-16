@@ -1,0 +1,294 @@
+/* ========================================
+   RESPONSIVE.CSS - Global Responsive Styles
+   ======================================== */
+
+@media (max-width: 320px) {
+    .container {
+        padding: 0 10px;
+    }
+    .hero {
+        padding: 20px 0;
+        min-height: auto;
+    }
+    .hero-title {
+        font-size: 1.5rem !important;
+    }
+    .hero-sub {
+        font-size: 0.75rem !important;
+    }
+    .hero-buttons .btn {
+        padding: 8px 16px;
+        font-size: 0.7rem;
+    }
+    .product-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    .product-image {
+        height: 200px;
+    }
+    .category-grid {
+        grid-template-columns: 1fr;
+    }
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+    .review-grid {
+        grid-template-columns: 1fr;
+    }
+    .insta-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .footer-grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    .nav-icons a:not(.user-icon):not(.hamburger) {
+        display: none;
+    }
+    .section {
+        padding: 15px 0 !important;
+    }
+    .section-title {
+        font-size: 1.2rem !important;
+    }
+    .newsletter-box {
+        padding: 20px 15px;
+    }
+    .newsletter-box h2 {
+        font-size: 1.2rem;
+    }
+}
+
+@media (min-width: 321px) and (max-width: 375px) {
+    .container {
+        padding: 0 12px;
+    }
+    .hero {
+        padding: 20px 0;
+        min-height: auto;
+    }
+    .hero-title {
+        font-size: 1.7rem !important;
+    }
+    .hero-sub {
+        font-size: 0.8rem !important;
+    }
+    .product-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    .product-image {
+        height: 180px;
+    }
+    .product-info {
+        padding: 10px 12px;
+    }
+    .product-info .product-name {
+        font-size: 0.8rem;
+    }
+    .nav-icons a:not(.user-icon):not(.hamburger) {
+        display: none;
+    }
+    .section {
+        padding: 20px 0 !important;
+    }
+    .section-title {
+        font-size: 1.3rem !important;
+    }
+}
+
+@media (min-width: 376px) and (max-width: 425px) {
+    .hero {
+        padding: 25px 0;
+        min-height: auto;
+    }
+    .hero-title {
+        font-size: 1.9rem !important;
+    }
+    .product-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+    .product-image {
+        height: 200px;
+    }
+    .section {
+        padding: 25px 0 !important;
+    }
+    .section-title {
+        font-size: 1.4rem !important;
+    }
+}
+
+@media (min-width: 426px) and (max-width: 576px) {
+    .hero {
+        padding: 30px 0;
+        min-height: auto;
+    }
+    .hero-title {
+        font-size: 2.2rem !important;
+    }
+    .hero-sub {
+        font-size: 0.9rem !important;
+    }
+    .product-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+    .product-image {
+        height: 220px;
+    }
+    .section {
+        padding: 30px 0 !important;
+    }
+    .section-title {
+        font-size: 1.5rem !important;
+    }
+}
+
+@media (min-width: 577px) and (max-width: 768px) {
+    .hero {
+        padding: 40px 0;
+        min-height: auto;
+    }
+    .hero-title {
+        font-size: 2.8rem !important;
+    }
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    .category-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .review-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .insta-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .footer-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .section {
+        padding: 35px 0 !important;
+    }
+    .section-title {
+        font-size: 1.8rem !important;
+    }
+    .nav-links {
+        display: none;
+    }
+    .hamburger {
+        display: flex !important;
+    }
+    .newsletter-box {
+        padding: 30px 20px;
+    }
+    .newsletter-box form {
+        flex-direction: column;
+    }
+    .luxury-content h2 {
+        font-size: 2rem;
+    }
+    .social-icons {
+        justify-content: center;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 992px) {
+    .hero {
+        padding: 50px 0;
+        min-height: auto;
+    }
+    .product-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    .category-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .review-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .footer-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+    .section {
+        padding: 45px 0 !important;
+    }
+}
+
+@media (min-width: 993px) and (max-width: 1200px) {
+    .product-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    .hero {
+        padding: 60px 0;
+        min-height: auto;
+    }
+    .section {
+        padding: 50px 0 !important;
+    }
+}
+
+@media (min-width: 1201px) {
+    .container {
+        max-width: 1200px;
+    }
+    .hero {
+        padding: 80px 0;
+        min-height: 100vh;
+    }
+    .section {
+        padding: 60px 0 !important;
+    }
+}
+
+* {
+    max-width: 100%;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .nav-icons .search-icon {
+        display: none;
+    }
+}
+
+@media (max-width: 576px) {
+    .product-actions {
+        padding: 8px 10px !important;
+        gap: 4px !important;
+        bottom: -45px !important;
+    }
+    .product-actions button {
+        padding: 4px 8px !important;
+        font-size: 0.6rem !important;
+    }
+    .product-actions .add-cart i {
+        font-size: 0.6rem !important;
+    }
+    .product-actions .wishlist-btn,
+    .product-actions .quick-view {
+        width: 28px !important;
+        height: 28px !important;
+    }
+    .product-actions .wishlist-btn i,
+    .product-actions .quick-view i {
+        font-size: 0.6rem !important;
+    }
+}
