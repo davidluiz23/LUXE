@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart | LUXE Premium Clothing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/cart.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div id="loader"><div class="loader-spinner"></div></div>
+
+    <header id="navbar">
+        <div class="container nav-container">
+            <div class="logo"><a href="index.html"><span>LUXE</span></a></div>
+            <nav class="nav-links" id="navLinks">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="shop.html">Shop</a></li>
+                    <li><a href="men.html">Men</a></li>
+                    <li><a href="women.html">Women</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="nav-icons">
+                <a href="#" class="search-icon" id="searchToggle"><i class="fas fa-search"></i></a>
+                <a href="wishlist.html" class="wishlist-icon"><i class="fas fa-heart"></i><span class="wishlist-count">0</span></a>
+                <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-bag"></i><span class="cart-count">0</span></a>
+                <a href="signup.html" class="user-icon"><i class="fas fa-user"></i></a>
+                <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+            </div>
+        </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-close" id="mobileClose"><i class="fas fa-times"></i></div>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="shop.html">Shop</a></li>
+                <li><a href="men.html">Men</a></li>
+                <li><a href="women.html">Women</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="signup.html">Sign Up</a></li>
+                <li><a href="wishlist.html">Wishlist</a></li>
+                <li><a href="cart.html">Cart</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <section class="section cart-section">
+        <div class="container">
+            <h1 class="section-title">Shopping Cart</h1>
+            <div class="cart-grid">
+                <div class="cart-items" id="cartItems"></div>
+                <div class="cart-summary">
+                    <h3>Order Summary</h3>
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span id="cartSubtotal">$0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Shipping</span>
+                        <span id="cartShipping">$0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tax (8%)</span>
+                        <span id="cartTax">$0.00</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <span id="cartTotal">$0.00</span>
+                    </div>
+                    <a href="checkout.html" class="btn btn-primary checkout-btn">Proceed to Checkout</a>
+                    <button onclick="window.sendCartToWhatsApp()" class="btn whatsapp-btn" style="width: 100%; margin-top: 12px; background: #25D366; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 600; padding: 15px; border-radius: 30px; border: none; cursor: pointer; font-size: 1rem; transition: background 0.3s ease, transform 0.2s ease;">
+                        <i class="fab fa-whatsapp" style="font-size: 1.3rem;"></i> Order via WhatsApp
+                    </button>
+                    <a href="shop.html" class="continue-shopping">Continue Shopping</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container footer-grid">
+            <div class="footer-col">
+                <h3>LUXE</h3>
+                <p>Premium clothing for the discerning.</p>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <a href="index.html">Home</a>
+                <a href="shop.html">Shop</a>
+                <a href="men.html">Men</a>
+                <a href="women.html">Women</a>
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+            </div>
+            <div class="footer-col">
+                <h4>Support</h4>
+                <a href="#">FAQ</a>
+                <a href="#">Returns</a>
+                <a href="#">Shipping</a>
+                <a href="#">Privacy</a>
+            </div>
+            <div class="footer-col">
+                <h4>Contact</h4>
+                <p><i class="fas fa-map-marker-alt"></i> 123 Fashion Ave, NY</p>
+                <p><i class="fas fa-phone"></i> +1 800 123 4567</p>
+                <p><i class="fas fa-envelope"></i> hello@luxe.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom"><p>&copy; 2026 LUXE. All rights reserved.</p></div>
+    </footer>
+
+    <button id="backToTop" class="back-to-top"><i class="fas fa-arrow-up"></i></button>
+
+    <script src="js/products.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/wishlist.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/animation.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

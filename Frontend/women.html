@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Women's Collection | LUXE Premium Clothing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/shop.css">
+    <link rel="stylesheet" href="css/women.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div id="loader"><div class="loader-spinner"></div></div>
+
+    <header id="navbar">
+        <div class="container nav-container">
+            <div class="logo"><a href="index.html"><span>LUXE</span></a></div>
+            <nav class="nav-links" id="navLinks">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="shop.html">Shop</a></li>
+                    <li><a href="men.html">Men</a></li>
+                    <li><a href="women.html" class="active">Women</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="nav-icons">
+                <a href="#" class="search-icon" id="searchToggle"><i class="fas fa-search"></i></a>
+                <a href="wishlist.html" class="wishlist-icon"><i class="fas fa-heart"></i><span class="wishlist-count">0</span></a>
+                <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-bag"></i><span class="cart-count">0</span></a>
+                <a href="signup.html" class="user-icon"><i class="fas fa-user"></i></a>
+                <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+            </div>
+        </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-close" id="mobileClose"><i class="fas fa-times"></i></div>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="shop.html">Shop</a></li>
+                <li><a href="men.html">Men</a></li>
+                <li><a href="women.html">Women</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="signup.html">Sign Up</a></li>
+                <li><a href="wishlist.html">Wishlist</a></li>
+                <li><a href="cart.html">Cart</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- Category Hero -->
+    <section class="category-hero women-hero">
+        <div class="category-hero-content">
+            <h1>Women's Collection</h1>
+            <p>Elegance redefined for the modern woman</p>
+        </div>
+    </section>
+
+    <!-- Category Products -->
+    <section class="section category-products">
+        <div class="container">
+            <!-- Filter Bar -->
+            <div class="category-filter-bar">
+                <div class="filter-left">
+                    <span class="filter-label"><i class="fas fa-sliders-h" style="margin-right: 8px;"></i> Filter:</span>
+                    <div class="filter-select-wrapper">
+                        <select id="categoryFilter" class="filter-select">
+                            <option value="all">All Categories</option>
+                            <option value="dresses">Dresses</option>
+                            <option value="tops">Tops</option>
+                            <option value="bottoms">Bottoms</option>
+                            <option value="outerwear">Outerwear</option>
+                            <option value="activewear">Activewear</option>
+                            <option value="accessories">Accessories</option>
+                            <option value="footwear">Footwear</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-right">
+                    <span class="filter-label"><i class="fas fa-sort" style="margin-right: 8px;"></i> Sort:</span>
+                    <div class="filter-select-wrapper">
+                        <select id="sortFilter" class="filter-select">
+                            <option value="featured">Featured</option>
+                            <option value="price-low">Price: Low to High</option>
+                            <option value="price-high">Price: High to Low</option>
+                            <option value="rating">Rating</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Pills -->
+            <div class="filter-options-group">
+                <button class="filter-option-btn active" data-filter="all">All</button>
+                <button class="filter-option-btn" data-filter="dresses">Dresses</button>
+                <button class="filter-option-btn" data-filter="tops">Tops</button>
+                <button class="filter-option-btn" data-filter="bottoms">Bottoms</button>
+                <button class="filter-option-btn" data-filter="outerwear">Outerwear</button>
+                <button class="filter-option-btn" data-filter="activewear">Activewear</button>
+                <button class="filter-option-btn" data-filter="accessories">Accessories</button>
+                <button class="filter-option-btn" data-filter="footwear">Footwear</button>
+            </div>
+
+            <!-- Product Grid -->
+            <div class="product-grid" id="womenProductGrid"></div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-grid">
+            <div class="footer-col">
+                <h3>LUXE</h3>
+                <p>Premium clothing for the discerning.</p>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <a href="index.html">Home</a>
+                <a href="shop.html">Shop</a>
+                <a href="men.html">Men</a>
+                <a href="women.html">Women</a>
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+            </div>
+            <div class="footer-col">
+                <h4>Support</h4>
+                <a href="#">FAQ</a>
+                <a href="#">Returns</a>
+                <a href="#">Shipping</a>
+                <a href="#">Privacy</a>
+            </div>
+            <div class="footer-col">
+                <h4>Contact</h4>
+                <p><i class="fas fa-map-marker-alt"></i> 123 Fashion Ave, NY</p>
+                <p><i class="fas fa-phone"></i> +1 800 123 4567</p>
+                <p><i class="fas fa-envelope"></i> hello@luxe.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom"><p>&copy; 2026 LUXE. All rights reserved.</p></div>
+    </footer>
+
+    <button id="backToTop" class="back-to-top"><i class="fas fa-arrow-up"></i></button>
+
+    <script src="js/products.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/wishlist.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/animation.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/category.js"></script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+/* ========================================
+   HOME.CSS - Home Page Specific Styles
+   ======================================== */
+
+.categories {
+    padding: 60px 0;
+    background: #F8F8F8;
+}
+
+.categories .section-title {
+    margin-bottom: 40px;
+}
+
+.categories .category-card {
+    height: 320px;
+}
+
+.featured {
+    padding: 60px 0 0 0;
+}
+
+.featured .section-title {
+    margin-bottom: 40px;
+}
+
+.luxury-banner {
+    padding: 80px 0;
+    margin-top: 0;
+}
+
+.why-choose {
+    padding: 60px 0 40px 0;
+}
+
+.reviews {
+    padding: 40px 0;
+}
+
+.instagram {
+    padding: 40px 0;
+}
+
+.newsletter {
+    padding: 40px 0 60px 0;
+}
+
+@media (max-width: 992px) {
+    .categories {
+        padding: 40px 0;
+    }
+    .categories .section-title {
+        margin-bottom: 30px;
+    }
+    .featured {
+        padding: 40px 0 0 0;
+    }
+    .luxury-banner {
+        padding: 60px 0;
+    }
+    .why-choose {
+        padding: 40px 0 30px 0;
+    }
+    .reviews {
+        padding: 30px 0;
+    }
+    .instagram {
+        padding: 30px 0;
+    }
+    .newsletter {
+        padding: 30px 0 40px 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .categories {
+        padding: 30px 0;
+    }
+    .categories .section-title {
+        margin-bottom: 25px;
+    }
+    .categories .category-card {
+        height: 250px;
+    }
+    .featured {
+        padding: 30px 0 0 0;
+    }
+    .featured .section-title {
+        margin-bottom: 25px;
+    }
+    .luxury-banner {
+        padding: 40px 0;
+    }
+    .why-choose {
+        padding: 30px 0 20px 0;
+    }
+    .reviews {
+        padding: 20px 0;
+    }
+    .instagram {
+        padding: 20px 0;
+    }
+    .newsletter {
+        padding: 20px 0 30px 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .categories {
+        padding: 20px 0;
+    }
+    .categories .section-title {
+        margin-bottom: 20px;
+    }
+    .categories .category-card {
+        height: 220px;
+    }
+    .featured {
+        padding: 20px 0 0 0;
+    }
+    .featured .section-title {
+        margin-bottom: 20px;
+    }
+    .luxury-banner {
+        padding: 30px 0;
+    }
+    .why-choose {
+        padding: 20px 0 15px 0;
+    }
+    .reviews {
+        padding: 15px 0;
+    }
+    .instagram {
+        padding: 15px 0;
+    }
+    .newsletter {
+        padding: 15px 0 20px 0;
+    }
+}
