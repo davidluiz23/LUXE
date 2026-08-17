@@ -14,6 +14,23 @@
     gap: 40px;
 }
 
+.flix-btn{
+    border-radius:2px solid;
+    border-color: #e5e5e5;
+    color:#D4AF37
+}
+
+.flix-btn:hover{
+    background-color:#D4AF37;
+    color:white;
+    border-color: #D4AF37;
+}
+
+/* .flix-nav{
+    display: flex;
+    gap: 20px;  
+} */
+
 .shop-sidebar {
     background: #FFFFFF;
     padding: 30px 25px;
@@ -21,7 +38,32 @@
     box-shadow: 0 10px 30px rgba(0,0,0,0.06);
     height: fit-content;
     position: sticky;
-    top: 100px;
+    top: auto;
+    margin-bottom: 50px;
+}
+
+.filter-list{
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 20px;
+}
+
+.filter-list li a {
+    text-decoration: none;
+    color: #555;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    border: 2px solid #E5E5E5;
+    border-radius: 55px;
+    padding: 5px 10px;
+}
+
+.filter-list li a:hover,
+.filter-list li a.active {
+    color: #fff;
+    border-color: #D4AF37;
+    background-color: #D4AF37;
+    transition: all 0.5s ease;
 }
 
 .filter-group {
