@@ -1,87 +1,176 @@
-// js/supabase-client.js - Free Supabase Cloud Database Client
+// js/supabase-client.js
+//
+// This file is the ONE place that talks to Supabase directly.
+// Everything else (auth.js, checkout.js) calls the functions below
+// instead of touching `supabase` directly — that way, if you ever
+// swap backends, you only edit this file.
 
-// Replace these placeholders with your free credentials from https://supabase.com
 const SUPABASE_URL = 'https://unvonqbgvvaygcgsrwuk.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_6Csv9EOc_JOcoDGkTCCNvA_8ErkOPj1';
 
-// Check if credentials are set
+// This "anon key" is SAFE to have visible in frontend code — it's not
+// a secret. It only grants whatever access your Row Level Security
+// policies allow (see schema.sql). The real gate is on the database,
+// not on hiding this string.
 const isSupabaseConfigured = () => {
     return SUPABASE_URL.indexOf('YOUR_SUPABASE') === -1 && SUPABASE_ANON_KEY.indexOf('YOUR_SUPABASE') === -1;
 };
 
-// Initialize Supabase client if SDK script is loaded
 let supabase = null;
 if (typeof window !== 'undefined' && window.supabase && isSupabaseConfigured()) {
     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
-// Unified Database Service (Cloud + Local Fallback)
-const LuxeCloudDB = {
-    // 1. Save or Update User Profile
-    async saveUserProfile(user) {
-        if (supabase) {
-            try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .upsert({
-                        email: user.email.toLowerCase(),
-                        full_name: user.fullName,
-                        phone: user.phone || '',
-                        avatar_url: user.avatar || '',
-                        updated_at: new Date().toISOString()
-                    }, { onConflict: 'email' });
-                if (error) console.warn('Supabase profile save notice:', error.message);
-                return data;
-            } catch (e) {
-                console.warn('Using LocalStorage fallback for profile');
-            }
-        }
+// ---------------------------------------------------------------------
+// AUTH
+// Passwords never touch our code — signUp/signInWithPassword send them
+// straight to Supabase over HTTPS, which hashes and stores them.
+// ---------------------------------------------------------------------
+const LuxeAuth = {
+    isReady() {
+        return !!supabase;
     },
 
-    // 2. Fetch User Profile
-    async getUserProfile(email) {
-        if (supabase) {
-            try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('email', email.toLowerCase())
-                    .single();
-                if (!error && data) {
-                    return {
-                        fullName: data.full_name,
-                        email: data.email,
-                        phone: data.phone,
-                        avatar: data.avatar_url
-                    };
-                }
-            } catch (e) {
-                console.warn('Using LocalStorage fallback for fetching profile');
-            }
-        }
-        return null;
+    // Step 1 of signup: creates the auth.users row (unconfirmed) and
+    // triggers Supabase to email a 6-digit code to the user.
+    async signUp(email, password, fullName) {
+        if (!supabase) return { error: { message: 'Backend not configured' } };
+        return await supabase.auth.signUp({
+            email,
+            password,
+            options: { data: { full_name: fullName } }
+        });
     },
 
-    // 3. Save Order to Cloud
-    async createOrder(userId, order) {
-        if (supabase) {
-            try {
-                await supabase.from('orders').insert({
-                    user_email: userId.toLowerCase(),
-                    order_number: order.orderNumber,
-                    total_amount: order.totalAmount,
-                    items: order.items,
-                    order_status: order.orderStatus,
-                    created_at: new Date().toISOString()
-                });
-            } catch (e) {
-                console.warn('Order saved to LocalStorage fallback');
-            }
-        }
+    // Step 2: user types the code from their email, we confirm it.
+    // On success, Supabase also logs them in (returns a session).
+    async verifySignupOtp(email, token) {
+        if (!supabase) return { error: { message: 'Backend not configured' } };
+        return await supabase.auth.verifyOtp({ email, token, type: 'signup' });
+    },
+
+    async resendSignupOtp(email) {
+        if (!supabase) return { error: { message: 'Backend not configured' } };
+        return await supabase.auth.resend({ type: 'signup', email });
+    },
+
+    async signInWithPassword(email, password) {
+        if (!supabase) return { error: { message: 'Backend not configured' } };
+        return await supabase.auth.signInWithPassword({ email, password });
+    },
+
+    async signInWithMagicLink(email) {
+        if (!supabase) return { error: { message: 'Backend not configured' } };
+        return await supabase.auth.signInWithOtp({
+            email,
+            options: { shouldCreateUser: false }
+        });
+    },
+
+    async signOut() {
+        if (!supabase) return;
+        await supabase.auth.signOut();
+    },
+
+    // Returns the logged-in user (or null) using the session Supabase
+    // already stored in the browser — no password needed to check this.
+    async getCurrentUser() {
+        if (!supabase) return null;
+        const { data: { session } } = await supabase.auth.getSession();
+        return session ? session.user : null;
+    },
+
+    // Fires whenever login/logout state changes anywhere in the app.
+    onAuthStateChange(callback) {
+        if (!supabase) return;
+        supabase.auth.onAuthStateChange((_event, session) => {
+            callback(session ? session.user : null);
+        });
+    }
+};
+
+// ---------------------------------------------------------------------
+// PROFILE
+// ---------------------------------------------------------------------
+const LuxeProfile = {
+    async get(userId) {
+        if (!supabase) return null;
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+        if (error) return null;
+        return data;
+    },
+
+    async update(userId, fields) {
+        if (!supabase) return { error: { message: 'Backend not configured' } };
+        return await supabase
+            .from('profiles')
+            .update({ ...fields, updated_at: new Date().toISOString() })
+            .eq('id', userId);
+    }
+};
+
+// ---------------------------------------------------------------------
+// ORDERS (transactions)
+// ---------------------------------------------------------------------
+const LuxeOrders = {
+    // items: [{ id, name, price, quantity, image }]
+    // totals: { subtotal, shipping, tax, total }
+    async createOrder(userId, items, totals, shippingAddress) {
+        if (!supabase) return { error: { message: 'Backend not configured' } };
+
+        const orderNumber = 'LX-' + Math.floor(100000 + Math.random() * 900000);
+
+        const { data: order, error: orderError } = await supabase
+            .from('orders')
+            .insert({
+                user_id: userId,
+                order_number: orderNumber,
+                subtotal: totals.subtotal,
+                shipping: totals.shipping,
+                tax: totals.tax,
+                total: totals.total,
+                status: 'processing',
+                shipping_address: shippingAddress || null
+            })
+            .select()
+            .single();
+
+        if (orderError) return { error: orderError };
+
+        const rows = items.map(item => ({
+            order_id: order.id,
+            product_id: String(item.id),
+            product_name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image_url: item.image || ''
+        }));
+
+        const { error: itemsError } = await supabase.from('order_items').insert(rows);
+        if (itemsError) return { error: itemsError };
+
+        return { data: order };
+    },
+
+    async getOrders(userId) {
+        if (!supabase) return [];
+        const { data, error } = await supabase
+            .from('orders')
+            .select('*, order_items(*)')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+        if (error) return [];
+        return data;
     }
 };
 
 if (typeof window !== 'undefined') {
-    window.LuxeCloudDB = LuxeCloudDB;
+    window.LuxeAuth = LuxeAuth;
+    window.LuxeProfile = LuxeProfile;
+    window.LuxeOrders = LuxeOrders;
     window.isSupabaseConfigured = isSupabaseConfigured;
 }

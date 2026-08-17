@@ -1,0 +1,304 @@
+/* ========================================
+   DASHBOARD.CSS - My Account Page
+   ======================================== */
+
+.dashboard-section {
+    padding-top: 120px;
+    padding-bottom: 80px;
+    background: var(--light-bg);
+    min-height: 90vh;
+}
+
+/* ---------- Guest state ---------- */
+.dashboard-guest {
+    text-align: center;
+    background: var(--secondary);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 80px 20px;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.dashboard-guest i {
+    font-size: 3rem;
+    color: var(--accent);
+    margin-bottom: 20px;
+}
+
+.dashboard-guest h2 {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+}
+
+.dashboard-guest p {
+    color: var(--gray-text);
+    margin-bottom: 25px;
+}
+
+/* ---------- Layout ---------- */
+.dashboard-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+/* ---------- Sidebar ---------- */
+.dashboard-sidebar {
+    background: var(--secondary);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 30px 25px;
+    position: sticky;
+    top: 100px;
+}
+
+.dashboard-user-card {
+    text-align: center;
+    padding-bottom: 25px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.dashboard-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: var(--light-bg);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin: 0 auto 14px;
+}
+
+.dashboard-user-card h3 {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    margin-bottom: 4px;
+}
+
+.dashboard-user-card p {
+    color: var(--gray-text);
+    font-size: 0.85rem;
+    word-break: break-all;
+}
+
+.dashboard-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 20px;
+}
+
+.dashboard-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 14px;
+    background: none;
+    border: none;
+    border-radius: var(--radius);
+    text-align: left;
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--primary);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.dashboard-nav-btn i {
+    width: 18px;
+    color: var(--gray-text);
+    transition: var(--transition);
+}
+
+.dashboard-nav-btn:hover {
+    background: var(--light-bg);
+}
+
+.dashboard-nav-btn.active {
+    background: var(--primary);
+    color: var(--secondary);
+}
+
+.dashboard-nav-btn.active i {
+    color: var(--accent);
+}
+
+.dashboard-signout {
+    width: 100%;
+    padding: 12px 14px;
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    color: #E74C3C;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: var(--transition);
+}
+
+.dashboard-signout:hover {
+    background: #E74C3C;
+    color: var(--secondary);
+    border-color: #E74C3C;
+}
+
+/* ---------- Content ---------- */
+.dashboard-content {
+    background: var(--secondary);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 40px;
+    min-height: 400px;
+}
+
+.dashboard-content h1 {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    margin-bottom: 30px;
+}
+
+.dashboard-panel {
+    display: none;
+}
+
+.dashboard-panel.active {
+    display: block;
+}
+
+/* ---------- Profile form ---------- */
+.dashboard-profile-form {
+    max-width: 420px;
+}
+
+.dashboard-profile-form input:disabled {
+    background: var(--light-bg);
+    color: var(--gray-text);
+    cursor: not-allowed;
+}
+
+/* ---------- Orders ---------- */
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.order-card {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.order-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 18px 22px;
+    background: var(--light-bg);
+}
+
+.order-card-header .order-number {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.order-card-header .order-date {
+    color: var(--gray-text);
+    font-size: 0.82rem;
+}
+
+.order-status {
+    padding: 5px 14px;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    letter-spacing: 0.3px;
+}
+
+.order-status.processing { background: rgba(212, 175, 55, 0.15); color: #a5821f; }
+.order-status.shipped    { background: rgba(52, 152, 219, 0.15); color: #2980b9; }
+.order-status.delivered  { background: rgba(39, 174, 96, 0.15); color: #1e8449; }
+.order-status.cancelled  { background: rgba(231, 76, 60, 0.15); color: #c0392b; }
+
+.order-card-body {
+    padding: 18px 22px;
+}
+
+.order-line-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 8px 0;
+}
+
+.order-line-item img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: var(--light-bg);
+}
+
+.order-line-item .item-name {
+    flex: 1;
+    font-size: 0.9rem;
+}
+
+.order-line-item .item-qty {
+    color: var(--gray-text);
+    font-size: 0.82rem;
+}
+
+.order-line-item .item-price {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.order-card-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 14px 22px;
+    border-top: 1px solid var(--border-color);
+    font-weight: 600;
+}
+
+.orders-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--gray-text);
+}
+
+.orders-empty i {
+    font-size: 2.5rem;
+    color: var(--border-color);
+    margin-bottom: 16px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+    .dashboard-layout {
+        grid-template-columns: 1fr;
+    }
+    .dashboard-sidebar {
+        position: static;
+    }
+    .dashboard-content {
+        padding: 25px;
+    }
+}

@@ -31,97 +31,89 @@ document.addEventListener('DOMContentLoaded', () => {
     // Checkout form submission
     const checkoutForm = document.getElementById('checkoutForm');
     if (checkoutForm) {
-        checkoutForm.addEventListener('submit', (e) => {
+        checkoutForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             // Validate form
-            if (validateCheckoutForm()) {
-                // Show loading state
-                const btn = checkoutForm.querySelector('.checkout-btn');
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing Order...';
-                btn.disabled = true;
-                
-                // Simulate payment processing
-                setTimeout(() => {
-                    // Create persistent order object for logged-in user
-                    const isLoggedIn = localStorage.getItem('luxe_logged_in') === 'true';
-                    const storedUser = localStorage.getItem('luxe_user');
-                    const cartItems = getCheckoutCartItems();
-                    
-                    let orderTotal = 0;
-                    const itemsList = cartItems.map(item => {
-                        const prod = getProduct(item.id);
-                        if (prod) {
-                            orderTotal += prod.price * item.quantity;
-                        }
-                        return {
-                            id: item.id,
-                            name: prod ? prod.name : 'Product',
-                            price: prod ? prod.price : 0,
-                            quantity: item.quantity,
-                            image: prod ? prod.image : ''
-                        };
-                    });
+            if (!validateCheckoutForm()) return;
 
-                    const shippingCost = orderTotal > 200 ? 0 : 15;
-                    const taxCost = orderTotal * 0.08;
-                    const finalTotal = orderTotal + shippingCost + taxCost;
-                    const orderNum = 'LX-' + Math.floor(100000 + Math.random() * 900000);
-                    const currentDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            // Orders are tied to a real account so Row Level Security
+            // can guarantee only this user can ever read them back.
+            const currentUser = (window.LuxeAuth && window.LuxeAuth.isReady())
+                ? await window.LuxeAuth.getCurrentUser()
+                : null;
 
-                    if (isLoggedIn && storedUser) {
-                        const user = JSON.parse(storedUser);
-                        const userId = user.email;
-                        const userOrdersKey = `luxe_orders_${userId}`;
-                        const userNotiKey = `luxe_notifications_${userId}`;
+            if (!currentUser) {
+                showCheckoutError('Please sign in before placing your order.');
+                setTimeout(() => { window.location.href = 'login.html'; }, 1500);
+                return;
+            }
 
-                        const existingOrders = JSON.parse(localStorage.getItem(userOrdersKey) || '[]');
-                        const newOrder = {
-                            id: 'ord_' + Date.now(),
-                            orderNumber: orderNum,
-                            date: currentDate,
-                            items: itemsList,
-                            totalAmount: finalTotal,
-                            paymentStatus: 'Paid',
-                            orderStatus: 'Processing',
-                            shippingAddress: 'Default Address'
-                        };
-                        existingOrders.unshift(newOrder);
-                        localStorage.setItem(userOrdersKey, JSON.stringify(existingOrders));
+            // Show loading state
+            const btn = checkoutForm.querySelector('.checkout-btn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing Order...';
+            btn.disabled = true;
 
-                        // Create order confirmation notification
-                        const existingNotis = JSON.parse(localStorage.getItem(userNotiKey) || '[]');
-                        existingNotis.unshift({
-                            id: 'noti_' + Date.now(),
-                            title: `Order ${orderNum} Confirmed! 🎉`,
-                            message: `Your order for $${finalTotal.toFixed(2)} has been placed and is currently being processed.`,
-                            date: currentDate,
-                            unread: true
-                        });
-                        localStorage.setItem(userNotiKey, JSON.stringify(existingNotis));
-                    }
+            const cartItems = getCheckoutCartItems();
 
-                    // Clear cart
-                    localStorage.removeItem('luxe_cart');
-                    if (typeof updateCartCount === 'function') updateCartCount();
-                    
-                    // Show success message
-                    const orderSummary = document.querySelector('.checkout-grid');
-                    if (orderSummary) {
-                        orderSummary.innerHTML = `
-                            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: #ffffff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
-                                <i class="fas fa-check-circle" style="font-size: 4.5rem; color: #27AE60; margin-bottom: 20px;"></i>
-                                <h2 style="font-family: 'Playfair Display', serif; font-size: 2.2rem; margin-bottom: 15px;">Order Placed Successfully!</h2>
-                                <p style="color: #777777; font-size: 1.1rem; max-width: 500px; margin: 0 auto 20px;">Thank you for your order (<strong>${orderNum}</strong>). We have sent a confirmation details to your account dashboard.</p>
-                                <div style="display: flex; gap: 15px; justify-content: center; margin-top: 25px;">
-                                    <a href="dashboard.html#orders" class="btn btn-primary" style="padding: 14px 30px; border-radius: 30px; text-decoration: none;"><i class="fas fa-box"></i> Track Order in Dashboard</a>
-                                    <a href="shop.html" class="btn btn-outline" style="padding: 14px 30px; border-radius: 30px; text-decoration: none;">Continue Shopping</a>
-                                </div>
-                            </div>
-                        `;
-                    }
-                }, 2000);
+            let orderTotal = 0;
+            const itemsList = cartItems.map(item => {
+                const prod = getProduct(item.id);
+                if (prod) orderTotal += prod.price * item.quantity;
+                return {
+                    id: item.id,
+                    name: prod ? prod.name : 'Product',
+                    price: prod ? prod.price : 0,
+                    quantity: item.quantity,
+                    image: prod ? prod.image : ''
+                };
+            });
+
+            const shippingCost = orderTotal > 200 ? 0 : 15;
+            const taxCost = orderTotal * 0.08;
+            const finalTotal = orderTotal + shippingCost + taxCost;
+
+            const shippingAddress = {
+                firstName: document.getElementById('firstName')?.value || '',
+                lastName: document.getElementById('lastName')?.value || '',
+                address: document.getElementById('address')?.value || '',
+                city: document.getElementById('city')?.value || '',
+                state: document.getElementById('state')?.value || '',
+                zip: document.getElementById('zip')?.value || ''
+            };
+
+            const { data: order, error } = await window.LuxeOrders.createOrder(
+                currentUser.id,
+                itemsList,
+                { subtotal: orderTotal, shipping: shippingCost, tax: taxCost, total: finalTotal },
+                shippingAddress
+            );
+
+            if (error) {
+                btn.innerHTML = 'Place Order';
+                btn.disabled = false;
+                showCheckoutError('Could not place order: ' + error.message);
+                return;
+            }
+
+            // Clear cart
+            localStorage.removeItem('luxe_cart');
+            if (typeof updateCartCount === 'function') updateCartCount();
+
+            // Show success message
+            const orderSummary = document.querySelector('.checkout-grid');
+            if (orderSummary) {
+                orderSummary.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: #ffffff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
+                        <i class="fas fa-check-circle" style="font-size: 4.5rem; color: #27AE60; margin-bottom: 20px;"></i>
+                        <h2 style="font-family: 'Playfair Display', serif; font-size: 2.2rem; margin-bottom: 15px;">Order Placed Successfully!</h2>
+                        <p style="color: #777777; font-size: 1.1rem; max-width: 500px; margin: 0 auto 20px;">Thank you for your order (<strong>${order.order_number}</strong>). A confirmation has been saved to your account.</p>
+                        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 25px;">
+                            <a href="dashboard.html" class="btn btn-primary" style="padding: 14px 30px; border-radius: 30px; text-decoration: none;"><i class="fas fa-box"></i> Track Order in Dashboard</a>
+                            <a href="shop.html" class="btn btn-outline" style="padding: 14px 30px; border-radius: 30px; text-decoration: none;">Continue Shopping</a>
+                        </div>
+                    </div>
+                `;
             }
         });
     }
