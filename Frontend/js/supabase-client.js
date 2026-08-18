@@ -16,7 +16,7 @@
 // SUPABASE CONFIG
 // ---------------------------------------------------------------------
 
-const SUPABASE_URL = "https://unvonqbgvvaygcgsrwuk.supabase.co";
+const SUPABASE_URL = "https://usqnacxmcbewifgmrtjs.supabase.co";
 
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzcW5hY3htY2Jld2lmZ21ydGpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwNDUzMjAsImV4cCI6MjEwMjYyMTMyMH0.ucHyOGcAIgtlEI14U5yv5sMVSGpn7w3YoOGc6RdIjK0";
