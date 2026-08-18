@@ -5,7 +5,8 @@
 // instead of touching `supabase` directly — that way, if you ever
 // swap backends, you only edit this file.
 
-const SUPABASE_URL = 'https://unvonqbgvvaygcgsrwuk.supabase.co';
+const SUPABASE_URL =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzcW5hY3htY2Jld2lmZ21ydGpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwNDUzMjAsImV4cCI6MjEwMjYyMTMyMH0.ucHyOGcAIgtlEI14U5yv5sMVSGpn7w3YoOGc6RdIjK0";
 const SUPABASE_ANON_KEY = "sb_publishable_rBA9ruxeuWSQ-3_Ao7rlyg_w3MQuKFz";
 
 // This "anon key" is SAFE to have visible in frontend code — it's not
