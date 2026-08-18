@@ -1,342 +1,367 @@
-// js/auth.js - Authentication Logic
-// Talks to Supabase (via js/supabase-client.js) for real accounts.
-// No passwords are ever stored in localStorage anymore — localStorage
-// only holds a small "display cache" (name/email) so the rest of the
-// site (cart.js, wishlist.js) can keep working exactly as before.
+// js/auth.js - LUXE authentication UI
+//
+// Signup uses Supabase email CONFIRMATION LINKS, not six-digit signup OTPs.
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Hide loader
-    const loader = document.getElementById('loader');
-    if (loader) {
-        setTimeout(() => {
-            loader.style.display = 'none';
-        }, 300);
+document.addEventListener("DOMContentLoaded", () => {
+  const loader = document.getElementById("loader");
+
+  if (loader) {
+    setTimeout(() => {
+      loader.style.display = "none";
+    }, 300);
+  }
+
+  function cacheSession(user) {
+    if (user) {
+      localStorage.setItem(
+        "luxe_user",
+        JSON.stringify({
+          id: user.id,
+          email: user.email,
+          fullName: user.user_metadata?.full_name || "",
+        }),
+      );
+      localStorage.setItem("luxe_logged_in", "true");
+    } else {
+      localStorage.removeItem("luxe_user");
+      localStorage.removeItem("luxe_logged_in");
     }
 
-    // Email pending verification (set after signUp, used by the OTP step)
-    let pendingEmail = null;
+    updateHeaderUserIcon(!!user);
+  }
 
-    // Keep the localStorage "display cache" in sync with the real
-    // Supabase session so cart.js / wishlist.js / the header user-icon
-    // keep working unchanged.
-    function cacheSession(user) {
-        if (user) {
-            localStorage.setItem('luxe_user', JSON.stringify({
-                id: user.id,
-                email: user.email,
-                fullName: (user.user_metadata && user.user_metadata.full_name) || ''
-            }));
-            localStorage.setItem('luxe_logged_in', 'true');
-        } else {
-            localStorage.removeItem('luxe_user');
-            localStorage.removeItem('luxe_logged_in');
-        }
-    }
+  async function initializeAuthState() {
+    if (!window.LuxeAuth || !window.LuxeAuth.isReady()) return;
 
-    if (window.LuxeAuth && window.LuxeAuth.isReady()) {
-        window.LuxeAuth.getCurrentUser().then(cacheSession);
-        window.LuxeAuth.onAuthStateChange(cacheSession);
-    }
+    const user = await window.LuxeAuth.getCurrentUser();
+    cacheSession(user);
 
-    // ===================================================================
-    // SIGN UP
-    // ===================================================================
-    const signupForm = document.getElementById('signupForm');
-    const otpModal = document.getElementById('otpModal');
-    const otpForm = document.getElementById('otpForm');
-    const otpDigits = document.querySelectorAll('.otp-digit');
-
-    if (signupForm) {
-        signupForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const fullNameEl = document.getElementById('fullName');
-            const emailEl = document.getElementById('email');
-            const passwordEl = document.getElementById('password');
-            const confirmPasswordEl = document.getElementById('confirmPassword');
-            const termsEl = document.getElementById('terms');
-
-            const fullName = fullNameEl ? fullNameEl.value.trim() : '';
-            const email = emailEl ? emailEl.value.trim() : '';
-            const password = passwordEl ? passwordEl.value : '';
-            const confirmPassword = confirmPasswordEl ? confirmPasswordEl.value : '';
-            const terms = termsEl ? termsEl.checked : false;
-
-            if (!fullName || !email || !password || !confirmPassword) {
-                showAuthError('Please fill in all fields');
-                return;
-            }
-            if (password.length < 8) {
-                showAuthError('Password must be at least 8 characters');
-                return;
-            }
-            if (password !== confirmPassword) {
-                showAuthError('Passwords do not match');
-                return;
-            }
-            if (!terms) {
-                showAuthError('Please agree to the Terms of Service');
-                return;
-            }
-            if (!window.LuxeAuth || !window.LuxeAuth.isReady()) {
-                showAuthError('Account service is unavailable right now. Please try again later.');
-                return;
-            }
-
-            const submitBtn = signupForm.querySelector('button[type="submit"]');
-            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Creating account...'; }
-
-            const { error } = await window.LuxeAuth.signUp(email, password, fullName);
-
-            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Create Account'; }
-
-            if (error) {
-                showAuthError(error.message || 'Could not create account. Please try again.');
-                return;
-            }
-
-            pendingEmail = email;
-
-            // Show the verification modal. We no longer display a fake
-            // "demo code" — Supabase has emailed a real 6-digit code.
-            const targetEmail = document.getElementById('verifyEmailTarget');
-            if (targetEmail) targetEmail.textContent = email;
-            const demoBanner = document.querySelector('.simulated-code-banner');
-            if (demoBanner) demoBanner.style.display = 'none';
-
-            if (otpModal) {
-                otpModal.classList.add('active');
-                if (otpDigits.length > 0) otpDigits[0].focus();
-            }
-        });
-    }
-
-    // OTP digit auto-advance
-    otpDigits.forEach((digit, index) => {
-        digit.addEventListener('input', (e) => {
-            if (e.target.value.length === 1 && index < otpDigits.length - 1) {
-                otpDigits[index + 1].focus();
-            }
-        });
-        digit.addEventListener('keydown', (e) => {
-            if (e.key === 'Backspace' && !e.target.value && index > 0) {
-                otpDigits[index - 1].focus();
-            }
-        });
+    window.LuxeAuth.onAuthStateChange((nextUser) => {
+      cacheSession(nextUser);
     });
+  }
 
-    const closeOtpBtn = document.getElementById('closeOtpModal');
-    if (closeOtpBtn && otpModal) {
-        closeOtpBtn.addEventListener('click', () => {
-            otpModal.classList.remove('active');
-        });
-    }
+  initializeAuthState();
 
-    // OTP verification submit
-    if (otpForm) {
-        otpForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+  // ---------------------------------------------------------------
+  // EMAIL CONFIRMATION REDIRECT FEEDBACK
+  // ---------------------------------------------------------------
 
-            let enteredOtp = '';
-            otpDigits.forEach(input => enteredOtp += input.value.trim());
+  const query = new URLSearchParams(window.location.search);
 
-            if (!pendingEmail) {
-                showAuthError('Session expired. Please try signing up again.');
-                if (otpModal) otpModal.classList.remove('active');
-                return;
-            }
-            if (enteredOtp.length !== 6) {
-                alert('Please enter the full 6-digit code.');
-                return;
-            }
+  if (query.get("verified") === "true") {
+    showAuthSuccess("Email verified successfully. You can now sign in.");
 
-            const submitBtn = otpForm.querySelector('button[type="submit"]');
-            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Verifying...'; }
+    // Remove the marker without reloading so refreshing does not show
+    // the same message forever.
+    query.delete("verified");
+    const cleanQuery = query.toString();
+    const cleanUrl =
+      window.location.pathname +
+      (cleanQuery ? `?${cleanQuery}` : "") +
+      window.location.hash;
 
-            const { data, error } = await window.LuxeAuth.verifySignupOtp(pendingEmail, enteredOtp);
+    window.history.replaceState({}, "", cleanUrl);
+  }
 
-            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Verify Account'; }
+  // ---------------------------------------------------------------
+  // SIGN UP
+  // ---------------------------------------------------------------
 
-            if (error) {
-                alert('Invalid or expired code. Please check your email and try again, or resend the code.');
-                return;
-            }
+  const signupForm = document.getElementById("signupForm");
 
-            if (data && data.user) cacheSession(data.user);
-            if (otpModal) otpModal.classList.remove('active');
+  if (signupForm) {
+    signupForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
 
-            showAuthSuccess('Account verified & created successfully! Redirecting...');
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1500);
-        });
-    }
+      const fullName = document.getElementById("fullName")?.value.trim() || "";
+      const email = document.getElementById("email")?.value.trim() || "";
+      const password = document.getElementById("password")?.value || "";
+      const confirmPassword =
+        document.getElementById("confirmPassword")?.value || "";
+      const terms = document.getElementById("terms")?.checked || false;
 
-    // Resend OTP
-    const resendBtn = document.getElementById('resendOtpBtn');
-    if (resendBtn) {
-        resendBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            if (!pendingEmail) return;
-            const { error } = await window.LuxeAuth.resendSignupOtp(pendingEmail);
-            if (error) {
-                alert('Could not resend the code: ' + error.message);
-            } else {
-                alert('A new verification code has been sent to ' + pendingEmail);
-            }
-        });
-    }
+      if (!fullName || !email || !password || !confirmPassword) {
+        showAuthError("Please fill in all fields.");
+        return;
+      }
 
-    // ===================================================================
-    // MAGIC LINK / OTP LOGIN
-    // ===================================================================
-    const magicLinkBtn = document.getElementById('sendMagicLinkBtn');
-    if (magicLinkBtn) {
-        magicLinkBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            const emailEl = document.getElementById('loginEmail');
-            const email = emailEl ? emailEl.value.trim() : '';
+      if (password.length < 8) {
+        showAuthError("Password must be at least 8 characters.");
+        return;
+      }
 
-            if (!email) {
-                showAuthError('Please enter your email address to receive a Magic Link.');
-                return;
-            }
-            if (!window.LuxeAuth || !window.LuxeAuth.isReady()) {
-                showAuthError('Account service is unavailable right now.');
-                return;
-            }
+      if (password !== confirmPassword) {
+        showAuthError("Passwords do not match.");
+        return;
+      }
 
-            const { error } = await window.LuxeAuth.signInWithMagicLink(email);
-            if (error) {
-                showAuthError(error.message);
-            } else {
-                showAuthSuccess('✨ Magic Link sent! Please check your email inbox.');
-            }
-        });
-    }
+      if (!terms) {
+        showAuthError("Please agree to the Terms of Service.");
+        return;
+      }
 
-    // ===================================================================
-    // LOGIN
-    // ===================================================================
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+      if (!window.LuxeAuth || !window.LuxeAuth.isReady()) {
+        showAuthError("Account service is unavailable right now.");
+        return;
+      }
 
-            const emailEl = document.getElementById('loginEmail');
-            const passwordEl = document.getElementById('loginPassword');
+      const submitButton = signupForm.querySelector('button[type="submit"]');
 
-            const email = emailEl ? emailEl.value.trim() : '';
-            const password = passwordEl ? passwordEl.value : '';
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Creating account...";
+      }
 
-            if (!email || !password) {
-                showAuthError('Please fill in all fields');
-                return;
-            }
-            if (!window.LuxeAuth || !window.LuxeAuth.isReady()) {
-                showAuthError('Account service is unavailable right now.');
-                return;
-            }
+      const { error } = await window.LuxeAuth.signUp(
+        email,
+        password,
+        fullName,
+      );
 
-            const submitBtn = document.getElementById('standardLoginBtn');
-            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Signing in...'; }
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = "Create Account";
+      }
 
-            const { data, error } = await window.LuxeAuth.signInWithPassword(email, password);
+      if (error) {
+        showAuthError(error.message || "Could not create account.");
+        return;
+      }
 
-            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Sign In'; }
+      showAuthSuccess(
+        "Account created. Check your email and click the confirmation link to verify your account.",
+      );
 
-            if (error) {
-                showAuthError('Invalid email or password');
-                return;
-            }
-
-            if (data && data.user) cacheSession(data.user);
-
-            showAuthSuccess('Welcome back! Redirecting...');
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1500);
-        });
-    }
-
-    // Password toggle visibility
-    document.querySelectorAll('.toggle-password').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const wrapper = btn.closest('.password-input-wrapper');
-            if (!wrapper) return;
-            const input = wrapper.querySelector('input');
-            const icon = btn.querySelector('i');
-            if (!input || !icon) return;
-
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.className = 'fas fa-eye-slash';
-            } else {
-                input.type = 'password';
-                icon.className = 'fas fa-eye';
-            }
-        });
+      signupForm.reset();
     });
+  }
 
-    // Check login status for the header user icon
-    const isLoggedIn = localStorage.getItem('luxe_logged_in') === 'true';
-    const userIcons = document.querySelectorAll('.user-icon');
-    userIcons.forEach(userIcon => {
-        if (isLoggedIn) {
-            userIcon.innerHTML = '<i class="fas fa-user-check"></i>';
-            userIcon.title = 'My Account';
-            userIcon.href = 'dashboard.html';
-        } else {
-            userIcon.href = 'signup.html';
-        }
+  // ---------------------------------------------------------------
+  // OPTIONAL RESEND CONFIRMATION BUTTON
+  //
+  // If you later add a button with id="resendConfirmationBtn" and an
+  // email input with id="email", this works automatically.
+  // ---------------------------------------------------------------
+
+  const resendConfirmationButton = document.getElementById(
+    "resendConfirmationBtn",
+  );
+
+  if (resendConfirmationButton) {
+    resendConfirmationButton.addEventListener("click", async (event) => {
+      event.preventDefault();
+
+      const email = document.getElementById("email")?.value.trim() || "";
+
+      if (!email) {
+        showAuthError("Enter your email address first.");
+        return;
+      }
+
+      const { error } =
+        await window.LuxeAuth.resendSignupConfirmation(email);
+
+      if (error) {
+        showAuthError(error.message || "Could not resend confirmation email.");
+        return;
+      }
+
+      showAuthSuccess("A new confirmation link has been sent.");
     });
+  }
+
+  // ---------------------------------------------------------------
+  // MAGIC-LINK LOGIN
+  // ---------------------------------------------------------------
+
+  const magicLinkButton = document.getElementById("sendMagicLinkBtn");
+
+  if (magicLinkButton) {
+    magicLinkButton.addEventListener("click", async (event) => {
+      event.preventDefault();
+
+      const email =
+        document.getElementById("loginEmail")?.value.trim() || "";
+
+      if (!email) {
+        showAuthError("Enter your email address first.");
+        return;
+      }
+
+      if (!window.LuxeAuth || !window.LuxeAuth.isReady()) {
+        showAuthError("Account service is unavailable right now.");
+        return;
+      }
+
+      magicLinkButton.disabled = true;
+
+      const originalHtml = magicLinkButton.innerHTML;
+      magicLinkButton.textContent = "Sending...";
+
+      const { error } = await window.LuxeAuth.signInWithMagicLink(email);
+
+      magicLinkButton.disabled = false;
+      magicLinkButton.innerHTML = originalHtml;
+
+      if (error) {
+        showAuthError(error.message || "Could not send sign-in link.");
+        return;
+      }
+
+      showAuthSuccess("Sign-in link sent. Check your email.");
+    });
+  }
+
+  // ---------------------------------------------------------------
+  // PASSWORD LOGIN
+  // ---------------------------------------------------------------
+
+  const loginForm = document.getElementById("loginForm");
+
+  if (loginForm) {
+    loginForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const email =
+        document.getElementById("loginEmail")?.value.trim() || "";
+      const password =
+        document.getElementById("loginPassword")?.value || "";
+
+      if (!email || !password) {
+        showAuthError("Please fill in all fields.");
+        return;
+      }
+
+      if (!window.LuxeAuth || !window.LuxeAuth.isReady()) {
+        showAuthError("Account service is unavailable right now.");
+        return;
+      }
+
+      const submitButton = document.getElementById("standardLoginBtn");
+
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Signing in...";
+      }
+
+      const { data, error } = await window.LuxeAuth.signInWithPassword(
+        email,
+        password,
+      );
+
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = "Sign In";
+      }
+
+      if (error) {
+        showAuthError(error.message || "Invalid email or password.");
+        return;
+      }
+
+      if (data?.user) {
+        cacheSession(data.user);
+      }
+
+      showAuthSuccess("Welcome back! Redirecting...");
+
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 1000);
+    });
+  }
+
+  // ---------------------------------------------------------------
+  // PASSWORD VISIBILITY
+  // ---------------------------------------------------------------
+
+  document.querySelectorAll(".toggle-password").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+
+      const wrapper = button.closest(".password-input-wrapper");
+      const input = wrapper?.querySelector("input");
+      const icon = button.querySelector("i");
+
+      if (!input || !icon) return;
+
+      if (input.type === "password") {
+        input.type = "text";
+        icon.className = "fas fa-eye-slash";
+      } else {
+        input.type = "password";
+        icon.className = "fas fa-eye";
+      }
+    });
+  });
+
+  // Initial icon state while Supabase session lookup runs.
+  updateHeaderUserIcon(
+    localStorage.getItem("luxe_logged_in") === "true",
+  );
 });
 
-// Helper functions
-function showAuthError(message) {
-    const existing = document.querySelector('.auth-message');
-    if (existing) existing.remove();
-
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'auth-message error';
-    errorDiv.style.cssText = `
-        background: #E74C3C;
-        color: white;
-        padding: 12px 16px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        font-weight: 500;
-    `;
-    errorDiv.textContent = message;
-
-    const form = document.querySelector('.auth-form');
-    if (form) {
-        form.insertBefore(errorDiv, form.firstChild);
+function updateHeaderUserIcon(isLoggedIn) {
+  document.querySelectorAll(".user-icon").forEach((userIcon) => {
+    if (isLoggedIn) {
+      userIcon.innerHTML = '<i class="fas fa-user-check"></i>';
+      userIcon.title = "My Account";
+      userIcon.href = "dashboard.html";
+    } else {
+      userIcon.innerHTML = '<i class="fas fa-user"></i>';
+      userIcon.title = "Sign Up";
+      userIcon.href = "signup.html";
     }
+  });
+}
 
-    setTimeout(() => errorDiv.remove(), 4000);
+function showAuthError(message) {
+  const existing = document.querySelector(".auth-message");
+  if (existing) existing.remove();
+
+  const messageElement = document.createElement("div");
+  messageElement.className = "auth-message error";
+  messageElement.style.cssText = `
+    background: #E74C3C;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: 500;
+  `;
+  messageElement.textContent = message;
+
+  const form = document.querySelector(".auth-form");
+
+  if (form) {
+    form.insertBefore(messageElement, form.firstChild);
+  }
+
+  setTimeout(() => messageElement.remove(), 6000);
 }
 
 function showAuthSuccess(message) {
-    const existing = document.querySelector('.auth-message');
-    if (existing) existing.remove();
+  const existing = document.querySelector(".auth-message");
+  if (existing) existing.remove();
 
-    const successDiv = document.createElement('div');
-    successDiv.className = 'auth-message success';
-    successDiv.style.cssText = `
-        background: #27AE60;
-        color: white;
-        padding: 12px 16px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        font-weight: 500;
-    `;
-    successDiv.textContent = message;
+  const messageElement = document.createElement("div");
+  messageElement.className = "auth-message success";
+  messageElement.style.cssText = `
+    background: #27AE60;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: 500;
+  `;
+  messageElement.textContent = message;
 
-    const form = document.querySelector('.auth-form');
-    if (form) {
-        form.insertBefore(successDiv, form.firstChild);
-    }
+  const form = document.querySelector(".auth-form");
+
+  if (form) {
+    form.insertBefore(messageElement, form.firstChild);
+  }
+
+  setTimeout(() => messageElement.remove(), 8000);
 }

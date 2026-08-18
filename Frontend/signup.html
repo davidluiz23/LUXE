@@ -4,21 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up | LUXE Premium Clothing</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/auth.css">
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
+
 <body>
     <div id="loader"><div class="loader-spinner"></div></div>
 
     <header id="navbar">
         <div class="container nav-container">
-            <div class="logo"><a href="index.html"><span>LUXE</span></a></div>
+            <div class="logo">
+                <a href="index.html"><span>LUXE</span></a>
+            </div>
+
             <nav class="nav-links" id="navLinks">
                 <ul>
                     <li><a href="index.html">Home</a></li>
@@ -29,14 +35,24 @@
                     <li><a href="contact.html">Contact</a></li>
                 </ul>
             </nav>
+
             <div class="nav-icons">
                 <a href="#" class="search-icon" id="searchToggle"><i class="fas fa-search"></i></a>
-                <a href="wishlist.html" class="wishlist-icon"><i class="fas fa-heart"></i><span class="wishlist-count">0</span></a>
-                <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-bag"></i><span class="cart-count">0</span></a>
+                <a href="wishlist.html" class="wishlist-icon">
+                    <i class="fas fa-heart"></i>
+                    <span class="wishlist-count">0</span>
+                </a>
+                <a href="cart.html" class="cart-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="cart-count">0</span>
+                </a>
                 <a href="signup.html" class="user-icon"><i class="fas fa-user"></i></a>
-                <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+                <div class="hamburger" id="hamburger">
+                    <span></span><span></span><span></span>
+                </div>
             </div>
         </div>
+
         <div class="mobile-menu" id="mobileMenu">
             <div class="mobile-close" id="mobileClose"><i class="fas fa-times"></i></div>
             <ul>
@@ -58,42 +74,95 @@
             <div class="auth-container">
                 <div class="auth-form-wrapper">
                     <h1>Create Account</h1>
-                    <p class="auth-subtitle">Join LUXE and enjoy exclusive benefits</p>
+                    <p class="auth-subtitle">
+                        Join LUXE and enjoy exclusive benefits
+                    </p>
+
                     <form id="signupForm" class="auth-form">
                         <div class="form-group">
                             <label for="fullName">Full Name</label>
-                            <input type="text" id="fullName" placeholder="John Doe" required>
+                            <input
+                                type="text"
+                                id="fullName"
+                                placeholder="John Doe"
+                                autocomplete="name"
+                                required
+                            >
                         </div>
+
                         <div class="form-group">
                             <label for="email">Email Address</label>
-                            <input type="email" id="email" placeholder="john@example.com" required>
+                            <input
+                                type="email"
+                                id="email"
+                                placeholder="john@example.com"
+                                autocomplete="email"
+                                required
+                            >
                         </div>
+
                         <div class="form-group">
                             <label for="password">Password</label>
                             <div class="password-input-wrapper">
-                                <input type="password" id="password" placeholder="Min 8 characters" required minlength="8">
-                                <button type="button" class="toggle-password"><i class="fas fa-eye"></i></button>
+                                <input
+                                    type="password"
+                                    id="password"
+                                    placeholder="Min 8 characters"
+                                    autocomplete="new-password"
+                                    minlength="8"
+                                    required
+                                >
+                                <button type="button" class="toggle-password" aria-label="Show password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                             </div>
                         </div>
+
                         <div class="form-group">
                             <label for="confirmPassword">Confirm Password</label>
                             <div class="password-input-wrapper">
-                                <input type="password" id="confirmPassword" placeholder="Confirm your password" required>
-                                <button type="button" class="toggle-password"><i class="fas fa-eye"></i></button>
+                                <input
+                                    type="password"
+                                    id="confirmPassword"
+                                    placeholder="Confirm your password"
+                                    autocomplete="new-password"
+                                    minlength="8"
+                                    required
+                                >
+                                <button type="button" class="toggle-password" aria-label="Show password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                             </div>
                         </div>
+
                         <div class="form-group checkbox-group">
                             <input type="checkbox" id="terms" required>
-                            <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+                            <label for="terms">
+                                I agree to the <a href="#">Terms of Service</a>
+                                and <a href="#">Privacy Policy</a>
+                            </label>
                         </div>
-                        <button type="submit" class="btn btn-primary auth-btn">Create Account</button>
-                        <p class="auth-switch">Already have an account? <a href="login.html">Sign In</a></p>
+
+                        <button type="submit" class="btn btn-primary auth-btn">
+                            Create Account
+                        </button>
+
+                        <p class="auth-switch">
+                            Already have an account?
+                            <a href="login.html">Sign In</a>
+                        </p>
                     </form>
                 </div>
+
                 <div class="auth-image">
                     <div class="auth-image-content">
                         <h2>Welcome to LUXE</h2>
-                        <p>Join our community of style enthusiasts and get access to exclusive collections, early access to sales, and personalized recommendations.</p>
+                        <p>
+                            Join our community of style enthusiasts and get access
+                            to exclusive collections, early access to sales, and
+                            personalized recommendations.
+                        </p>
+
                         <div class="auth-benefits">
                             <div><i class="fas fa-gift"></i> Welcome 15% off</div>
                             <div><i class="fas fa-truck"></i> Free shipping on $200+</div>
@@ -104,33 +173,6 @@
             </div>
         </div>
     </section>
-
-    <!-- Verification Modal -->
-    <div id="otpModal" class="otp-modal">
-        <div class="otp-modal-content">
-            <button type="button" id="closeOtpModal" class="otp-close">&times;</button>
-            <div class="otp-icon"><i class="fas fa-shield-alt"></i></div>
-            <h2>Verify Your Email</h2>
-            <p>We've sent a 6-digit verification code to <strong id="verifyEmailTarget">user@example.com</strong></p>
-            
-            <div class="simulated-code-banner">
-                <span>Demo Code:</span> <strong id="demoCodeDisplay">123456</strong>
-            </div>
-
-            <form id="otpForm" class="otp-form">
-                <div class="otp-inputs">
-                    <input type="text" maxlength="1" class="otp-digit" pattern="\d" required autofocus>
-                    <input type="text" maxlength="1" class="otp-digit" pattern="\d" required>
-                    <input type="text" maxlength="1" class="otp-digit" pattern="\d" required>
-                    <input type="text" maxlength="1" class="otp-digit" pattern="\d" required>
-                    <input type="text" maxlength="1" class="otp-digit" pattern="\d" required>
-                    <input type="text" maxlength="1" class="otp-digit" pattern="\d" required>
-                </div>
-                <button type="submit" class="btn btn-primary auth-btn">Verify Account</button>
-            </form>
-            <p class="otp-resend">Didn't receive code? <a href="#" id="resendOtpBtn">Resend Code</a></p>
-        </div>
-    </div>
 
     <footer>
         <div class="container footer-grid">
@@ -143,6 +185,7 @@
                     <a href="#"><i class="fab fa-twitter"></i></a>
                 </div>
             </div>
+
             <div class="footer-col">
                 <h4>Quick Links</h4>
                 <a href="index.html">Home</a>
@@ -152,6 +195,7 @@
                 <a href="about.html">About</a>
                 <a href="contact.html">Contact</a>
             </div>
+
             <div class="footer-col">
                 <h4>Support</h4>
                 <a href="#">FAQ</a>
@@ -159,6 +203,7 @@
                 <a href="#">Shipping</a>
                 <a href="#">Privacy</a>
             </div>
+
             <div class="footer-col">
                 <h4>Contact</h4>
                 <p><i class="fas fa-map-marker-alt"></i> Lagos, Nigeria</p>
@@ -166,10 +211,15 @@
                 <p><i class="fas fa-envelope"></i> hello@luxe.com</p>
             </div>
         </div>
-        <div class="footer-bottom"><p>&copy; 2026 LUXE. All rights reserved.</p></div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2026 LUXE. All rights reserved.</p>
+        </div>
     </footer>
 
-    <button id="backToTop" class="back-to-top"><i class="fas fa-arrow-up"></i></button>
+    <button id="backToTop" class="back-to-top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-client.js"></script>

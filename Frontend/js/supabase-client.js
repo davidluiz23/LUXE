@@ -1,18 +1,16 @@
 // js/supabase-client.js
 //
 // Central Supabase client for LUXE.
-// All direct communication with Supabase should happen through this file.
+// Frontend code talks to Supabase through the window.Luxe* APIs below.
 //
-// Other frontend files should use:
-//   window.LuxeAuth
-//   window.LuxeProfile
-//   window.LuxeOrders
-//
-// Do NOT redeclare a global variable named `supabase` here because the
-// Supabase CDN already exposes `window.supabase`.
+// IMPORTANT:
+// - The Supabase CDN owns `window.supabase`.
+// - This file uses `supabaseClient` to avoid the old global-name collision.
+// - The anon/publishable key is intentionally public. RLS protects the data.
+// - NEVER place a service_role/secret key in frontend code.
 
 // ---------------------------------------------------------------------
-// SUPABASE CONFIGURATION
+// CONFIG
 // ---------------------------------------------------------------------
 
 const SUPABASE_URL = "https://usqnacxmcbewifgmrtjs.supabase.co";
@@ -20,29 +18,22 @@ const SUPABASE_URL = "https://usqnacxmcbewifgmrtjs.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzcW5hY3htY2Jld2lmZ21ydGpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwNDUzMjAsImV4cCI6MjEwMjYyMTMyMH0.ucHyOGcAIgtlEI14U5yv5sMVSGpn7w3YoOGc6RdIjK0";
 
-// The anon / publishable key is safe to expose in frontend code.
-// Security should be enforced through Supabase Row Level Security (RLS).
-//
-// NEVER put the Supabase service_role key in frontend code.
-
-// ---------------------------------------------------------------------
-// CONFIGURATION CHECK
-// ---------------------------------------------------------------------
-
-const isSupabaseConfigured = () => {
-  return (
-    typeof SUPABASE_URL === "string" &&
-    typeof SUPABASE_ANON_KEY === "string" &&
-    SUPABASE_URL.length > 0 &&
-    SUPABASE_ANON_KEY.length > 0 &&
-    !SUPABASE_URL.includes("YOUR_SUPABASE") &&
-    !SUPABASE_ANON_KEY.includes("YOUR_SUPABASE") &&
-    !SUPABASE_ANON_KEY.includes("PASTE_YOUR")
+const isSupabaseConfigured = () =>
+  Boolean(
+    SUPABASE_URL &&
+      SUPABASE_ANON_KEY &&
+      !SUPABASE_URL.includes("YOUR_SUPABASE") &&
+      !SUPABASE_ANON_KEY.includes("YOUR_SUPABASE") &&
+      !SUPABASE_ANON_KEY.includes("PASTE_YOUR"),
   );
-};
+
+function authRedirectUrl(relativePath) {
+  if (typeof window === "undefined") return relativePath;
+  return new URL(relativePath, window.location.href).toString();
+}
 
 // ---------------------------------------------------------------------
-// CREATE SUPABASE CLIENT
+// CLIENT
 // ---------------------------------------------------------------------
 
 let supabaseClient = null;
@@ -50,12 +41,10 @@ let supabaseClient = null;
 if (typeof window !== "undefined") {
   if (!window.supabase) {
     console.error(
-      "[LUXE] Supabase SDK was not found. Make sure the Supabase CDN script loads before supabase-client.js.",
+      "[LUXE] Supabase SDK missing. Load @supabase/supabase-js before supabase-client.js.",
     );
   } else if (!isSupabaseConfigured()) {
-    console.error(
-      "[LUXE] Supabase is not configured. Add the correct project URL and anon/publishable key.",
-    );
+    console.error("[LUXE] Supabase credentials are not configured.");
   } else {
     try {
       supabaseClient = window.supabase.createClient(
@@ -72,13 +61,13 @@ if (typeof window !== "undefined") {
 
       console.log("[LUXE] Supabase client initialized.");
     } catch (error) {
-      console.error("[LUXE] Failed to initialize Supabase:", error);
+      console.error("[LUXE] Supabase initialization failed:", error);
     }
   }
 }
 
 // ---------------------------------------------------------------------
-// AUTHENTICATION
+// AUTH
 // ---------------------------------------------------------------------
 
 const LuxeAuth = {
@@ -88,12 +77,7 @@ const LuxeAuth = {
 
   async signUp(email, password, fullName) {
     if (!supabaseClient) {
-      return {
-        data: null,
-        error: {
-          message: "Account service is not configured.",
-        },
-      };
+      return { data: null, error: { message: "Account service is unavailable." } };
     }
 
     try {
@@ -104,70 +88,39 @@ const LuxeAuth = {
           data: {
             full_name: fullName,
           },
+          // Relative URL works locally and in production as long as
+          // the resulting URL is allowed in Supabase Auth URL settings.
+          emailRedirectTo: authRedirectUrl("login.html?verified=true"),
         },
       });
     } catch (error) {
       console.error("[LUXE] Signup error:", error);
-
       return {
         data: null,
-        error: {
-          message: error?.message || "Unable to create account.",
-        },
+        error: { message: error?.message || "Unable to create account." },
       };
     }
   },
 
-  async verifySignupOtp(email, token) {
+  async resendSignupConfirmation(email) {
     if (!supabaseClient) {
-      return {
-        data: null,
-        error: {
-          message: "Account service is not configured.",
-        },
-      };
-    }
-
-    try {
-      return await supabaseClient.auth.verifyOtp({
-        email,
-        token,
-        type: "signup",
-      });
-    } catch (error) {
-      console.error("[LUXE] OTP verification error:", error);
-
-      return {
-        data: null,
-        error: {
-          message: error?.message || "Unable to verify the code.",
-        },
-      };
-    }
-  },
-
-  async resendSignupOtp(email) {
-    if (!supabaseClient) {
-      return {
-        data: null,
-        error: {
-          message: "Account service is not configured.",
-        },
-      };
+      return { data: null, error: { message: "Account service is unavailable." } };
     }
 
     try {
       return await supabaseClient.auth.resend({
         type: "signup",
         email,
+        options: {
+          emailRedirectTo: authRedirectUrl("login.html?verified=true"),
+        },
       });
     } catch (error) {
-      console.error("[LUXE] OTP resend error:", error);
-
+      console.error("[LUXE] Confirmation resend error:", error);
       return {
         data: null,
         error: {
-          message: error?.message || "Unable to resend verification code.",
+          message: error?.message || "Unable to resend confirmation email.",
         },
       };
     }
@@ -175,39 +128,23 @@ const LuxeAuth = {
 
   async signInWithPassword(email, password) {
     if (!supabaseClient) {
-      return {
-        data: null,
-        error: {
-          message: "Account service is not configured.",
-        },
-      };
+      return { data: null, error: { message: "Account service is unavailable." } };
     }
 
     try {
-      return await supabaseClient.auth.signInWithPassword({
-        email,
-        password,
-      });
+      return await supabaseClient.auth.signInWithPassword({ email, password });
     } catch (error) {
       console.error("[LUXE] Login error:", error);
-
       return {
         data: null,
-        error: {
-          message: error?.message || "Unable to sign in.",
-        },
+        error: { message: error?.message || "Unable to sign in." },
       };
     }
   },
 
   async signInWithMagicLink(email) {
     if (!supabaseClient) {
-      return {
-        data: null,
-        error: {
-          message: "Account service is not configured.",
-        },
-      };
+      return { data: null, error: { message: "Account service is unavailable." } };
     }
 
     try {
@@ -215,69 +152,35 @@ const LuxeAuth = {
         email,
         options: {
           shouldCreateUser: false,
+          emailRedirectTo: authRedirectUrl("index.html"),
         },
       });
     } catch (error) {
       console.error("[LUXE] Magic-link error:", error);
-
       return {
         data: null,
-        error: {
-          message: error?.message || "Unable to send magic link.",
-        },
+        error: { message: error?.message || "Unable to send sign-in link." },
       };
     }
   },
 
   async signOut() {
     if (!supabaseClient) {
-      return {
-        error: {
-          message: "Account service is not configured.",
-        },
-      };
+      return { error: { message: "Account service is unavailable." } };
     }
 
     try {
       return await supabaseClient.auth.signOut();
     } catch (error) {
       console.error("[LUXE] Sign-out error:", error);
-
       return {
-        error: {
-          message: error?.message || "Unable to sign out.",
-        },
+        error: { message: error?.message || "Unable to sign out." },
       };
     }
   },
 
-  async getCurrentUser() {
-    if (!supabaseClient) {
-      return null;
-    }
-
-    try {
-      const {
-        data: { session },
-        error,
-      } = await supabaseClient.auth.getSession();
-
-      if (error) {
-        console.error("[LUXE] Session error:", error);
-        return null;
-      }
-
-      return session?.user || null;
-    } catch (error) {
-      console.error("[LUXE] Failed to retrieve session:", error);
-      return null;
-    }
-  },
-
   async getSession() {
-    if (!supabaseClient) {
-      return null;
-    }
+    if (!supabaseClient) return null;
 
     try {
       const {
@@ -286,37 +189,66 @@ const LuxeAuth = {
       } = await supabaseClient.auth.getSession();
 
       if (error) {
-        console.error("[LUXE] Session error:", error);
+        console.error("[LUXE] Session lookup error:", error);
         return null;
       }
 
       return session || null;
     } catch (error) {
-      console.error("[LUXE] Failed to retrieve session:", error);
+      console.error("[LUXE] Session lookup failed:", error);
       return null;
     }
   },
 
-  onAuthStateChange(callback) {
-    if (!supabaseClient || typeof callback !== "function") {
-      return null;
-    }
+  async getCurrentUser() {
+    const session = await this.getSession();
+    return session?.user || null;
+  },
 
-    return supabaseClient.auth.onAuthStateChange((_event, session) => {
-      callback(session?.user || null);
+  onAuthStateChange(callback) {
+    if (!supabaseClient || typeof callback !== "function") return null;
+
+    const { data } = supabaseClient.auth.onAuthStateChange((event, session) => {
+      callback(session?.user || null, event);
     });
+
+    return data?.subscription || null;
   },
 };
 
 // ---------------------------------------------------------------------
-// USER PROFILE
+// ADMIN AUTHORIZATION
+// No owner email is hardcoded in the browser.
+// The database decides whether auth.uid() belongs to admin_users.
+// ---------------------------------------------------------------------
+
+const LuxeAdmin = {
+  async isAdmin() {
+    if (!supabaseClient) return false;
+
+    try {
+      const { data, error } = await supabaseClient.rpc("is_admin");
+
+      if (error) {
+        console.error("[LUXE] Admin check failed:", error);
+        return false;
+      }
+
+      return data === true;
+    } catch (error) {
+      console.error("[LUXE] Admin check failed:", error);
+      return false;
+    }
+  },
+};
+
+// ---------------------------------------------------------------------
+// PROFILE
 // ---------------------------------------------------------------------
 
 const LuxeProfile = {
   async get(userId) {
-    if (!supabaseClient || !userId) {
-      return null;
-    }
+    if (!supabaseClient || !userId) return null;
 
     try {
       const { data, error } = await supabaseClient
@@ -326,34 +258,24 @@ const LuxeProfile = {
         .single();
 
       if (error) {
-        console.error("[LUXE] Failed to fetch profile:", error);
+        console.error("[LUXE] Profile fetch failed:", error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error("[LUXE] Profile fetch error:", error);
+      console.error("[LUXE] Profile fetch failed:", error);
       return null;
     }
   },
 
   async update(userId, fields) {
     if (!supabaseClient) {
-      return {
-        data: null,
-        error: {
-          message: "Account service is not configured.",
-        },
-      };
+      return { data: null, error: { message: "Profile service is unavailable." } };
     }
 
     if (!userId) {
-      return {
-        data: null,
-        error: {
-          message: "User ID is required.",
-        },
-      };
+      return { data: null, error: { message: "User ID is required." } };
     }
 
     try {
@@ -367,13 +289,10 @@ const LuxeProfile = {
         .select()
         .single();
     } catch (error) {
-      console.error("[LUXE] Profile update error:", error);
-
+      console.error("[LUXE] Profile update failed:", error);
       return {
         data: null,
-        error: {
-          message: error?.message || "Unable to update profile.",
-        },
+        error: { message: error?.message || "Unable to update profile." },
       };
     }
   },
@@ -381,183 +300,91 @@ const LuxeProfile = {
 
 // ---------------------------------------------------------------------
 // ORDERS
+//
+// The browser sends ONLY product IDs + quantities + shipping address.
+// Prices/tax/shipping/final total are calculated inside Postgres.
+// The RPC creates the order and its items atomically.
 // ---------------------------------------------------------------------
 
 const LuxeOrders = {
-  async createOrder(userId, items, totals, shippingAddress) {
+  async createOrder(items, shippingAddress) {
     if (!supabaseClient) {
-      return {
-        data: null,
-        error: {
-          message: "Order service is not configured.",
-        },
-      };
-    }
-
-    if (!userId) {
-      return {
-        data: null,
-        error: {
-          message: "You must be logged in to create an order.",
-        },
-      };
+      return { data: null, error: { message: "Order service is unavailable." } };
     }
 
     if (!Array.isArray(items) || items.length === 0) {
-      return {
-        data: null,
-        error: {
-          message: "Your cart is empty.",
-        },
-      };
+      return { data: null, error: { message: "Your cart is empty." } };
     }
 
-    if (!totals) {
-      return {
-        data: null,
-        error: {
-          message: "Order totals are missing.",
-        },
-      };
+    const safeItems = items.map((item) => ({
+      product_id: Number(item.product_id ?? item.id),
+      quantity: Number(item.quantity),
+    }));
+
+    if (
+      safeItems.some(
+        (item) =>
+          !Number.isInteger(item.product_id) ||
+          item.product_id <= 0 ||
+          !Number.isInteger(item.quantity) ||
+          item.quantity <= 0,
+      )
+    ) {
+      return { data: null, error: { message: "Your cart contains invalid items." } };
     }
 
     try {
-      const orderNumber = "LX-" + Math.floor(100000 + Math.random() * 900000);
+      const { data, error } = await supabaseClient.rpc("create_order_secure", {
+        p_items: safeItems,
+        p_shipping_address: shippingAddress || {},
+      });
 
-      const { data: order, error: orderError } = await supabaseClient
-        .from("orders")
-        .insert({
-          user_id: userId,
-          order_number: orderNumber,
-          subtotal: totals.subtotal,
-          shipping: totals.shipping,
-          tax: totals.tax,
-          total: totals.total,
-          status: "processing",
-          shipping_address: shippingAddress || null,
-        })
-        .select()
-        .single();
-
-      if (orderError) {
-        console.error("[LUXE] Order creation error:", orderError);
-
-        return {
-          data: null,
-          error: orderError,
-        };
+      if (error) {
+        console.error("[LUXE] Secure order creation failed:", error);
+        return { data: null, error };
       }
 
-      const orderItems = items.map((item) => ({
-        order_id: order.id,
-        product_id: String(item.id),
-        product_name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        image_url: item.image || "",
-      }));
-
-      const { error: itemsError } = await supabaseClient
-        .from("order_items")
-        .insert(orderItems);
-
-      if (itemsError) {
-        console.error("[LUXE] Order items creation error:", itemsError);
-
-        return {
-          data: null,
-          error: itemsError,
-        };
-      }
-
-      return {
-        data: order,
-        error: null,
-      };
+      return { data, error: null };
     } catch (error) {
-      console.error("[LUXE] Unexpected order creation error:", error);
-
+      console.error("[LUXE] Secure order creation failed:", error);
       return {
         data: null,
-        error: {
-          message: error?.message || "Unable to create order.",
-        },
+        error: { message: error?.message || "Unable to place order." },
       };
     }
   },
 
   async getOrders(userId) {
-    if (!supabaseClient || !userId) {
-      return [];
-    }
+    if (!supabaseClient || !userId) return [];
 
     try {
       const { data, error } = await supabaseClient
         .from("orders")
         .select("*, order_items(*)")
         .eq("user_id", userId)
-        .order("created_at", {
-          ascending: false,
-        });
+        .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("[LUXE] Failed to load orders:", error);
+        console.error("[LUXE] Orders fetch failed:", error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error("[LUXE] Orders fetch error:", error);
+      console.error("[LUXE] Orders fetch failed:", error);
       return [];
     }
   },
 };
 
 // ---------------------------------------------------------------------
-// CONNECTION TEST
-// ---------------------------------------------------------------------
-
-const testSupabaseConnection = async () => {
-  if (!supabaseClient) {
-    console.error("[LUXE] Supabase client is unavailable.");
-    return false;
-  }
-
-  try {
-    const { error } = await supabaseClient.auth.getSession();
-
-    if (error) {
-      console.error("[LUXE] Supabase connection test failed:", error);
-      return false;
-    }
-
-    console.log("[LUXE] Supabase connection looks healthy.");
-    return true;
-  } catch (error) {
-    console.error("[LUXE] Supabase connection test failed:", error);
-    return false;
-  }
-};
-
-// ---------------------------------------------------------------------
 // PRODUCTS
-// Real, shared, server-side product catalog (replaces the old
-// localStorage-only version — that one was only ever visible in the
-// browser that used it, not to real visitors).
-// Writes are allowed only for the owner email — enforced by the
-// database's Row Level Security policies (see supabase/migrations),
-// so even if someone calls these functions directly from devtools,
-// the database itself rejects the write unless they're really logged
-// in as the owner.
 // ---------------------------------------------------------------------
 
 const LuxeProducts = {
-  // Row shape from the DB (snake_case) -> shape the rest of the site
-  // already expects (camelCase), so products.js / shop.js / etc.
-  // don't need to know the difference.
   _fromRow(row) {
     return {
-      id: row.id,
+      id: Number(row.id),
       name: row.name,
       brand: row.brand,
       category: row.category,
@@ -579,165 +406,205 @@ const LuxeProducts = {
     };
   },
 
-  _toRow(p) {
-    const price = parseFloat(p.price) || 0;
+  _toRow(product) {
+    const price = Number.parseFloat(product.price);
     const oldPrice =
-      p.oldPrice !== undefined && p.oldPrice !== null && p.oldPrice !== ""
-        ? parseFloat(p.oldPrice)
+      product.oldPrice !== undefined &&
+      product.oldPrice !== null &&
+      product.oldPrice !== ""
+        ? Number.parseFloat(product.oldPrice)
         : null;
+
     return {
-      name: p.name || "Untitled Product",
-      brand: p.brand || "Luxe",
-      category: p.category || "Men",
-      subcategory: p.subcategory || "General",
-      price,
-      old_price: oldPrice,
-      image: p.image || "",
-      hover_image: p.hoverImage || p.image || "",
-      rating: parseFloat(p.rating) || 5.0,
-      discount: !!(oldPrice && oldPrice > price),
-      description: p.description || "",
-      sizes: Array.isArray(p.sizes)
-        ? p.sizes
-        : String(p.sizes || "").split(",").map((s) => s.trim()).filter(Boolean),
-      colors: Array.isArray(p.colors)
-        ? p.colors
-        : String(p.colors || "").split(",").map((s) => s.trim()).filter(Boolean),
-      in_stock: p.inStock !== undefined ? !!p.inStock : true,
-      tags: Array.isArray(p.tags)
-        ? p.tags
-        : String(p.tags || "")
+      name: String(product.name || "Untitled Product").trim(),
+      brand: String(product.brand || "Luxe").trim(),
+      category: String(product.category || "Men").trim(),
+      subcategory: String(product.subcategory || "General").trim(),
+      price: Number.isFinite(price) ? price : 0,
+      old_price: Number.isFinite(oldPrice) ? oldPrice : null,
+      image: String(product.image || "").trim(),
+      hover_image: String(product.hoverImage || product.image || "").trim(),
+      rating: Number.parseFloat(product.rating) || 5.0,
+      discount: Boolean(
+        Number.isFinite(oldPrice) && oldPrice > (Number.isFinite(price) ? price : 0),
+      ),
+      description: String(product.description || "").trim(),
+      sizes: Array.isArray(product.sizes)
+        ? product.sizes
+        : String(product.sizes || "")
             .split(",")
-            .map((s) => s.trim().toLowerCase())
+            .map((value) => value.trim())
+            .filter(Boolean),
+      colors: Array.isArray(product.colors)
+        ? product.colors
+        : String(product.colors || "")
+            .split(",")
+            .map((value) => value.trim())
+            .filter(Boolean),
+      in_stock: product.inStock !== undefined ? !!product.inStock : true,
+      tags: Array.isArray(product.tags)
+        ? product.tags.map((tag) => String(tag).trim().toLowerCase()).filter(Boolean)
+        : String(product.tags || "")
+            .split(",")
+            .map((tag) => tag.trim().toLowerCase())
             .filter(Boolean),
     };
   },
 
-  // Public read — works for every visitor, logged in or not.
   async getAll() {
     if (!supabaseClient) {
-      return { data: null, error: { message: "Backend not configured" } };
+      return { data: null, error: { message: "Backend not configured." } };
     }
+
     try {
       const { data, error } = await supabaseClient
         .from("products")
         .select("*")
         .order("id", { ascending: false });
+
       if (error) {
-        console.error("[LUXE] Failed to load products:", error);
+        console.error("[LUXE] Product fetch failed:", error);
         return { data: null, error };
       }
-      return { data: data.map(this._fromRow), error: null };
+
+      return {
+        data: (data || []).map((row) => this._fromRow(row)),
+        error: null,
+      };
     } catch (error) {
-      console.error("[LUXE] Products fetch error:", error);
-      return { data: null, error: { message: error?.message || "Unable to load products." } };
+      return {
+        data: null,
+        error: { message: error?.message || "Unable to load products." },
+      };
     }
   },
 
-  // Owner-only (blocked by RLS for anyone else).
   async create(productData) {
     if (!supabaseClient) {
-      return { data: null, error: { message: "Backend not configured" } };
+      return { data: null, error: { message: "Backend not configured." } };
     }
-    try {
-      // Mirrors the old "max id + 1" logic so ids stay simple
-      // sequential numbers like the original catalog used.
-      const { data: existing, error: maxErr } = await supabaseClient
-        .from("products")
-        .select("id")
-        .order("id", { ascending: false })
-        .limit(1);
-      if (maxErr) return { data: null, error: maxErr };
-      const nextId = existing && existing.length ? existing[0].id + 1 : 1;
 
-      const row = { id: nextId, ...this._toRow(productData) };
+    try {
+      // ID is generated by Postgres. No browser-side max(id)+1 race.
       const { data, error } = await supabaseClient
         .from("products")
-        .insert(row)
+        .insert(this._toRow(productData))
         .select()
         .single();
-      if (error) {
-        console.error("[LUXE] Failed to add product:", error);
-        return { data: null, error };
-      }
+
+      if (error) return { data: null, error };
+
       return { data: this._fromRow(data), error: null };
     } catch (error) {
-      console.error("[LUXE] Product create error:", error);
-      return { data: null, error: { message: error?.message || "Unable to add product." } };
+      return {
+        data: null,
+        error: { message: error?.message || "Unable to add product." },
+      };
     }
   },
 
   async update(id, productData) {
     if (!supabaseClient) {
-      return { data: null, error: { message: "Backend not configured" } };
+      return { data: null, error: { message: "Backend not configured." } };
     }
+
     try {
-      const row = this._toRow(productData);
       const { data, error } = await supabaseClient
         .from("products")
-        .update(row)
+        .update(this._toRow(productData))
         .eq("id", Number(id))
         .select()
         .single();
-      if (error) {
-        console.error("[LUXE] Failed to update product:", error);
-        return { data: null, error };
-      }
+
+      if (error) return { data: null, error };
+
       return { data: this._fromRow(data), error: null };
     } catch (error) {
-      console.error("[LUXE] Product update error:", error);
-      return { data: null, error: { message: error?.message || "Unable to update product." } };
+      return {
+        data: null,
+        error: { message: error?.message || "Unable to update product." },
+      };
     }
   },
 
   async remove(id) {
     if (!supabaseClient) {
-      return { error: { message: "Backend not configured" } };
+      return { error: { message: "Backend not configured." } };
     }
+
     try {
-      const { error } = await supabaseClient.from("products").delete().eq("id", Number(id));
-      if (error) console.error("[LUXE] Failed to delete product:", error);
+      const { error } = await supabaseClient
+        .from("products")
+        .delete()
+        .eq("id", Number(id));
+
       return { error };
     } catch (error) {
-      console.error("[LUXE] Product delete error:", error);
-      return { error: { message: error?.message || "Unable to delete product." } };
+      return {
+        error: { message: error?.message || "Unable to delete product." },
+      };
     }
   },
 
-  // One-time helper: pushes the old hardcoded catalog (window.products,
-  // shipped as a fallback in products.js) into the database. Safe to
-  // click more than once — it skips ids that already exist.
   async importStarterCatalog(catalogArray) {
     if (!supabaseClient) {
-      return { error: { message: "Backend not configured" } };
+      return { error: { message: "Backend not configured." }, imported: 0 };
     }
+
     try {
-      const { data: existing, error: exErr } = await supabaseClient
+      const { data: existing, error: existingError } = await supabaseClient
         .from("products")
         .select("id");
-      if (exErr) return { error: exErr };
-      const existingIds = new Set((existing || []).map((r) => r.id));
-      const rows = catalogArray
-        .filter((p) => !existingIds.has(p.id))
-        .map((p) => ({ id: p.id, ...this._toRow(p) }));
-      if (!rows.length) return { error: null, imported: 0 };
+
+      if (existingError) return { error: existingError, imported: 0 };
+
+      const existingIds = new Set((existing || []).map((row) => Number(row.id)));
+
+      const rows = (catalogArray || [])
+        .filter((product) => Number.isInteger(Number(product.id)))
+        .filter((product) => !existingIds.has(Number(product.id)))
+        .map((product) => ({
+          id: Number(product.id),
+          ...this._toRow(product),
+        }));
+
+      if (!rows.length) {
+        return { error: null, imported: 0 };
+      }
+
       const { error } = await supabaseClient.from("products").insert(rows);
-      if (error) return { error };
+
+      if (error) return { error, imported: 0 };
+
+      // Explicit starter IDs do not automatically move a sequence.
+      // This admin-only RPC moves it past the highest imported ID.
+      const { error: syncError } = await supabaseClient.rpc(
+        "sync_products_id_sequence",
+      );
+
+      if (syncError) {
+        console.error("[LUXE] Product ID sequence sync failed:", syncError);
+        return { error: syncError, imported: rows.length };
+      }
+
       return { error: null, imported: rows.length };
     } catch (error) {
-      console.error("[LUXE] Catalog import error:", error);
-      return { error: { message: error?.message || "Unable to import catalog." } };
+      return {
+        error: { message: error?.message || "Unable to import starter catalog." },
+        imported: 0,
+      };
     }
   },
 };
 
 // ---------------------------------------------------------------------
-// SITE UPDATES  (announcement banner: post + delete)
+// SITE UPDATES
 // ---------------------------------------------------------------------
 
 const LuxeUpdates = {
   async getActive() {
     if (!supabaseClient) return [];
+
     try {
       const { data, error } = await supabaseClient
         .from("site_updates")
@@ -745,69 +612,101 @@ const LuxeUpdates = {
         .eq("active", true)
         .order("created_at", { ascending: false })
         .limit(1);
+
       if (error) {
-        console.error("[LUXE] Failed to load site update:", error);
+        console.error("[LUXE] Site update fetch failed:", error);
         return [];
       }
+
       return data || [];
     } catch (error) {
-      console.error("[LUXE] Site update fetch error:", error);
+      console.error("[LUXE] Site update fetch failed:", error);
       return [];
     }
   },
 
   async getAll() {
     if (!supabaseClient) {
-      return { data: [], error: { message: "Backend not configured" } };
+      return { data: [], error: { message: "Backend not configured." } };
     }
+
     try {
       const { data, error } = await supabaseClient
         .from("site_updates")
         .select("*")
         .order("created_at", { ascending: false });
-      if (error) console.error("[LUXE] Failed to load site updates:", error);
+
       return { data: data || [], error };
     } catch (error) {
-      console.error("[LUXE] Site updates fetch error:", error);
-      return { data: [], error: { message: error?.message || "Unable to load updates." } };
+      return {
+        data: [],
+        error: { message: error?.message || "Unable to load updates." },
+      };
     }
   },
 
   async create(title, message) {
     if (!supabaseClient) {
-      return { error: { message: "Backend not configured" } };
+      return { error: { message: "Backend not configured." } };
     }
+
     try {
-      const result = await supabaseClient.from("site_updates").insert({ title, message });
-      if (result.error) console.error("[LUXE] Failed to post update:", result.error);
-      return result;
+      return await supabaseClient.from("site_updates").insert({
+        title: String(title || "").trim(),
+        message: String(message || "").trim(),
+      });
     } catch (error) {
-      console.error("[LUXE] Site update create error:", error);
-      return { error: { message: error?.message || "Unable to post update." } };
+      return {
+        error: { message: error?.message || "Unable to post update." },
+      };
     }
   },
 
   async remove(id) {
     if (!supabaseClient) {
-      return { error: { message: "Backend not configured" } };
+      return { error: { message: "Backend not configured." } };
     }
+
     try {
-      const result = await supabaseClient.from("site_updates").delete().eq("id", id);
-      if (result.error) console.error("[LUXE] Failed to delete update:", result.error);
-      return result;
+      return await supabaseClient.from("site_updates").delete().eq("id", id);
     } catch (error) {
-      console.error("[LUXE] Site update delete error:", error);
-      return { error: { message: error?.message || "Unable to delete update." } };
+      return {
+        error: { message: error?.message || "Unable to delete update." },
+      };
     }
   },
 };
 
 // ---------------------------------------------------------------------
-// EXPOSE SAFE APPLICATION API
+// CONNECTION TEST
+// ---------------------------------------------------------------------
+
+const testSupabaseConnection = async () => {
+  if (!supabaseClient) return false;
+
+  try {
+    const { error } = await supabaseClient.auth.getSession();
+
+    if (error) {
+      console.error("[LUXE] Supabase connection test failed:", error);
+      return false;
+    }
+
+    console.log("[LUXE] Supabase connection looks healthy.");
+    return true;
+  } catch (error) {
+    console.error("[LUXE] Supabase connection test failed:", error);
+    return false;
+  }
+};
+
+// ---------------------------------------------------------------------
+// PUBLIC APP API
 // ---------------------------------------------------------------------
 
 if (typeof window !== "undefined") {
   window.LuxeAuth = LuxeAuth;
+  window.LuxeAdmin = LuxeAdmin;
   window.LuxeProfile = LuxeProfile;
   window.LuxeOrders = LuxeOrders;
   window.LuxeProducts = LuxeProducts;
