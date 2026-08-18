@@ -6,7 +6,7 @@
 // swap backends, you only edit this file.
 
 const SUPABASE_URL = 'https://unvonqbgvvaygcgsrwuk.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_6Csv9EOc_JOcoDGkTCCNvA_8ErkOPj1';
+const SUPABASE_ANON_KEY ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVudm9ucWJndnZheWdjZ3Nyd3VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzMTMyOTMsImV4cCI6MjEwMTg4OTI5M30.6zodh-pNAH5o3onTwlwUTUsjZvHf52IhtvA3yPlJf9E";
 
 // This "anon key" is SAFE to have visible in frontend code — it's not
 // a secret. It only grants whatever access your Row Level Security
