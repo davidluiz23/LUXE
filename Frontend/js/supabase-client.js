@@ -1,48 +1,40 @@
 // js/supabase-client.js
 //
 // Central Supabase client for LUXE.
-// All direct communication with Supabase should happen through this file.
 //
-// Other frontend files should use:
+// Other files should use:
 //   window.LuxeAuth
 //   window.LuxeProfile
 //   window.LuxeOrders
 //
-// Do NOT redeclare a global variable named `supabase` here because the
-// Supabase CDN already exposes `window.supabase`.
+// IMPORTANT:
+// The Supabase CDN exposes `window.supabase`.
+// We therefore call our initialized instance `supabaseClient`
+// to avoid global name collisions.
 
 // ---------------------------------------------------------------------
-// SUPABASE CONFIGURATION
+// SUPABASE CONFIG
 // ---------------------------------------------------------------------
 
-const SUPABASE_URL = "https://usqnacxmcbewifgmrtjs.supabase.co";
+const SUPABASE_URL = "https://unvonqbgvvaygcgsrwuk.supabase.co";
 
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzcW5hY3htY2Jld2lmZ21ydGpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwNDUzMjAsImV4cCI6MjEwMjYyMTMyMH0.ucHyOGcAIgtlEI14U5yv5sMVSGpn7w3YoOGc6RdIjK0";
 
-// The anon / publishable key is safe to expose in frontend code.
-// Security should be enforced through Supabase Row Level Security (RLS).
-//
-// NEVER put the Supabase service_role key in frontend code.
-
 // ---------------------------------------------------------------------
-// CONFIGURATION CHECK
+// CONFIG CHECK
 // ---------------------------------------------------------------------
 
 const isSupabaseConfigured = () => {
-  return (
-    typeof SUPABASE_URL === "string" &&
-    typeof SUPABASE_ANON_KEY === "string" &&
-    SUPABASE_URL.length > 0 &&
-    SUPABASE_ANON_KEY.length > 0 &&
-    !SUPABASE_URL.includes("YOUR_SUPABASE") &&
-    !SUPABASE_ANON_KEY.includes("YOUR_SUPABASE") &&
-    !SUPABASE_ANON_KEY.includes("PASTE_YOUR")
+  return Boolean(
+    SUPABASE_URL &&
+    SUPABASE_ANON_KEY &&
+    !SUPABASE_ANON_KEY.includes("PASTE_YOUR"),
   );
 };
 
 // ---------------------------------------------------------------------
-// CREATE SUPABASE CLIENT
+// CREATE CLIENT
 // ---------------------------------------------------------------------
 
 let supabaseClient = null;
@@ -50,12 +42,10 @@ let supabaseClient = null;
 if (typeof window !== "undefined") {
   if (!window.supabase) {
     console.error(
-      "[LUXE] Supabase SDK was not found. Make sure the Supabase CDN script loads before supabase-client.js.",
+      "[LUXE] Supabase SDK was not found. Load the Supabase CDN before supabase-client.js.",
     );
   } else if (!isSupabaseConfigured()) {
-    console.error(
-      "[LUXE] Supabase is not configured. Add the correct project URL and anon/publishable key.",
-    );
+    console.error("[LUXE] Supabase credentials are missing.");
   } else {
     try {
       supabaseClient = window.supabase.createClient(
@@ -70,15 +60,15 @@ if (typeof window !== "undefined") {
         },
       );
 
-      console.log("[LUXE] Supabase client initialized.");
+      console.log("[LUXE] Supabase initialized successfully.");
     } catch (error) {
-      console.error("[LUXE] Failed to initialize Supabase:", error);
+      console.error("[LUXE] Supabase initialization failed:", error);
     }
   }
 }
 
 // ---------------------------------------------------------------------
-// AUTHENTICATION
+// AUTH
 // ---------------------------------------------------------------------
 
 const LuxeAuth = {
@@ -86,12 +76,19 @@ const LuxeAuth = {
     return !!supabaseClient;
   },
 
+  // ---------------------------------------------------------------
+  // SIGN UP
+  //
+  // Supabase sends an EMAIL CONFIRMATION LINK.
+  // No OTP entry is needed.
+  // ---------------------------------------------------------------
+
   async signUp(email, password, fullName) {
     if (!supabaseClient) {
       return {
         data: null,
         error: {
-          message: "Account service is not configured.",
+          message: "Account service is unavailable.",
         },
       };
     }
@@ -100,10 +97,15 @@ const LuxeAuth = {
       return await supabaseClient.auth.signUp({
         email,
         password,
+
         options: {
           data: {
             full_name: fullName,
           },
+
+          // After the user clicks the confirmation link,
+          // Supabase redirects them here.
+          emailRedirectTo: `${window.location.origin}/Frontend/login.html`,
         },
       });
     } catch (error) {
@@ -118,40 +120,16 @@ const LuxeAuth = {
     }
   },
 
-  async verifySignupOtp(email, token) {
+  // ---------------------------------------------------------------
+  // RESEND SIGNUP CONFIRMATION LINK
+  // ---------------------------------------------------------------
+
+  async resendSignupConfirmation(email) {
     if (!supabaseClient) {
       return {
         data: null,
         error: {
-          message: "Account service is not configured.",
-        },
-      };
-    }
-
-    try {
-      return await supabaseClient.auth.verifyOtp({
-        email,
-        token,
-        type: "signup",
-      });
-    } catch (error) {
-      console.error("[LUXE] OTP verification error:", error);
-
-      return {
-        data: null,
-        error: {
-          message: error?.message || "Unable to verify the code.",
-        },
-      };
-    }
-  },
-
-  async resendSignupOtp(email) {
-    if (!supabaseClient) {
-      return {
-        data: null,
-        error: {
-          message: "Account service is not configured.",
+          message: "Account service is unavailable.",
         },
       };
     }
@@ -160,25 +138,33 @@ const LuxeAuth = {
       return await supabaseClient.auth.resend({
         type: "signup",
         email,
+
+        options: {
+          emailRedirectTo: `${window.location.origin}/Frontend/login.html`,
+        },
       });
     } catch (error) {
-      console.error("[LUXE] OTP resend error:", error);
+      console.error("[LUXE] Resend confirmation error:", error);
 
       return {
         data: null,
         error: {
-          message: error?.message || "Unable to resend verification code.",
+          message: error?.message || "Unable to resend confirmation email.",
         },
       };
     }
   },
+
+  // ---------------------------------------------------------------
+  // PASSWORD LOGIN
+  // ---------------------------------------------------------------
 
   async signInWithPassword(email, password) {
     if (!supabaseClient) {
       return {
         data: null,
         error: {
-          message: "Account service is not configured.",
+          message: "Account service is unavailable.",
         },
       };
     }
@@ -200,12 +186,19 @@ const LuxeAuth = {
     }
   },
 
+  // ---------------------------------------------------------------
+  // MAGIC LINK LOGIN
+  //
+  // This is for signing in WITHOUT password.
+  // Supabase emails the user a link.
+  // ---------------------------------------------------------------
+
   async signInWithMagicLink(email) {
     if (!supabaseClient) {
       return {
         data: null,
         error: {
-          message: "Account service is not configured.",
+          message: "Account service is unavailable.",
         },
       };
     }
@@ -213,27 +206,34 @@ const LuxeAuth = {
     try {
       return await supabaseClient.auth.signInWithOtp({
         email,
+
         options: {
           shouldCreateUser: false,
+
+          emailRedirectTo: `${window.location.origin}/Frontend/index.html`,
         },
       });
     } catch (error) {
-      console.error("[LUXE] Magic-link error:", error);
+      console.error("[LUXE] Magic link error:", error);
 
       return {
         data: null,
         error: {
-          message: error?.message || "Unable to send magic link.",
+          message: error?.message || "Unable to send sign-in link.",
         },
       };
     }
   },
 
+  // ---------------------------------------------------------------
+  // SIGN OUT
+  // ---------------------------------------------------------------
+
   async signOut() {
     if (!supabaseClient) {
       return {
         error: {
-          message: "Account service is not configured.",
+          message: "Account service is unavailable.",
         },
       };
     }
@@ -251,6 +251,10 @@ const LuxeAuth = {
     }
   },
 
+  // ---------------------------------------------------------------
+  // CURRENT USER
+  // ---------------------------------------------------------------
+
   async getCurrentUser() {
     if (!supabaseClient) {
       return null;
@@ -258,21 +262,25 @@ const LuxeAuth = {
 
     try {
       const {
-        data: { session },
+        data: { user },
         error,
-      } = await supabaseClient.auth.getSession();
+      } = await supabaseClient.auth.getUser();
 
       if (error) {
-        console.error("[LUXE] Session error:", error);
+        console.error("[LUXE] User lookup error:", error);
         return null;
       }
 
-      return session?.user || null;
+      return user || null;
     } catch (error) {
-      console.error("[LUXE] Failed to retrieve session:", error);
+      console.error("[LUXE] Failed to retrieve current user:", error);
       return null;
     }
   },
+
+  // ---------------------------------------------------------------
+  // SESSION
+  // ---------------------------------------------------------------
 
   async getSession() {
     if (!supabaseClient) {
@@ -286,30 +294,44 @@ const LuxeAuth = {
       } = await supabaseClient.auth.getSession();
 
       if (error) {
-        console.error("[LUXE] Session error:", error);
+        console.error("[LUXE] Session lookup error:", error);
         return null;
       }
 
       return session || null;
     } catch (error) {
-      console.error("[LUXE] Failed to retrieve session:", error);
+      console.error("[LUXE] Session retrieval failed:", error);
       return null;
     }
   },
+
+  // ---------------------------------------------------------------
+  // AUTH STATE CHANGES
+  //
+  // Handles:
+  // - login
+  // - logout
+  // - confirmation link redirects
+  // - magic link redirects
+  // ---------------------------------------------------------------
 
   onAuthStateChange(callback) {
     if (!supabaseClient || typeof callback !== "function") {
       return null;
     }
 
-    return supabaseClient.auth.onAuthStateChange((_event, session) => {
-      callback(session?.user || null);
+    const { data } = supabaseClient.auth.onAuthStateChange((event, session) => {
+      console.log("[LUXE] Auth event:", event);
+
+      callback(session?.user || null, event);
     });
+
+    return data?.subscription || null;
   },
 };
 
 // ---------------------------------------------------------------------
-// USER PROFILE
+// PROFILE
 // ---------------------------------------------------------------------
 
 const LuxeProfile = {
@@ -326,7 +348,7 @@ const LuxeProfile = {
         .single();
 
       if (error) {
-        console.error("[LUXE] Failed to fetch profile:", error);
+        console.error("[LUXE] Profile fetch failed:", error);
         return null;
       }
 
@@ -342,7 +364,7 @@ const LuxeProfile = {
       return {
         data: null,
         error: {
-          message: "Account service is not configured.",
+          message: "Profile service is unavailable.",
         },
       };
     }
@@ -389,7 +411,7 @@ const LuxeOrders = {
       return {
         data: null,
         error: {
-          message: "Order service is not configured.",
+          message: "Order service is unavailable.",
         },
       };
     }
@@ -398,7 +420,7 @@ const LuxeOrders = {
       return {
         data: null,
         error: {
-          message: "You must be logged in to create an order.",
+          message: "You must be signed in to place an order.",
         },
       };
     }
@@ -408,15 +430,6 @@ const LuxeOrders = {
         data: null,
         error: {
           message: "Your cart is empty.",
-        },
-      };
-    }
-
-    if (!totals) {
-      return {
-        data: null,
-        error: {
-          message: "Order totals are missing.",
         },
       };
     }
@@ -440,7 +453,7 @@ const LuxeOrders = {
         .single();
 
       if (orderError) {
-        console.error("[LUXE] Order creation error:", orderError);
+        console.error("[LUXE] Order creation failed:", orderError);
 
         return {
           data: null,
@@ -462,7 +475,7 @@ const LuxeOrders = {
         .insert(orderItems);
 
       if (itemsError) {
-        console.error("[LUXE] Order items creation error:", itemsError);
+        console.error("[LUXE] Order item creation failed:", itemsError);
 
         return {
           data: null,
@@ -475,7 +488,7 @@ const LuxeOrders = {
         error: null,
       };
     } catch (error) {
-      console.error("[LUXE] Unexpected order creation error:", error);
+      console.error("[LUXE] Unexpected order error:", error);
 
       return {
         data: null,
@@ -501,7 +514,7 @@ const LuxeOrders = {
         });
 
       if (error) {
-        console.error("[LUXE] Failed to load orders:", error);
+        console.error("[LUXE] Orders fetch failed:", error);
         return [];
       }
 
@@ -527,20 +540,21 @@ const testSupabaseConnection = async () => {
     const { error } = await supabaseClient.auth.getSession();
 
     if (error) {
-      console.error("[LUXE] Supabase connection test failed:", error);
+      console.error("[LUXE] Supabase connection failed:", error);
       return false;
     }
 
-    console.log("[LUXE] Supabase connection looks healthy.");
+    console.log("[LUXE] Supabase connection is healthy.");
+
     return true;
   } catch (error) {
-    console.error("[LUXE] Supabase connection test failed:", error);
+    console.error("[LUXE] Connection test failed:", error);
     return false;
   }
 };
 
 // ---------------------------------------------------------------------
-// EXPOSE SAFE APPLICATION API
+// EXPOSE APP API
 // ---------------------------------------------------------------------
 
 if (typeof window !== "undefined") {
