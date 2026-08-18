@@ -1,6 +1,8 @@
 // js/search.js - Header & Page Live Search
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Wait for the live product catalog (Supabase) to finish loading.
+    if (window.productsReady) await window.productsReady;
     const searchToggle = document.getElementById('searchToggle');
 
     // Create header search modal overlay dynamically if it doesn't exist

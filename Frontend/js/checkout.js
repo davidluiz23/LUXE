@@ -1,6 +1,8 @@
 // js/checkout.js - Checkout Page Form Handling and Summary
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Wait for the live product catalog (Supabase) to finish loading.
+    if (window.productsReady) await window.productsReady;
     // Hide loader
     const loader = document.getElementById('loader');
     if (loader) {

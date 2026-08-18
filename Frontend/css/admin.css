@@ -1,0 +1,403 @@
+/* ========================================
+   ADMIN.CSS - Owner Admin Panel
+   Uses the same design tokens as the rest of
+   the site (css/variables.css) so it matches
+   the existing black/gold LUXE look.
+   ======================================== */
+
+.admin-section {
+    padding-top: 120px;
+    padding-bottom: 80px;
+    background: var(--light-bg);
+    min-height: 100vh;
+}
+
+/* ---------- Gate: login / not authorized ---------- */
+.admin-gate {
+    max-width: 420px;
+    margin: 40px auto;
+    background: var(--secondary);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 50px 40px;
+    text-align: center;
+}
+
+.admin-gate i {
+    font-size: 2.5rem;
+    color: var(--accent);
+    margin-bottom: 18px;
+}
+
+.admin-gate h2 {
+    font-family: var(--font-heading);
+    font-size: 1.6rem;
+    margin-bottom: 8px;
+}
+
+.admin-gate p {
+    color: var(--gray-text);
+    margin-bottom: 25px;
+    font-size: 0.92rem;
+}
+
+.admin-gate .form-group {
+    text-align: left;
+    margin-bottom: 16px;
+}
+
+.admin-gate label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+.admin-gate input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    transition: var(--transition);
+}
+
+.admin-gate input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.admin-error {
+    background: #FDECEA;
+    color: #C0392B;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+    display: none;
+}
+
+.admin-error.visible { display: block; }
+
+/* ---------- Layout ---------- */
+.admin-layout {
+    display: none;
+    grid-template-columns: 240px 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+.admin-layout.visible { display: grid; }
+
+.admin-sidebar {
+    background: var(--secondary);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 25px 20px;
+    position: sticky;
+    top: 100px;
+}
+
+.admin-owner {
+    text-align: center;
+    padding-bottom: 20px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.admin-owner i {
+    font-size: 2rem;
+    color: var(--accent);
+    margin-bottom: 8px;
+}
+
+.admin-owner-email {
+    font-size: 0.8rem;
+    color: var(--gray-text);
+    word-break: break-word;
+}
+
+.admin-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    text-align: left;
+    padding: 12px 14px;
+    border: none;
+    background: none;
+    border-radius: var(--radius);
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--primary);
+    cursor: pointer;
+    transition: var(--transition);
+    margin-bottom: 4px;
+}
+
+.admin-nav-btn:hover { background: var(--light-bg); }
+
+.admin-nav-btn.active {
+    background: var(--primary);
+    color: var(--secondary);
+}
+
+.admin-nav-btn.logout-btn {
+    color: #C0392B;
+    margin-top: 15px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 15px;
+    border-radius: 0;
+}
+
+/* ---------- Panels ---------- */
+.admin-panel { display: none; }
+.admin-panel.active { display: block; }
+
+.admin-panel-card {
+    background: var(--secondary);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 30px;
+    margin-bottom: 25px;
+}
+
+.admin-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 22px;
+}
+
+.admin-panel-header h2 {
+    font-family: var(--font-heading);
+    font-size: 1.4rem;
+}
+
+.admin-panel-header p {
+    color: var(--gray-text);
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
+
+/* ---------- Table ---------- */
+.admin-table-wrap { overflow-x: auto; }
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+
+.admin-table th, .admin-table td {
+    text-align: left;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+}
+
+.admin-table th {
+    color: var(--gray-text);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.5px;
+}
+
+.admin-table img {
+    width: 42px;
+    height: 42px;
+    object-fit: cover;
+    border-radius: 6px;
+    vertical-align: middle;
+}
+
+.admin-table td.product-name-cell {
+    white-space: normal;
+    max-width: 220px;
+}
+
+.admin-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.admin-badge.in-stock { background: #E8F8EF; color: #1E8E4F; }
+.admin-badge.out-stock { background: #FDECEA; color: #C0392B; }
+
+.admin-row-actions { display: flex; gap: 8px; }
+
+.admin-icon-btn {
+    border: none;
+    background: var(--light-bg);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--primary);
+}
+
+.admin-icon-btn:hover { background: var(--accent); color: #fff; }
+.admin-icon-btn.delete-btn:hover { background: #C0392B; color: #fff; }
+
+.admin-empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--gray-text);
+}
+
+.admin-empty-state i {
+    font-size: 2rem;
+    color: var(--accent);
+    margin-bottom: 12px;
+    display: block;
+}
+
+/* ---------- Form (Add/Edit Product modal) ---------- */
+.admin-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 17, 17, 0.55);
+    z-index: 2000;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 60px 16px;
+    overflow-y: auto;
+}
+
+.admin-modal-overlay.visible { display: flex; }
+
+.admin-modal {
+    background: var(--secondary);
+    border-radius: 16px;
+    max-width: 640px;
+    width: 100%;
+    padding: 32px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.admin-modal h3 {
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+}
+
+.admin-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.admin-form-grid .full-width { grid-column: 1 / -1; }
+
+.admin-form-grid .form-group { margin-bottom: 0; }
+
+.admin-form-grid label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+.admin-form-grid input,
+.admin-form-grid select,
+.admin-form-grid textarea {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    transition: var(--transition);
+}
+
+.admin-form-grid input:focus,
+.admin-form-grid select:focus,
+.admin-form-grid textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.admin-form-grid textarea { resize: vertical; min-height: 80px; }
+
+.admin-form-hint {
+    font-size: 0.72rem;
+    color: var(--gray-text);
+    margin-top: 4px;
+}
+
+.admin-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.admin-checkbox-row input { width: auto; }
+
+.admin-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+/* ---------- Site updates list ---------- */
+.admin-update-item {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.admin-update-item:last-child { border-bottom: none; }
+
+.admin-update-item h4 {
+    font-size: 0.98rem;
+    margin-bottom: 4px;
+}
+
+.admin-update-item p {
+    color: var(--gray-text);
+    font-size: 0.85rem;
+}
+
+.admin-update-date {
+    font-size: 0.72rem;
+    color: var(--gray-text);
+    margin-top: 6px;
+}
+
+.admin-toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: var(--primary);
+    color: var(--secondary);
+    padding: 14px 22px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    font-size: 0.88rem;
+    z-index: 3000;
+    transform: translateY(20px);
+    opacity: 0;
+    pointer-events: none;
+    transition: var(--transition);
+}
+
+.admin-toast.visible { transform: translateY(0); opacity: 1; }
+.admin-toast.error-toast { background: #C0392B; }
+
+@media (max-width: 900px) {
+    .admin-layout.visible { grid-template-columns: 1fr; }
+    .admin-sidebar { position: static; }
+    .admin-form-grid { grid-template-columns: 1fr; }
+}

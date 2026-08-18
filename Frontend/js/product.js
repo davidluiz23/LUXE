@@ -15,11 +15,15 @@
 const urlParams = new URLSearchParams(window.location.search);
 const productId = parseInt(urlParams.get('id'));
 
-// Load product
-const product = (typeof getProductById === 'function') ? getProductById(productId) : ((window.products || []).find(p => p.id === productId));
-
 // Render product details when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Wait for the live product catalog (Supabase) to finish loading
+    // before looking up this product — it used to be looked up
+    // synchronously at script load, before the catalog had a chance
+    // to arrive from the network, which risked a false "Not Found".
+    if (window.productsReady) await window.productsReady;
+    const product = (typeof getProductById === 'function') ? getProductById(productId) : ((window.products || []).find(p => p.id === productId));
+
     // Hide loader again
     const loader = document.getElementById('loader');
     if (loader) {

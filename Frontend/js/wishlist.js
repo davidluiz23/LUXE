@@ -186,9 +186,11 @@ function renderWishlistPage() {
     container.innerHTML = html;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     updateWishlistCount();
     if (document.getElementById('wishlistGrid')) {
+        // Only the wishlist page itself needs product details.
+        if (window.productsReady) await window.productsReady;
         renderWishlistPage();
     }
 });

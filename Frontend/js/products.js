@@ -1675,29 +1675,46 @@ const products = [
     }
 ];
 
-// ========== LOCAL STORAGE STORAGE & HELPER FUNCTIONS ==========
-// ============================================================
+// ========== SHARED, SERVER-SIDE CATALOG (Supabase) ==========
+// ==============================================================
+// The array above (`products`) is now only a FALLBACK / starter
+// seed — used if Supabase isn't reachable, and used once to
+// import your original 90 products into the real database via
+// the admin panel's "Import starter catalog" button.
+//
+// The real source of truth is the `products` table in Supabase.
+// Every visitor's browser fetches the same data from there, so
+// when you add/edit/delete a product in the admin panel, EVERY
+// visitor sees it — not just your own browser (that was the old
+// localStorage bug).
+//
+// window.productsReady is a Promise that resolves once the catalog
+// has loaded. Any page script that reads `products`/getProducts()
+// on page load should `await window.productsReady;` first (already
+// wired up in cart.js, wishlist.js, search.js, app.js, shop.js,
+// category.js, product.js, checkout.js).
 
-// Key for LocalStorage
-const STORAGE_KEY = 'luxe_products_catalog';
+let activeProductsList = products; // synchronous fallback until fetch resolves
 
-// Initialize catalog from localStorage or default array
-function loadProductsCatalog() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-        try {
-            return JSON.parse(saved);
-        } catch (e) {
-            console.error("Failed to parse saved products:", e);
+window.productsReady = (async function loadCatalog() {
+    try {
+        if (window.LuxeProducts && window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+            const { data, error } = await window.LuxeProducts.getAll();
+            if (!error && data && data.length) {
+                activeProductsList = data;
+            } else if (!error && data && data.length === 0) {
+                // Table exists but is empty (fresh install) — keep the
+                // bundled fallback list so the storefront isn't blank.
+                console.warn('LUXE: products table is empty — showing bundled fallback catalog. Use the admin panel to import it.');
+            } else if (error) {
+                console.warn('LUXE: could not load products from Supabase, showing offline fallback catalog.', error.message || error);
+            }
         }
+    } catch (e) {
+        console.warn('LUXE: product fetch failed, showing offline fallback catalog.', e);
     }
-    // Save default list to localStorage if first time
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
-    return products;
-}
-
-// Active working list of products
-let activeProductsList = loadProductsCatalog();
+    return activeProductsList;
+})();
 
 // Get ALL products
 function getProducts() {
@@ -1747,73 +1764,57 @@ function searchProducts(query) {
     );
 }
 
-// Save active products list to localStorage
-function saveProductsCatalog(list) {
-    activeProductsList = list;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(activeProductsList));
-}
+// ---------------------------------------------------------------------
+// Admin-only writes below. These talk to Supabase directly and will
+// fail (safely, with an error object) for anyone who isn't logged in
+// as the owner — that's enforced by database Row Level Security, not
+// by this file. The admin panel (js/admin.js) is what calls these.
+// ---------------------------------------------------------------------
 
-// Add a new product
-function addProduct(productData) {
-    const maxId = activeProductsList.reduce((max, item) => item.id > max ? item.id : max, 0);
-    const newProduct = {
-        id: maxId + 1,
-        name: productData.name || "Untitled Product",
-        brand: productData.brand || "Luxe",
-        category: productData.category || "Men",
-        subcategory: productData.subcategory || "General",
-        price: parseFloat(productData.price) || 0,
-        oldPrice: productData.oldPrice ? parseFloat(productData.oldPrice) : null,
-        image: productData.image || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800",
-        hoverImage: productData.hoverImage || productData.image || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800",
-        rating: parseFloat(productData.rating) || 5.0,
-        discount: Boolean(productData.oldPrice && parseFloat(productData.oldPrice) > parseFloat(productData.price)),
-        description: productData.description || "",
-        sizes: Array.isArray(productData.sizes) ? productData.sizes : (productData.sizes ? productData.sizes.split(',').map(s => s.trim()) : ["S", "M", "L"]),
-        colors: Array.isArray(productData.colors) ? productData.colors : (productData.colors ? productData.colors.split(',').map(c => c.trim()) : ["Black"]),
-        inStock: productData.inStock !== undefined ? Boolean(productData.inStock) : true,
-        tags: Array.isArray(productData.tags) ? productData.tags : (productData.tags ? productData.tags.split(',').map(t => t.trim().toLowerCase()) : [])
-    };
-
-    activeProductsList.unshift(newProduct);
-    saveProductsCatalog(activeProductsList);
-    return newProduct;
-}
-
-// Update existing product
-function updateProduct(id, updatedData) {
-    const numId = Number(id);
-    const index = activeProductsList.findIndex(p => p.id === numId);
-    if (index !== -1) {
-        activeProductsList[index] = {
-            ...activeProductsList[index],
-            ...updatedData,
-            id: numId,
-            price: parseFloat(updatedData.price),
-            oldPrice: updatedData.oldPrice ? parseFloat(updatedData.oldPrice) : null,
-            discount: Boolean(updatedData.oldPrice && parseFloat(updatedData.oldPrice) > parseFloat(updatedData.price)),
-            sizes: Array.isArray(updatedData.sizes) ? updatedData.sizes : (typeof updatedData.sizes === 'string' ? updatedData.sizes.split(',').map(s => s.trim()) : activeProductsList[index].sizes),
-            colors: Array.isArray(updatedData.colors) ? updatedData.colors : (typeof updatedData.colors === 'string' ? updatedData.colors.split(',').map(c => c.trim()) : activeProductsList[index].colors),
-            tags: Array.isArray(updatedData.tags) ? updatedData.tags : (typeof updatedData.tags === 'string' ? updatedData.tags.split(',').map(t => t.trim().toLowerCase()) : activeProductsList[index].tags)
-        };
-        saveProductsCatalog(activeProductsList);
-        return activeProductsList[index];
+// Add a new product. Returns { data, error }.
+async function addProduct(productData) {
+    if (!window.LuxeProducts) return { data: null, error: { message: 'Backend not configured' } };
+    const { data, error } = await window.LuxeProducts.create(productData);
+    if (!error && data) {
+        activeProductsList = [data, ...activeProductsList];
     }
-    return null;
+    return { data, error };
 }
 
-// Delete product
-function deleteProduct(id) {
-    const numId = Number(id);
-    activeProductsList = activeProductsList.filter(p => p.id !== numId);
-    saveProductsCatalog(activeProductsList);
+// Update existing product. Returns { data, error }.
+async function updateProduct(id, updatedData) {
+    if (!window.LuxeProducts) return { data: null, error: { message: 'Backend not configured' } };
+    const { data, error } = await window.LuxeProducts.update(id, updatedData);
+    if (!error && data) {
+        const numId = Number(id);
+        activeProductsList = activeProductsList.map(p => p.id === numId ? data : p);
+    }
+    return { data, error };
 }
 
-// Reset catalog to default hardcoded products
-function resetProductsCatalog() {
-    activeProductsList = [...products];
-    saveProductsCatalog(activeProductsList);
-    return activeProductsList;
+// Delete product. Returns { error }.
+async function deleteProduct(id) {
+    if (!window.LuxeProducts) return { error: { message: 'Backend not configured' } };
+    const { error } = await window.LuxeProducts.remove(id);
+    if (!error) {
+        const numId = Number(id);
+        activeProductsList = activeProductsList.filter(p => p.id !== numId);
+    }
+    return { error };
+}
+
+// One-time import of the bundled starter catalog into Supabase.
+// Used by the admin panel's "Import starter catalog" button.
+async function importStarterCatalog() {
+    if (!window.LuxeProducts) return { error: { message: 'Backend not configured' } };
+    const result = await window.LuxeProducts.importStarterCatalog(products);
+    if (!result.error) {
+        // Refresh local cache from the DB so the admin panel shows the
+        // freshly imported rows immediately.
+        const { data, error } = await window.LuxeProducts.getAll();
+        if (!error && data) activeProductsList = data;
+    }
+    return result;
 }
 
 if (typeof window !== 'undefined') {
@@ -1833,5 +1834,5 @@ if (typeof window !== 'undefined') {
     window.addProduct = addProduct;
     window.updateProduct = updateProduct;
     window.deleteProduct = deleteProduct;
-    window.resetProductsCatalog = resetProductsCatalog;
+    window.importStarterCatalog = importStarterCatalog;
 }

@@ -1,6 +1,8 @@
 // js/shop.js - Shop Page Filtering, Sorting, and Search
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    // Wait for the live product catalog (Supabase) to finish loading.
+    if (window.productsReady) await window.productsReady;
   // Hide loader
   const loader = document.getElementById("loader");
   if (loader) {

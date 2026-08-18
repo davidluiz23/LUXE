@@ -1,6 +1,9 @@
 // js/app.js - Main Application Script
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    // Wait for the live product catalog (Supabase) to finish loading
+    // before rendering, so we don't flash the offline fallback list.
+    if (window.productsReady) await window.productsReady;
     // Hide loader
     const loader = document.getElementById('loader');
     if (loader) {

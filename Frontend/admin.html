@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Admin | LUXE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div id="loader"><div class="loader-spinner"></div></div>
+
+    <header id="navbar">
+        <div class="container nav-container">
+            <div class="logo"><a href="index.html"><span>LUXE</span></a></div>
+            <nav class="nav-links" id="navLinks">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="shop.html">Shop</a></li>
+                    <li><a href="admin.html" class="active">Admin</a></li>
+                </ul>
+            </nav>
+            <div class="nav-icons">
+                <a href="index.html" class="user-icon"><i class="fas fa-arrow-left"></i></a>
+                <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+            </div>
+        </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-close" id="mobileClose"><i class="fas fa-times"></i></div>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="shop.html">Shop</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <section class="admin-section">
+        <div class="container">
+
+            <!-- ============ GATE: login form ============ -->
+            <div class="admin-gate" id="adminLoginGate">
+                <i class="fas fa-lock"></i>
+                <h2>Owner Sign In</h2>
+                <p>This panel is restricted to the store owner's account.</p>
+                <div class="admin-error" id="adminLoginError"></div>
+                <form id="adminLoginForm">
+                    <div class="form-group">
+                        <label for="adminEmail">Email</label>
+                        <input type="email" id="adminEmail" required placeholder="you@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="adminPassword">Password</label>
+                        <input type="password" id="adminPassword" required placeholder="Your password">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%;" id="adminLoginBtn">Sign In</button>
+                </form>
+            </div>
+
+            <!-- ============ GATE: logged in, but wrong email ============ -->
+            <div class="admin-gate" id="adminDeniedGate" style="display:none;">
+                <i class="fas fa-ban" style="color:#C0392B;"></i>
+                <h2>Not Authorized</h2>
+                <p>You're signed in, but this account isn't the store owner. If this is a mistake, sign out and use the owner's login instead.</p>
+                <button class="btn btn-outline" style="background:#111;color:#fff;" id="adminDeniedSignOut">Sign Out</button>
+            </div>
+
+            <!-- ============ MAIN ADMIN LAYOUT ============ -->
+            <div class="admin-layout" id="adminLayout">
+                <aside class="admin-sidebar">
+                    <div class="admin-owner">
+                        <i class="fas fa-user-shield"></i>
+                        <div><strong>Owner</strong></div>
+                        <div class="admin-owner-email" id="adminOwnerEmail"></div>
+                    </div>
+                    <button class="admin-nav-btn active" data-panel="productsPanel"><i class="fas fa-box"></i> Products</button>
+                    <button class="admin-nav-btn" data-panel="updatesPanel"><i class="fas fa-bullhorn"></i> Site Updates</button>
+                    <button class="admin-nav-btn logout-btn" id="adminSignOutBtn"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+                </aside>
+
+                <div class="admin-main">
+                    <!-- ---------- PRODUCTS PANEL ---------- -->
+                    <div class="admin-panel active" id="productsPanel">
+                        <div class="admin-panel-card">
+                            <div class="admin-panel-header">
+                                <div>
+                                    <h2>Products</h2>
+                                    <p id="productCountLabel">Loading catalog…</p>
+                                </div>
+                                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                    <button class="btn btn-outline" style="background:#111;color:#fff; padding:10px 20px; font-size:0.85rem;" id="importCatalogBtn">
+                                        <i class="fas fa-cloud-upload-alt"></i> Import Starter Catalog
+                                    </button>
+                                    <button class="btn btn-primary" style="padding:10px 22px; font-size:0.85rem;" id="addProductBtn">
+                                        <i class="fas fa-plus"></i> Add Product
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="admin-table-wrap">
+                                <table class="admin-table" id="productsTable">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>Name</th>
+                                            <th>Brand</th>
+                                            <th>Category</th>
+                                            <th>Price</th>
+                                            <th>Stock</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="productsTableBody">
+                                        <!-- rows injected by admin.js -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="admin-empty-state" id="productsEmptyState" style="display:none;">
+                                <i class="fas fa-box-open"></i>
+                                <p>No products yet. Click "Import Starter Catalog" to load the original 90 products, or "Add Product" to start fresh.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ---------- SITE UPDATES PANEL ---------- -->
+                    <div class="admin-panel" id="updatesPanel">
+                        <div class="admin-panel-card">
+                            <div class="admin-panel-header">
+                                <div>
+                                    <h2>Site Updates</h2>
+                                    <p>Post a short announcement — it shows as a banner at the top of the site. Only the most recent active update is shown to visitors.</p>
+                                </div>
+                            </div>
+                            <form id="postUpdateForm" style="margin-bottom: 25px;">
+                                <div class="form-group" style="margin-bottom:12px;">
+                                    <label for="updateTitle" style="display:block; font-size:0.82rem; font-weight:500; margin-bottom:6px;">Title</label>
+                                    <input type="text" id="updateTitle" required placeholder="e.g. Free Shipping This Weekend" style="width:100%; padding:11px 14px; border:1px solid var(--border-color); border-radius: var(--radius); font-family: var(--font-body);">
+                                </div>
+                                <div class="form-group" style="margin-bottom:12px;">
+                                    <label for="updateMessage" style="display:block; font-size:0.82rem; font-weight:500; margin-bottom:6px;">Message</label>
+                                    <textarea id="updateMessage" required rows="2" placeholder="Short message shown in the banner" style="width:100%; padding:11px 14px; border:1px solid var(--border-color); border-radius: var(--radius); font-family: var(--font-body); resize: vertical;"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="padding:10px 24px; font-size:0.85rem;"><i class="fas fa-paper-plane"></i> Post Update</button>
+                            </form>
+                            <div id="updatesList"><!-- injected by admin.js --></div>
+                            <div class="admin-empty-state" id="updatesEmptyState" style="display:none;">
+                                <i class="fas fa-bullhorn"></i>
+                                <p>No updates posted yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ============ ADD / EDIT PRODUCT MODAL ============ -->
+    <div class="admin-modal-overlay" id="productModalOverlay">
+        <div class="admin-modal">
+            <h3 id="productModalTitle">Add Product</h3>
+            <form id="productForm">
+                <input type="hidden" id="productId">
+                <div class="admin-form-grid">
+                    <div class="form-group full-width">
+                        <label for="pName">Product Name *</label>
+                        <input type="text" id="pName" required placeholder="e.g. Prada Wool Suit">
+                    </div>
+                    <div class="form-group">
+                        <label for="pBrand">Brand</label>
+                        <input type="text" id="pBrand" placeholder="e.g. Prada">
+                    </div>
+                    <div class="form-group">
+                        <label for="pCategory">Category *</label>
+                        <select id="pCategory" required>
+                            <option value="Men">Men</option>
+                            <option value="Women">Women</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pSubcategory">Subcategory</label>
+                        <input type="text" id="pSubcategory" placeholder="e.g. Suits, Footwear">
+                    </div>
+                    <div class="form-group">
+                        <label for="pRating">Rating (0–5)</label>
+                        <input type="number" id="pRating" min="0" max="5" step="0.1" placeholder="5.0">
+                    </div>
+                    <div class="form-group">
+                        <label for="pPrice">Price ($) *</label>
+                        <input type="number" id="pPrice" min="0" step="0.01" required placeholder="199.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="pOldPrice">Old Price ($, optional — for discounts)</label>
+                        <input type="number" id="pOldPrice" min="0" step="0.01" placeholder="249.00">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="pImage">Image URL *</label>
+                        <input type="url" id="pImage" required placeholder="https://...">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="pHoverImage">Hover Image URL (optional — shown on card hover)</label>
+                        <input type="url" id="pHoverImage" placeholder="https://...">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="pDescription">Description</label>
+                        <textarea id="pDescription" placeholder="Product description shown on the product page"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="pSizes">Sizes (comma-separated)</label>
+                        <input type="text" id="pSizes" placeholder="S, M, L, XL">
+                    </div>
+                    <div class="form-group">
+                        <label for="pColors">Colors (comma-separated)</label>
+                        <input type="text" id="pColors" placeholder="Black, Navy Blue">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="pTags">Tags (comma-separated, used in search)</label>
+                        <input type="text" id="pTags" placeholder="wool, suit, men, formal">
+                    </div>
+                    <div class="form-group full-width admin-checkbox-row">
+                        <input type="checkbox" id="pInStock" checked>
+                        <label for="pInStock" style="margin-bottom:0;">In stock</label>
+                    </div>
+                </div>
+                <div class="admin-modal-actions">
+                    <button type="button" class="btn btn-outline" style="background:#eee;color:#111;border-color:#eee;" id="cancelProductBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveProductBtn">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="admin-toast" id="adminToast"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/products.js"></script>
+    <script src="js/animation.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

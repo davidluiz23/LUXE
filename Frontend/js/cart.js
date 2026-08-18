@@ -167,9 +167,13 @@ function renderCartPage() {
     if (document.getElementById('cartTotal')) document.getElementById('cartTotal').textContent = `$${total.toFixed(2)}`;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     updateCartCount();
     if (document.getElementById('cartItems')) {
+        // Only the cart page itself needs product details, so only it
+        // waits on the live catalog — the cart-count badge on every
+        // other page renders instantly above.
+        if (window.productsReady) await window.productsReady;
         renderCartPage();
     }
 });
