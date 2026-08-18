@@ -260,49 +260,17 @@ const LuxeAuth = {
       return null;
     }
 
-    try {
-      const {
-        data: { user },
-        error,
-      } = await supabaseClient.auth.getUser();
+    const {
+      data: { session },
+      error,
+    } = await supabaseClient.auth.getSession();
 
-      if (error) {
-        console.error("[LUXE] User lookup error:", error);
-        return null;
-      }
-
-      return user || null;
-    } catch (error) {
-      console.error("[LUXE] Failed to retrieve current user:", error);
-      return null;
-    }
-  },
-
-  // ---------------------------------------------------------------
-  // SESSION
-  // ---------------------------------------------------------------
-
-  async getSession() {
-    if (!supabaseClient) {
+    if (error) {
+      console.error("[LUXE] Session lookup error:", error);
       return null;
     }
 
-    try {
-      const {
-        data: { session },
-        error,
-      } = await supabaseClient.auth.getSession();
-
-      if (error) {
-        console.error("[LUXE] Session lookup error:", error);
-        return null;
-      }
-
-      return session || null;
-    } catch (error) {
-      console.error("[LUXE] Session retrieval failed:", error);
-      return null;
-    }
+    return session?.user || null;
   },
 
   // ---------------------------------------------------------------
