@@ -547,3 +547,115 @@
     .admin-form-grid { grid-template-columns: 1fr; }
     .admin-image-field { flex-direction: column; }
 }
+
+
+/* ========== ADMIN PASSWORD RECOVERY ========== */
+
+.admin-login-help {
+    display: flex;
+    justify-content: flex-end;
+    margin: -5px 0 16px;
+}
+
+.admin-login-help a {
+    color: var(--accent);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.admin-login-help a:hover {
+    text-decoration: underline;
+}
+
+.admin-reset-modal {
+    position: relative;
+    max-width: 440px;
+    text-align: left;
+}
+
+.admin-reset-close {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    border: 0;
+    background: transparent;
+    color: var(--gray-text);
+    font-size: 1.8rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.admin-reset-close:hover {
+    color: var(--primary);
+}
+
+.admin-reset-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(212, 175, 55, 0.12);
+    margin-bottom: 16px;
+}
+
+.admin-reset-icon i {
+    color: var(--accent);
+    font-size: 1.15rem;
+}
+
+.admin-reset-copy {
+    color: var(--gray-text);
+    font-size: 0.88rem;
+    line-height: 1.6;
+    margin: -8px 0 20px;
+}
+
+.admin-reset-modal .form-group {
+    margin-bottom: 16px;
+}
+
+.admin-reset-modal label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+.admin-reset-modal input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+}
+
+.admin-reset-modal input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.admin-reset-status {
+    display: none;
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    font-size: 0.84rem;
+    line-height: 1.5;
+}
+
+.admin-reset-status.success {
+    display: block;
+    background: #E8F8EF;
+    color: #1E8E4F;
+}
+
+.admin-reset-status.error {
+    display: block;
+    background: #FDECEA;
+    color: #C0392B;
+}

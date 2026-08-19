@@ -102,6 +102,134 @@ document.addEventListener("DOMContentLoaded", async () => {
   const loginForm = document.getElementById("adminLoginForm");
   const loginError = document.getElementById("adminLoginError");
 
+
+  const forgotPasswordLink =
+    document.getElementById("adminForgotPasswordLink");
+  const resetModal =
+    document.getElementById("adminResetModalOverlay");
+  const resetCloseButton =
+    document.getElementById("adminResetCloseBtn");
+  const resetForm =
+    document.getElementById("adminResetForm");
+  const resetEmailInput =
+    document.getElementById("adminResetEmail");
+  const resetStatus =
+    document.getElementById("adminResetStatus");
+  const resetSubmitButton =
+    document.getElementById("adminResetSubmitBtn");
+
+  function openResetModal() {
+    if (!resetModal) return;
+
+    const currentEmail =
+      document.getElementById("adminEmail")?.value.trim() || "";
+
+    if (resetEmailInput && currentEmail) {
+      resetEmailInput.value = currentEmail;
+    }
+
+    if (resetStatus) {
+      resetStatus.textContent = "";
+      resetStatus.className = "admin-reset-status";
+    }
+
+    if (resetForm) {
+      resetForm.style.display = "block";
+    }
+
+    resetModal.classList.add("visible");
+    resetModal.setAttribute("aria-hidden", "false");
+
+    setTimeout(() => {
+      resetEmailInput?.focus();
+    }, 0);
+  }
+
+  function closeResetModal() {
+    if (!resetModal) return;
+
+    resetModal.classList.remove("visible");
+    resetModal.setAttribute("aria-hidden", "true");
+  }
+
+  forgotPasswordLink?.addEventListener("click", (event) => {
+    event.preventDefault();
+    openResetModal();
+  });
+
+  resetCloseButton?.addEventListener("click", closeResetModal);
+
+  resetModal?.addEventListener("click", (event) => {
+    if (event.target === resetModal) {
+      closeResetModal();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (
+      event.key === "Escape" &&
+      resetModal?.classList.contains("visible")
+    ) {
+      closeResetModal();
+    }
+  });
+
+  resetForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const email = resetEmailInput?.value.trim() || "";
+
+    if (!email) {
+      if (resetStatus) {
+        resetStatus.textContent = "Enter your email address.";
+        resetStatus.className = "admin-reset-status error";
+      }
+      return;
+    }
+
+    if (!window.LuxeAuth || !window.LuxeAuth.isReady()) {
+      if (resetStatus) {
+        resetStatus.textContent =
+          "Account service is unavailable right now.";
+        resetStatus.className = "admin-reset-status error";
+      }
+      return;
+    }
+
+    if (resetSubmitButton) {
+      resetSubmitButton.disabled = true;
+      resetSubmitButton.textContent = "Sending...";
+    }
+
+    const { error } =
+      await window.LuxeAuth.resetPasswordForEmail(email);
+
+    if (resetSubmitButton) {
+      resetSubmitButton.disabled = false;
+      resetSubmitButton.textContent = "Send Reset Link";
+    }
+
+    // Intentionally show the same response whether or not the address
+    // exists. This prevents the admin login page from revealing which
+    // emails have LUXE accounts.
+    if (error) {
+      console.warn(
+        "[LUXE] Admin password reset request:",
+        error.message
+      );
+    }
+
+    if (resetForm) {
+      resetForm.style.display = "none";
+    }
+
+    if (resetStatus) {
+      resetStatus.textContent =
+        "If an account exists for that email, a password reset link has been sent. Check your inbox.";
+      resetStatus.className = "admin-reset-status success";
+    }
+  });
+
   loginForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
     loginError?.classList.remove("visible");

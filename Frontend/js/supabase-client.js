@@ -988,9 +988,9 @@ const testSupabaseConnection = async () => {
 // ---------------------------------------------------------------------
 // STOREFRONT UI INTEGRATION
 //
-// 1. Adds an Admin nav link only for authenticated owner/admin accounts.
-// 2. Ensures every simple product-card image fills its fixed card area
-//    without stretching. The original file in Storage remains untouched.
+// - Adds an Admin link only for authenticated owner/admin accounts.
+// - Makes direct product-card images fill the fixed image area without
+//   distortion. This changes DISPLAY only; Storage keeps original bytes.
 // ---------------------------------------------------------------------
 
 function ensureProductCardImageFit() {
@@ -1026,17 +1026,14 @@ function removeInjectedAdminNavLinks() {
 function addAdminLinkToList(listElement) {
   if (!listElement) return;
 
-  const existing = Array.from(
+  const alreadyHasAdminLink = Array.from(
     listElement.querySelectorAll("a")
-  ).find((anchor) => {
+  ).some((anchor) => {
     const href = anchor.getAttribute("href") || "";
-    return (
-      href === "admin.html" ||
-      href.endsWith("/admin.html")
-    );
+    return href === "admin.html" || href.endsWith("/admin.html");
   });
 
-  if (existing) return;
+  if (alreadyHasAdminLink) return;
 
   const item = document.createElement("li");
   item.dataset.luxeAdminNav = "true";
@@ -1044,36 +1041,38 @@ function addAdminLinkToList(listElement) {
   const link = document.createElement("a");
   link.href = "admin.html";
   link.textContent = "Admin";
-  link.setAttribute(
-    "aria-label",
-    "Open LUXE Admin Console"
-  );
+  link.setAttribute("aria-label", "Open LUXE Admin Console");
 
   item.appendChild(link);
   listElement.appendChild(item);
 }
 
 async function syncAdminNavigation() {
-  if (typeof document === "undefined") return;
+  if (typeof document === "undefined" || !supabaseClient) {
+    return;
+  }
 
   removeInjectedAdminNavLinks();
 
-  if (!supabaseClient) return;
-
   try {
-    const { data: role, error } =
-      await supabaseClient.rpc(
-        "current_admin_role"
-      );
+    // Avoid calling an authenticated-only RPC for signed-out visitors.
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabaseClient.auth.getSession();
 
-    if (error) {
+    if (sessionError || !session?.user) {
       return;
     }
 
-    if (
-      role !== "owner" &&
-      role !== "admin"
-    ) {
+    const { data: role, error: roleError } =
+      await supabaseClient.rpc("current_admin_role");
+
+    if (roleError) {
+      return;
+    }
+
+    if (role !== "owner" && role !== "admin") {
       return;
     }
 
@@ -1095,21 +1094,25 @@ async function syncAdminNavigation() {
 function initializeStorefrontUiIntegration() {
   ensureProductCardImageFit();
 
+  const refresh = () => {
+    syncAdminNavigation();
+  };
+
   if (document.readyState === "loading") {
     document.addEventListener(
       "DOMContentLoaded",
-      syncAdminNavigation,
+      refresh,
       { once: true }
     );
   } else {
-    syncAdminNavigation();
+    refresh();
   }
 
   if (supabaseClient) {
     supabaseClient.auth.onAuthStateChange(() => {
-      setTimeout(() => {
-        syncAdminNavigation();
-      }, 0);
+      // Do not make another Supabase call synchronously from inside
+      // the auth callback. Queue it for the next turn instead.
+      setTimeout(refresh, 0);
     });
   }
 }

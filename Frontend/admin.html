@@ -68,6 +68,10 @@
                         <input type="password" id="adminPassword" autocomplete="current-password" required placeholder="Your password">
                     </div>
 
+                    <div class="admin-login-help">
+                        <a href="#" id="adminForgotPasswordLink">Forgot password?</a>
+                    </div>
+
                     <button type="submit" class="btn btn-primary" style="width:100%;" id="adminLoginBtn">Sign In</button>
                 </form>
             </div>
@@ -234,6 +238,31 @@
             </div>
         </div>
     </section>
+
+    <!-- Admin password recovery uses the same Supabase account recovery
+         flow as the normal customer login. -->
+    <div class="admin-modal-overlay" id="adminResetModalOverlay" aria-hidden="true">
+        <div class="admin-modal admin-reset-modal" role="dialog" aria-modal="true" aria-labelledby="adminResetTitle">
+            <button type="button" class="admin-reset-close" id="adminResetCloseBtn" aria-label="Close password reset">&times;</button>
+
+            <div class="admin-reset-icon"><i class="fas fa-key"></i></div>
+            <h3 id="adminResetTitle">Reset Admin Password</h3>
+            <p class="admin-reset-copy">Enter the email used for your LUXE account. We’ll send a secure link to set a new password.</p>
+
+            <form id="adminResetForm">
+                <div class="form-group">
+                    <label for="adminResetEmail">Email</label>
+                    <input type="email" id="adminResetEmail" autocomplete="email" required placeholder="you@example.com">
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width:100%;" id="adminResetSubmitBtn">
+                    Send Reset Link
+                </button>
+            </form>
+
+            <div class="admin-reset-status" id="adminResetStatus" aria-live="polite"></div>
+        </div>
+    </div>
 
     <div class="admin-modal-overlay" id="productModalOverlay">
         <div class="admin-modal">
