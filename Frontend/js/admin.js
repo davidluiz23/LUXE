@@ -202,7 +202,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const { error } =
-      await window.LuxeAuth.resetPasswordForEmail(email);
+      await window.LuxeAuth.requestPasswordReset(email, "admin");
 
     if (resetSubmitButton) {
       resetSubmitButton.disabled = false;

@@ -272,7 +272,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const { error } =
-        await window.LuxeAuth.resetPasswordForEmail(email);
+        await window.LuxeAuth.requestPasswordReset(email, "customer");
 
       if (button) {
         button.disabled = false;

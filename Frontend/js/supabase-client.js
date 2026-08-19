@@ -163,23 +163,56 @@ const LuxeAuth = {
     }
   },
 
-  async resetPasswordForEmail(email) {
+  async requestPasswordReset(email, portal = "customer") {
     if (!supabaseClient) {
       return {
         error: { message: "Account service is not configured." },
       };
     }
 
+    const normalizedPortal =
+      portal === "admin" ? "admin" : "customer";
+
+    const redirectTo = pageUrl(
+      `reset-password.html?portal=${normalizedPortal}`
+    );
+
     try {
-      return await supabaseClient.auth.resetPasswordForEmail(email, {
-        redirectTo: pageUrl("reset-password.html"),
-      });
+      const { data, error } =
+        await supabaseClient.functions.invoke("password-reset", {
+          body: {
+            email: String(email || "").trim().toLowerCase(),
+            portal: normalizedPortal,
+            redirectTo,
+          },
+        });
+
+      if (error) {
+        console.error(
+          "[LUXE] Password reset gateway error:",
+          error
+        );
+        return { error };
+      }
+
+      return {
+        data: data || { ok: true },
+        error: null,
+      };
     } catch (error) {
       console.error("[LUXE] Password reset request error:", error);
       return {
-        error: { message: error?.message || "Unable to send reset email." },
+        error: {
+          message:
+            error?.message || "Unable to request password reset.",
+        },
       };
     }
+  },
+
+  // Backward-compatible customer reset alias.
+  async resetPasswordForEmail(email) {
+    return await this.requestPasswordReset(email, "customer");
   },
 
   async updatePassword(newPassword) {
