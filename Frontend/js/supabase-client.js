@@ -984,6 +984,136 @@ const testSupabaseConnection = async () => {
   }
 };
 
+
+// ---------------------------------------------------------------------
+// STOREFRONT UI INTEGRATION
+//
+// 1. Adds an Admin nav link only for authenticated owner/admin accounts.
+// 2. Ensures every simple product-card image fills its fixed card area
+//    without stretching. The original file in Storage remains untouched.
+// ---------------------------------------------------------------------
+
+function ensureProductCardImageFit() {
+  if (typeof document === "undefined") return;
+
+  if (document.getElementById("luxe-product-card-image-fit")) {
+    return;
+  }
+
+  const style = document.createElement("style");
+  style.id = "luxe-product-card-image-fit";
+  style.textContent = `
+    .product-image > img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+    }
+  `;
+
+  document.head.appendChild(style);
+}
+
+function removeInjectedAdminNavLinks() {
+  if (typeof document === "undefined") return;
+
+  document
+    .querySelectorAll('[data-luxe-admin-nav="true"]')
+    .forEach((element) => element.remove());
+}
+
+function addAdminLinkToList(listElement) {
+  if (!listElement) return;
+
+  const existing = Array.from(
+    listElement.querySelectorAll("a")
+  ).find((anchor) => {
+    const href = anchor.getAttribute("href") || "";
+    return (
+      href === "admin.html" ||
+      href.endsWith("/admin.html")
+    );
+  });
+
+  if (existing) return;
+
+  const item = document.createElement("li");
+  item.dataset.luxeAdminNav = "true";
+
+  const link = document.createElement("a");
+  link.href = "admin.html";
+  link.textContent = "Admin";
+  link.setAttribute(
+    "aria-label",
+    "Open LUXE Admin Console"
+  );
+
+  item.appendChild(link);
+  listElement.appendChild(item);
+}
+
+async function syncAdminNavigation() {
+  if (typeof document === "undefined") return;
+
+  removeInjectedAdminNavLinks();
+
+  if (!supabaseClient) return;
+
+  try {
+    const { data: role, error } =
+      await supabaseClient.rpc(
+        "current_admin_role"
+      );
+
+    if (error) {
+      return;
+    }
+
+    if (
+      role !== "owner" &&
+      role !== "admin"
+    ) {
+      return;
+    }
+
+    addAdminLinkToList(
+      document.querySelector(".nav-links ul")
+    );
+
+    addAdminLinkToList(
+      document.querySelector(".mobile-menu ul")
+    );
+  } catch (error) {
+    console.warn(
+      "[LUXE] Could not refresh admin navigation:",
+      error
+    );
+  }
+}
+
+function initializeStorefrontUiIntegration() {
+  ensureProductCardImageFit();
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      syncAdminNavigation,
+      { once: true }
+    );
+  } else {
+    syncAdminNavigation();
+  }
+
+  if (supabaseClient) {
+    supabaseClient.auth.onAuthStateChange(() => {
+      setTimeout(() => {
+        syncAdminNavigation();
+      }, 0);
+    });
+  }
+}
+
 if (typeof window !== "undefined") {
   window.LuxeAuth = LuxeAuth;
   window.LuxeProfile = LuxeProfile;
@@ -995,4 +1125,7 @@ if (typeof window !== "undefined") {
 
   window.isSupabaseConfigured = isSupabaseConfigured;
   window.testSupabaseConnection = testSupabaseConnection;
+  window.syncAdminNavigation = syncAdminNavigation;
+
+  initializeStorefrontUiIntegration();
 }
