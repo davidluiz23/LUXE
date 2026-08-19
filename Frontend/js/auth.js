@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
           id: user.id,
           email: user.email,
           fullName: user.user_metadata?.full_name || "",
-        })
+        }),
       );
       localStorage.setItem("luxe_logged_in", "true");
     } else {
@@ -39,9 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const query = new URLSearchParams(window.location.search);
 
   if (query.get("verified") === "true") {
-    showAuthSuccess(
-      "Email verified successfully. You can now sign in."
-    );
+    showAuthSuccess("Email verified successfully. You can now sign in.");
 
     query.delete("verified");
 
@@ -60,29 +58,12 @@ document.addEventListener("DOMContentLoaded", () => {
     signupForm.addEventListener("submit", async (event) => {
       event.preventDefault();
 
-      const fullName =
-        document.getElementById("fullName")?.value.trim() || "";
-      const email =
-        document.getElementById("email")?.value.trim() || "";
-      const password =
-        document.getElementById("password")?.value || "";
-      const confirmPassword =
-        document.getElementById("confirmPassword")?.value || "";
-      const terms =
-        document.getElementById("terms")?.checked || false;
+      const fullName = document.getElementById("fullName")?.value.trim() || "";
+      const email = document.getElementById("email")?.value.trim() || "";
+      const terms = document.getElementById("terms")?.checked || false;
 
-      if (!fullName || !email || !password || !confirmPassword) {
+      if (!fullName || !email) {
         showAuthError("Please fill in all fields.");
-        return;
-      }
-
-      if (password.length < 8) {
-        showAuthError("Password must be at least 8 characters.");
-        return;
-      }
-
-      if (password !== confirmPassword) {
-        showAuthError("Passwords do not match.");
         return;
       }
 
@@ -93,23 +74,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!window.LuxeAuth || !window.LuxeAuth.isReady()) {
         showAuthError(
-          "Account service is unavailable right now. Please try again later."
+          "Account service is unavailable right now. Please try again later.",
         );
         return;
       }
 
-      const submitButton =
-        signupForm.querySelector('button[type="submit"]');
+      const submitButton = signupForm.querySelector('button[type="submit"]');
 
       if (submitButton) {
         submitButton.disabled = true;
-        submitButton.textContent = "Creating account...";
+        submitButton.textContent = "Sending verification...";
       }
 
-      const { error } = await window.LuxeAuth.signUp(
+      const { error } = await window.LuxeAuth.requestSignupVerification(
+        fullName,
         email,
-        password,
-        fullName
       );
 
       if (submitButton) {
@@ -119,66 +98,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (error) {
         showAuthError(
-          error.message || "Could not create account. Please try again."
+          error.message || "Could not create account. Please try again.",
         );
         return;
       }
 
       showAuthSuccess(
-        "Account created. Check your email and click the confirmation link to verify your account."
+        "Your account has not been created yet. Check your email and open the verification link to choose a password.",
       );
 
       signupForm.reset();
     });
   }
 
-  const resendConfirmationButton =
-    document.getElementById("resendConfirmationBtn");
-
-  if (resendConfirmationButton) {
-    resendConfirmationButton.addEventListener(
-      "click",
-      async (event) => {
-        event.preventDefault();
-
-        const email =
-          document.getElementById("email")?.value.trim() || "";
-
-        if (!email) {
-          showAuthError("Enter your email address first.");
-          return;
-        }
-
-        const { error } =
-          await window.LuxeAuth.resendSignupConfirmation(email);
-
-        if (error) {
-          showAuthError(
-            error.message || "Could not resend confirmation email."
-          );
-          return;
-        }
-
-        showAuthSuccess(
-          "A new confirmation link has been sent to your email."
-        );
-      }
-    );
-  }
-
-  const magicLinkButton =
-    document.getElementById("sendMagicLinkBtn");
+  const magicLinkButton = document.getElementById("sendMagicLinkBtn");
 
   if (magicLinkButton) {
     magicLinkButton.addEventListener("click", async (event) => {
       event.preventDefault();
 
-      const email =
-        document.getElementById("loginEmail")?.value.trim() || "";
+      const email = document.getElementById("loginEmail")?.value.trim() || "";
 
       if (!email) {
         showAuthError(
-          "Please enter your email address to receive a sign-in link."
+          "Please enter your email address to receive a sign-in link.",
         );
         return;
       }
@@ -193,8 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
       magicLinkButton.disabled = true;
       magicLinkButton.textContent = "Sending...";
 
-      const { error } =
-        await window.LuxeAuth.signInWithMagicLink(email);
+      const { error } = await window.LuxeAuth.signInWithMagicLink(email);
 
       magicLinkButton.disabled = false;
       magicLinkButton.innerHTML = originalHtml;
@@ -208,31 +150,20 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  const forgotLink =
-    document.getElementById("forgotPasswordLink");
-  const forgotModal =
-    document.getElementById("forgotPasswordModal");
-  const forgotForm =
-    document.getElementById("forgotPasswordForm");
-  const forgotSuccess =
-    document.getElementById("forgotPasswordSuccess");
-  const closeForgotButton =
-    document.getElementById("closeForgotModal");
+  const forgotLink = document.getElementById("forgotPasswordLink");
+  const forgotModal = document.getElementById("forgotPasswordModal");
+  const forgotForm = document.getElementById("forgotPasswordForm");
+  const forgotSuccess = document.getElementById("forgotPasswordSuccess");
+  const closeForgotButton = document.getElementById("closeForgotModal");
 
   if (forgotLink && forgotModal) {
     forgotLink.addEventListener("click", (event) => {
       event.preventDefault();
 
-      const loginEmail =
-        document.getElementById("loginEmail");
-      const forgotEmail =
-        document.getElementById("forgotEmail");
+      const loginEmail = document.getElementById("loginEmail");
+      const forgotEmail = document.getElementById("forgotEmail");
 
-      if (
-        loginEmail &&
-        forgotEmail &&
-        loginEmail.value.trim()
-      ) {
+      if (loginEmail && forgotEmail && loginEmail.value.trim()) {
         forgotEmail.value = loginEmail.value.trim();
       }
 
@@ -253,8 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
     forgotForm.addEventListener("submit", async (event) => {
       event.preventDefault();
 
-      const email =
-        document.getElementById("forgotEmail")?.value.trim() || "";
+      const email = document.getElementById("forgotEmail")?.value.trim() || "";
 
       if (!email) return;
 
@@ -263,16 +193,17 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const button =
-        document.getElementById("sendResetBtn");
+      const button = document.getElementById("sendResetBtn");
 
       if (button) {
         button.disabled = true;
         button.textContent = "Sending...";
       }
 
-      const { error } =
-        await window.LuxeAuth.requestPasswordReset(email, "customer");
+      const { error } = await window.LuxeAuth.requestPasswordReset(
+        email,
+        "customer",
+      );
 
       if (button) {
         button.disabled = false;
@@ -286,10 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (error) {
-        console.warn(
-          "[LUXE] Password reset request:",
-          error.message
-        );
+        console.warn("[LUXE] Password reset request:", error.message);
       }
     });
   }
@@ -300,10 +228,8 @@ document.addEventListener("DOMContentLoaded", () => {
     loginForm.addEventListener("submit", async (event) => {
       event.preventDefault();
 
-      const email =
-        document.getElementById("loginEmail")?.value.trim() || "";
-      const password =
-        document.getElementById("loginPassword")?.value || "";
+      const email = document.getElementById("loginEmail")?.value.trim() || "";
+      const password = document.getElementById("loginPassword")?.value || "";
 
       if (!email || !password) {
         showAuthError("Please fill in all fields.");
@@ -315,19 +241,17 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const submitButton =
-        document.getElementById("standardLoginBtn");
+      const submitButton = document.getElementById("standardLoginBtn");
 
       if (submitButton) {
         submitButton.disabled = true;
         submitButton.textContent = "Signing in...";
       }
 
-      const { data, error } =
-        await window.LuxeAuth.signInWithPassword(
-          email,
-          password
-        );
+      const { data, error } = await window.LuxeAuth.signInWithPassword(
+        email,
+        password,
+      );
 
       if (submitButton) {
         submitButton.disabled = false;
@@ -335,9 +259,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (error) {
-        showAuthError(
-          error.message || "Invalid email or password."
-        );
+        showAuthError(error.message || "Invalid email or password.");
         return;
       }
 
@@ -353,51 +275,42 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  document
-    .querySelectorAll(".toggle-password")
-    .forEach((button) => {
-      button.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
+  document.querySelectorAll(".toggle-password").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
 
-        const wrapper =
-          button.closest(".password-input-wrapper");
-        const input = wrapper?.querySelector("input");
-        const icon = button.querySelector("i");
+      const wrapper = button.closest(".password-input-wrapper");
+      const input = wrapper?.querySelector("input");
+      const icon = button.querySelector("i");
 
-        if (!input || !icon) return;
+      if (!input || !icon) return;
 
-        if (input.type === "password") {
-          input.type = "text";
-          icon.className = "fas fa-eye-slash";
-        } else {
-          input.type = "password";
-          icon.className = "fas fa-eye";
-        }
-      });
+      if (input.type === "password") {
+        input.type = "text";
+        icon.className = "fas fa-eye-slash";
+      } else {
+        input.type = "password";
+        icon.className = "fas fa-eye";
+      }
     });
+  });
 
-  updateHeaderUserIcon(
-    localStorage.getItem("luxe_logged_in") === "true"
-  );
+  updateHeaderUserIcon(localStorage.getItem("luxe_logged_in") === "true");
 });
 
 function updateHeaderUserIcon(isLoggedIn) {
-  document
-    .querySelectorAll(".user-icon")
-    .forEach((userIcon) => {
-      if (isLoggedIn) {
-        userIcon.innerHTML =
-          '<i class="fas fa-user-check"></i>';
-        userIcon.title = "My Account";
-        userIcon.href = "dashboard.html";
-      } else {
-        userIcon.innerHTML =
-          '<i class="fas fa-user"></i>';
-        userIcon.title = "Sign Up";
-        userIcon.href = "signup.html";
-      }
-    });
+  document.querySelectorAll(".user-icon").forEach((userIcon) => {
+    if (isLoggedIn) {
+      userIcon.innerHTML = '<i class="fas fa-user-check"></i>';
+      userIcon.title = "My Account";
+      userIcon.href = "dashboard.html";
+    } else {
+      userIcon.innerHTML = '<i class="fas fa-user"></i>';
+      userIcon.title = "Sign Up";
+      userIcon.href = "signup.html";
+    }
+  });
 }
 
 function showAuthError(message) {
@@ -439,8 +352,7 @@ function showAuthSuccess(message) {
 }
 
 function removeExistingAuthMessage() {
-  const existing =
-    document.querySelector(".auth-message");
+  const existing = document.querySelector(".auth-message");
 
   if (existing) existing.remove();
 }
@@ -453,8 +365,7 @@ function insertAuthMessage(element) {
     return;
   }
 
-  const wrapper =
-    document.querySelector(".auth-form-wrapper");
+  const wrapper = document.querySelector(".auth-form-wrapper");
 
   if (wrapper) {
     wrapper.insertBefore(element, wrapper.firstChild);

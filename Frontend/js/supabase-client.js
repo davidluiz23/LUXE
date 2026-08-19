@@ -18,10 +18,10 @@ const SUPABASE_ANON_KEY =
 const isSupabaseConfigured = () =>
   Boolean(
     SUPABASE_URL &&
-      SUPABASE_ANON_KEY &&
-      !SUPABASE_URL.includes("YOUR_SUPABASE") &&
-      !SUPABASE_ANON_KEY.includes("YOUR_SUPABASE") &&
-      !SUPABASE_ANON_KEY.includes("PASTE_YOUR")
+    SUPABASE_ANON_KEY &&
+    !SUPABASE_URL.includes("YOUR_SUPABASE") &&
+    !SUPABASE_ANON_KEY.includes("YOUR_SUPABASE") &&
+    !SUPABASE_ANON_KEY.includes("PASTE_YOUR"),
   );
 
 function pageUrl(relativePath) {
@@ -34,7 +34,7 @@ let supabaseClient = null;
 if (typeof window !== "undefined") {
   if (!window.supabase) {
     console.error(
-      "[LUXE] Supabase SDK missing. Load @supabase/supabase-js before supabase-client.js."
+      "[LUXE] Supabase SDK missing. Load @supabase/supabase-js before supabase-client.js.",
     );
   } else if (!isSupabaseConfigured()) {
     console.error("[LUXE] Supabase credentials are not configured.");
@@ -49,7 +49,7 @@ if (typeof window !== "undefined") {
             autoRefreshToken: true,
             detectSessionInUrl: true,
           },
-        }
+        },
       );
       console.log("[LUXE] Supabase client initialized.");
     } catch (error) {
@@ -63,7 +63,7 @@ const LuxeAuth = {
     return !!supabaseClient;
   },
 
-  async signUp(email, password, fullName) {
+  async requestSignupVerification(fullName, email) {
     if (!supabaseClient) {
       return {
         data: null,
@@ -72,24 +72,25 @@ const LuxeAuth = {
     }
 
     try {
-      return await supabaseClient.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: fullName },
-          emailRedirectTo: pageUrl("login.html?verified=true"),
+      return await supabaseClient.functions.invoke("signup-flow", {
+        body: {
+          action: "request",
+          fullName,
+          email,
         },
       });
     } catch (error) {
       console.error("[LUXE] Signup error:", error);
       return {
         data: null,
-        error: { message: error?.message || "Unable to create account." },
+        error: {
+          message: error?.message || "Unable to send verification email.",
+        },
       };
     }
   },
 
-  async resendSignupConfirmation(email) {
+  async checkSignupToken(token) {
     if (!supabaseClient) {
       return {
         data: null,
@@ -98,19 +99,45 @@ const LuxeAuth = {
     }
 
     try {
-      return await supabaseClient.auth.resend({
-        type: "signup",
-        email,
-        options: {
-          emailRedirectTo: pageUrl("login.html?verified=true"),
+      return await supabaseClient.functions.invoke("signup-flow", {
+        body: {
+          action: "check",
+          token,
         },
       });
     } catch (error) {
-      console.error("[LUXE] Confirmation resend error:", error);
+      console.error("[LUXE] Signup token check error:", error);
       return {
         data: null,
         error: {
-          message: error?.message || "Unable to resend confirmation email.",
+          message: error?.message || "Unable to check verification link.",
+        },
+      };
+    }
+  },
+
+  async completeSignup(token, password) {
+    if (!supabaseClient) {
+      return {
+        data: null,
+        error: { message: "Account service is not configured." },
+      };
+    }
+
+    try {
+      return await supabaseClient.functions.invoke("signup-flow", {
+        body: {
+          action: "complete",
+          token,
+          password,
+        },
+      });
+    } catch (error) {
+      console.error("[LUXE] Signup completion error:", error);
+      return {
+        data: null,
+        error: {
+          message: error?.message || "Unable to complete signup.",
         },
       };
     }
@@ -170,28 +197,28 @@ const LuxeAuth = {
       };
     }
 
-    const normalizedPortal =
-      portal === "admin" ? "admin" : "customer";
+    const normalizedPortal = portal === "admin" ? "admin" : "customer";
 
     const redirectTo = pageUrl(
-      `reset-password.html?portal=${normalizedPortal}`
+      `reset-password.html?portal=${normalizedPortal}`,
     );
 
     try {
-      const { data, error } =
-        await supabaseClient.functions.invoke("password-reset", {
+      const { data, error } = await supabaseClient.functions.invoke(
+        "password-reset",
+        {
           body: {
-            email: String(email || "").trim().toLowerCase(),
+            email: String(email || "")
+              .trim()
+              .toLowerCase(),
             portal: normalizedPortal,
             redirectTo,
           },
-        });
+        },
+      );
 
       if (error) {
-        console.error(
-          "[LUXE] Password reset gateway error:",
-          error
-        );
+        console.error("[LUXE] Password reset gateway error:", error);
         return { error };
       }
 
@@ -203,8 +230,7 @@ const LuxeAuth = {
       console.error("[LUXE] Password reset request error:", error);
       return {
         error: {
-          message:
-            error?.message || "Unable to request password reset.",
+          message: error?.message || "Unable to request password reset.",
         },
       };
     }
@@ -282,11 +308,9 @@ const LuxeAuth = {
       return null;
     }
 
-    const { data } = supabaseClient.auth.onAuthStateChange(
-      (event, session) => {
-        callback(session?.user || null, event);
-      }
-    );
+    const { data } = supabaseClient.auth.onAuthStateChange((event, session) => {
+      callback(session?.user || null, event);
+    });
 
     return data?.subscription || null;
   },
@@ -377,7 +401,7 @@ const LuxeOrders = {
           !Number.isInteger(item.product_id) ||
           item.product_id <= 0 ||
           !Number.isInteger(item.quantity) ||
-          item.quantity <= 0
+          item.quantity <= 0,
       );
 
       if (invalidItem) {
@@ -387,13 +411,10 @@ const LuxeOrders = {
         };
       }
 
-      const { data, error } = await supabaseClient.rpc(
-        "create_order_secure",
-        {
-          p_items: rpcItems,
-          p_shipping_address: shippingAddress || {},
-        }
-      );
+      const { data, error } = await supabaseClient.rpc("create_order_secure", {
+        p_items: rpcItems,
+        p_shipping_address: shippingAddress || {},
+      });
 
       if (error) {
         console.error("[LUXE] Order creation error:", error);
@@ -438,9 +459,7 @@ const LuxeAdmins = {
     if (!supabaseClient) return null;
 
     try {
-      const { data, error } = await supabaseClient.rpc(
-        "current_admin_role"
-      );
+      const { data, error } = await supabaseClient.rpc("current_admin_role");
 
       if (error) {
         console.error("[LUXE] Admin role check error:", error);
@@ -508,12 +527,11 @@ const LuxeAdmins = {
     }
 
     try {
-      const { error } = await supabaseClient.rpc(
-        "admin_add_by_email",
-        {
-          p_email: String(email || "").trim().toLowerCase(),
-        }
-      );
+      const { error } = await supabaseClient.rpc("admin_add_by_email", {
+        p_email: String(email || "")
+          .trim()
+          .toLowerCase(),
+      });
 
       return { error };
     } catch (error) {
@@ -554,10 +572,7 @@ const LuxeStorage = {
   BUCKET: "luxe-uploads",
 
   _sanitizeName(filename) {
-    return String(filename || "image").replace(
-      /[^a-zA-Z0-9.\-_]/g,
-      "_"
-    );
+    return String(filename || "image").replace(/[^a-zA-Z0-9.\-_]/g, "_");
   },
 
   _uniquePath(folder, file) {
@@ -623,16 +638,13 @@ const LuxeStorage = {
   },
 
   async uploadProductImage(file) {
-    return await this._upload(
-      file,
-      this._uniquePath("products", file)
-    );
+    return await this._upload(file, this._uniquePath("products", file));
   },
 
   async uploadAvatar(file, userId) {
     return await this._upload(
       file,
-      this._uniquePath(`avatars/${userId}`, file)
+      this._uniquePath(`avatars/${userId}`, file),
     );
   },
 };
@@ -679,13 +691,11 @@ const LuxeProducts = {
       price: Number.isFinite(price) ? price : 0,
       old_price: Number.isFinite(oldPrice) ? oldPrice : null,
       image: String(product.image || "").trim(),
-      hover_image: String(
-        product.hoverImage || product.image || ""
-      ).trim(),
+      hover_image: String(product.hoverImage || product.image || "").trim(),
       rating: Number.parseFloat(product.rating) || 5.0,
       discount: Boolean(
         Number.isFinite(oldPrice) &&
-          oldPrice > (Number.isFinite(price) ? price : 0)
+        oldPrice > (Number.isFinite(price) ? price : 0),
       ),
       description: String(product.description || "").trim(),
       sizes: Array.isArray(product.sizes)
@@ -700,8 +710,7 @@ const LuxeProducts = {
             .split(",")
             .map((value) => value.trim())
             .filter(Boolean),
-      in_stock:
-        product.inStock !== undefined ? !!product.inStock : true,
+      in_stock: product.inStock !== undefined ? !!product.inStock : true,
       tags: Array.isArray(product.tags)
         ? product.tags
             .map((tag) => String(tag).trim().toLowerCase())
@@ -841,24 +850,21 @@ const LuxeProducts = {
     }
 
     try {
-      const { data: existing, error: existingError } =
-        await supabaseClient
-          .from("products")
-          .select("id");
+      const { data: existing, error: existingError } = await supabaseClient
+        .from("products")
+        .select("id");
 
       if (existingError) {
         return { error: existingError, imported: 0 };
       }
 
       const existingIds = new Set(
-        (existing || []).map((row) => Number(row.id))
+        (existing || []).map((row) => Number(row.id)),
       );
 
       const rows = (catalogArray || [])
         .filter((product) => Number.isInteger(Number(product.id)))
-        .filter(
-          (product) => !existingIds.has(Number(product.id))
-        )
+        .filter((product) => !existingIds.has(Number(product.id)))
         .map((product) => ({
           id: Number(product.id),
           ...this._toRow(product),
@@ -868,23 +874,18 @@ const LuxeProducts = {
         return { error: null, imported: 0 };
       }
 
-      const { error } = await supabaseClient
-        .from("products")
-        .insert(rows);
+      const { error } = await supabaseClient.from("products").insert(rows);
 
       if (error) {
         return { error, imported: 0 };
       }
 
       const { error: syncError } = await supabaseClient.rpc(
-        "sync_products_id_sequence"
+        "sync_products_id_sequence",
       );
 
       if (syncError) {
-        console.error(
-          "[LUXE] Product sequence sync failed:",
-          syncError
-        );
+        console.error("[LUXE] Product sequence sync failed:", syncError);
         return {
           error: syncError,
           imported: rows.length,
@@ -896,8 +897,7 @@ const LuxeProducts = {
       console.error("[LUXE] Catalog import error:", error);
       return {
         error: {
-          message:
-            error?.message || "Unable to import starter catalog.",
+          message: error?.message || "Unable to import starter catalog.",
         },
         imported: 0,
       };
@@ -961,12 +961,10 @@ const LuxeUpdates = {
     }
 
     try {
-      return await supabaseClient
-        .from("site_updates")
-        .insert({
-          title: String(title || "").trim(),
-          message: String(message || "").trim(),
-        });
+      return await supabaseClient.from("site_updates").insert({
+        title: String(title || "").trim(),
+        message: String(message || "").trim(),
+      });
     } catch (error) {
       console.error("[LUXE] Site update create error:", error);
       return {
@@ -983,10 +981,7 @@ const LuxeUpdates = {
     }
 
     try {
-      return await supabaseClient
-        .from("site_updates")
-        .delete()
-        .eq("id", id);
+      return await supabaseClient.from("site_updates").delete().eq("id", id);
     } catch (error) {
       console.error("[LUXE] Site update delete error:", error);
       return {
@@ -1016,7 +1011,6 @@ const testSupabaseConnection = async () => {
     return false;
   }
 };
-
 
 // ---------------------------------------------------------------------
 // STOREFRONT UI INTEGRATION
@@ -1060,7 +1054,7 @@ function addAdminLinkToList(listElement) {
   if (!listElement) return;
 
   const alreadyHasAdminLink = Array.from(
-    listElement.querySelectorAll("a")
+    listElement.querySelectorAll("a"),
   ).some((anchor) => {
     const href = anchor.getAttribute("href") || "";
     return href === "admin.html" || href.endsWith("/admin.html");
@@ -1109,18 +1103,11 @@ async function syncAdminNavigation() {
       return;
     }
 
-    addAdminLinkToList(
-      document.querySelector(".nav-links ul")
-    );
+    addAdminLinkToList(document.querySelector(".nav-links ul"));
 
-    addAdminLinkToList(
-      document.querySelector(".mobile-menu ul")
-    );
+    addAdminLinkToList(document.querySelector(".mobile-menu ul"));
   } catch (error) {
-    console.warn(
-      "[LUXE] Could not refresh admin navigation:",
-      error
-    );
+    console.warn("[LUXE] Could not refresh admin navigation:", error);
   }
 }
 
@@ -1132,11 +1119,7 @@ function initializeStorefrontUiIntegration() {
   };
 
   if (document.readyState === "loading") {
-    document.addEventListener(
-      "DOMContentLoaded",
-      refresh,
-      { once: true }
-    );
+    document.addEventListener("DOMContentLoaded", refresh, { once: true });
   } else {
     refresh();
   }
