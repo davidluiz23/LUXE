@@ -5,21 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title>Admin | LUXE</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
+
 <body>
     <div id="loader"><div class="loader-spinner"></div></div>
 
     <header id="navbar">
         <div class="container nav-container">
             <div class="logo"><a href="index.html"><span>LUXE</span></a></div>
+
             <nav class="nav-links" id="navLinks">
                 <ul>
                     <li><a href="index.html">Home</a></li>
@@ -27,11 +31,13 @@
                     <li><a href="admin.html" class="active">Admin</a></li>
                 </ul>
             </nav>
+
             <div class="nav-icons">
                 <a href="index.html" class="user-icon"><i class="fas fa-arrow-left"></i></a>
                 <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
             </div>
         </div>
+
         <div class="mobile-menu" id="mobileMenu">
             <div class="mobile-close" id="mobileClose"><i class="fas fa-times"></i></div>
             <ul>
@@ -44,49 +50,63 @@
     <section class="admin-section">
         <div class="container">
 
-            <!-- ============ GATE: login form ============ -->
             <div class="admin-gate" id="adminLoginGate">
                 <i class="fas fa-lock"></i>
-                <h2>Owner Sign In</h2>
-                <p>This panel is restricted to the store owner's account.</p>
+                <h2>Admin Sign In</h2>
+                <p>Sign in with an account authorized for the LUXE management console.</p>
+
                 <div class="admin-error" id="adminLoginError"></div>
+
                 <form id="adminLoginForm">
                     <div class="form-group">
                         <label for="adminEmail">Email</label>
-                        <input type="email" id="adminEmail" required placeholder="you@example.com">
+                        <input type="email" id="adminEmail" autocomplete="email" required placeholder="you@example.com">
                     </div>
+
                     <div class="form-group">
                         <label for="adminPassword">Password</label>
-                        <input type="password" id="adminPassword" required placeholder="Your password">
+                        <input type="password" id="adminPassword" autocomplete="current-password" required placeholder="Your password">
                     </div>
+
                     <button type="submit" class="btn btn-primary" style="width:100%;" id="adminLoginBtn">Sign In</button>
                 </form>
             </div>
 
-            <!-- ============ GATE: logged in, but wrong email ============ -->
             <div class="admin-gate" id="adminDeniedGate" style="display:none;">
                 <i class="fas fa-ban" style="color:#C0392B;"></i>
                 <h2>Not Authorized</h2>
-                <p>You're signed in, but this account isn't the store owner. If this is a mistake, sign out and use the owner's login instead.</p>
+                <p>This account is signed in but does not have permission to use the LUXE management console.</p>
                 <button class="btn btn-outline" style="background:#111;color:#fff;" id="adminDeniedSignOut">Sign Out</button>
             </div>
 
-            <!-- ============ MAIN ADMIN LAYOUT ============ -->
             <div class="admin-layout" id="adminLayout">
                 <aside class="admin-sidebar">
                     <div class="admin-owner">
                         <i class="fas fa-user-shield"></i>
-                        <div><strong>Admin</strong></div>
+                        <div><strong id="adminRoleLabel">Admin</strong></div>
+                        <div class="admin-owner-role" id="adminRoleBadge"></div>
                         <div class="admin-owner-email" id="adminOwnerEmail"></div>
                     </div>
-                    <button class="admin-nav-btn active" data-panel="productsPanel"><i class="fas fa-box"></i> Products</button>
-                    <button class="admin-nav-btn" data-panel="updatesPanel"><i class="fas fa-bullhorn"></i> Site Updates</button>
-                    <button class="admin-nav-btn" data-panel="teamPanel"><i class="fas fa-users"></i> Team</button>
-                    <button class="admin-nav-btn logout-btn" id="adminSignOutBtn"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+
+                    <button class="admin-nav-btn active" data-panel="productsPanel">
+                        <i class="fas fa-box"></i> Products
+                    </button>
+
+                    <button class="admin-nav-btn" data-panel="updatesPanel">
+                        <i class="fas fa-bullhorn"></i> Site Updates
+                    </button>
+
+                    <button class="admin-nav-btn" data-panel="teamPanel" id="teamNavBtn" style="display:none;">
+                        <i class="fas fa-users-cog"></i> Team
+                    </button>
+
+                    <button class="admin-nav-btn logout-btn" id="adminSignOutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Sign Out
+                    </button>
                 </aside>
 
                 <div class="admin-main">
-                    <!-- ---------- PRODUCTS PANEL ---------- -->
+
                     <div class="admin-panel active" id="productsPanel">
                         <div class="admin-panel-card">
                             <div class="admin-panel-header">
@@ -94,15 +114,18 @@
                                     <h2>Products</h2>
                                     <p id="productCountLabel">Loading catalog…</p>
                                 </div>
-                                <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                                    <button class="btn btn-outline" style="background:#111;color:#fff; padding:10px 20px; font-size:0.85rem;" id="importCatalogBtn">
+
+                                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                                    <button class="btn btn-outline" style="background:#111;color:#fff;padding:10px 20px;font-size:0.85rem;" id="importCatalogBtn">
                                         <i class="fas fa-cloud-upload-alt"></i> Import Starter Catalog
                                     </button>
-                                    <button class="btn btn-primary" style="padding:10px 22px; font-size:0.85rem;" id="addProductBtn">
+
+                                    <button class="btn btn-primary" style="padding:10px 22px;font-size:0.85rem;" id="addProductBtn">
                                         <i class="fas fa-plus"></i> Add Product
                                     </button>
                                 </div>
                             </div>
+
                             <div class="admin-table-wrap">
                                 <table class="admin-table" id="productsTable">
                                     <thead>
@@ -116,39 +139,44 @@
                                             <th></th>
                                         </tr>
                                     </thead>
-                                    <tbody id="productsTableBody">
-                                        <!-- rows injected by admin.js -->
-                                    </tbody>
+                                    <tbody id="productsTableBody"></tbody>
                                 </table>
                             </div>
+
                             <div class="admin-empty-state" id="productsEmptyState" style="display:none;">
                                 <i class="fas fa-box-open"></i>
-                                <p>No products yet. Click "Import Starter Catalog" to load the original 90 products, or "Add Product" to start fresh.</p>
+                                <p>No products yet. Import the starter catalog or add a product manually.</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- ---------- SITE UPDATES PANEL ---------- -->
                     <div class="admin-panel" id="updatesPanel">
                         <div class="admin-panel-card">
                             <div class="admin-panel-header">
                                 <div>
                                     <h2>Site Updates</h2>
-                                    <p>Post a short announcement — it shows as a banner at the top of the site. Only the most recent active update is shown to visitors.</p>
+                                    <p>Post a short announcement shown across the storefront.</p>
                                 </div>
                             </div>
-                            <form id="postUpdateForm" style="margin-bottom: 25px;">
+
+                            <form id="postUpdateForm" style="margin-bottom:25px;">
                                 <div class="form-group" style="margin-bottom:12px;">
-                                    <label for="updateTitle" style="display:block; font-size:0.82rem; font-weight:500; margin-bottom:6px;">Title</label>
-                                    <input type="text" id="updateTitle" required placeholder="e.g. Free Shipping This Weekend" style="width:100%; padding:11px 14px; border:1px solid var(--border-color); border-radius: var(--radius); font-family: var(--font-body);">
+                                    <label for="updateTitle" style="display:block;font-size:0.82rem;font-weight:500;margin-bottom:6px;">Title</label>
+                                    <input type="text" id="updateTitle" required placeholder="e.g. Free Shipping This Weekend" style="width:100%;padding:11px 14px;border:1px solid var(--border-color);border-radius:var(--radius);font-family:var(--font-body);">
                                 </div>
+
                                 <div class="form-group" style="margin-bottom:12px;">
-                                    <label for="updateMessage" style="display:block; font-size:0.82rem; font-weight:500; margin-bottom:6px;">Message</label>
-                                    <textarea id="updateMessage" required rows="2" placeholder="Short message shown in the banner" style="width:100%; padding:11px 14px; border:1px solid var(--border-color); border-radius: var(--radius); font-family: var(--font-body); resize: vertical;"></textarea>
+                                    <label for="updateMessage" style="display:block;font-size:0.82rem;font-weight:500;margin-bottom:6px;">Message</label>
+                                    <textarea id="updateMessage" required rows="2" placeholder="Short message shown in the banner" style="width:100%;padding:11px 14px;border:1px solid var(--border-color);border-radius:var(--radius);font-family:var(--font-body);resize:vertical;"></textarea>
                                 </div>
-                                <button type="submit" class="btn btn-primary" style="padding:10px 24px; font-size:0.85rem;"><i class="fas fa-paper-plane"></i> Post Update</button>
+
+                                <button type="submit" class="btn btn-primary" style="padding:10px 24px;font-size:0.85rem;">
+                                    <i class="fas fa-paper-plane"></i> Post Update
+                                </button>
                             </form>
-                            <div id="updatesList"><!-- injected by admin.js --></div>
+
+                            <div id="updatesList"></div>
+
                             <div class="admin-empty-state" id="updatesEmptyState" style="display:none;">
                                 <i class="fas fa-bullhorn"></i>
                                 <p>No updates posted yet.</p>
@@ -156,133 +184,175 @@
                         </div>
                     </div>
 
-                    <!-- ---------- TEAM PANEL ---------- -->
                     <div class="admin-panel" id="teamPanel">
                         <div class="admin-panel-card">
                             <div class="admin-panel-header">
                                 <div>
-                                    <h2>Team</h2>
-                                    <p>Anyone listed here can sign in to this panel and manage products &amp; updates. They need their own LUXE account first (have them sign up normally), then add their email below.</p>
+                                    <h2>Team Management</h2>
+                                    <p>Master-owner only. Add existing LUXE accounts as admins or remove admins from the console. The master owner is permanently protected.</p>
                                 </div>
                             </div>
-                            <form id="addAdminForm" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:22px; align-items:flex-end;">
-                                <div class="form-group" style="flex:1; min-width:200px; margin-bottom:0;">
-                                    <label for="newAdminEmail" style="display:block; font-size:0.82rem; font-weight:500; margin-bottom:6px;">Email</label>
-                                    <input type="email" id="newAdminEmail" required placeholder="teammate@example.com" style="width:100%; padding:11px 14px; border:1px solid var(--border-color); border-radius: var(--radius); font-family: var(--font-body);">
-                                    <p class="admin-form-hint">Their name shows automatically once they've saved one in their own Profile — no need to type it here.</p>
+
+                            <div class="admin-owner-notice">
+                                <i class="fas fa-crown"></i>
+                                <div>
+                                    <strong>Master Owner Controls</strong>
+                                    <p>Regular admins can manage products, uploads and site updates, but cannot add or remove team members.</p>
                                 </div>
-                                <button type="submit" class="btn btn-primary" style="padding:11px 22px; font-size:0.85rem;"><i class="fas fa-user-plus"></i> Add</button>
+                            </div>
+
+                            <form id="addAdminForm" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;align-items:flex-end;">
+                                <div class="form-group" style="flex:1;min-width:200px;margin-bottom:0;">
+                                    <label for="newAdminEmail" style="display:block;font-size:0.82rem;font-weight:500;margin-bottom:6px;">Existing LUXE account email</label>
+                                    <input type="email" id="newAdminEmail" required placeholder="teammate@example.com" style="width:100%;padding:11px 14px;border:1px solid var(--border-color);border-radius:var(--radius);font-family:var(--font-body);">
+                                    <p class="admin-form-hint">They must sign up for LUXE first.</p>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary" style="padding:11px 22px;font-size:0.85rem;">
+                                    <i class="fas fa-user-plus"></i> Add Admin
+                                </button>
                             </form>
+
                             <div class="admin-table-wrap">
                                 <table class="admin-table" id="teamTable">
                                     <thead>
-                                        <tr><th>Email</th><th>Name</th><th>Added</th><th></th></tr>
+                                        <tr>
+                                            <th>Email</th>
+                                            <th>Name</th>
+                                            <th>Role</th>
+                                            <th>Added</th>
+                                            <th></th>
+                                        </tr>
                                     </thead>
-                                    <tbody id="teamTableBody"><!-- injected by admin.js --></tbody>
+                                    <tbody id="teamTableBody"></tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
-
         </div>
     </section>
 
-    <!-- ============ ADD / EDIT PRODUCT MODAL ============ -->
     <div class="admin-modal-overlay" id="productModalOverlay">
         <div class="admin-modal">
             <h3 id="productModalTitle">Add Product</h3>
+
             <form id="productForm">
                 <input type="hidden" id="productId">
+
                 <div class="admin-form-grid">
                     <div class="form-group full-width">
                         <label for="pName">Product Name *</label>
                         <input type="text" id="pName" required placeholder="e.g. Prada Wool Suit">
                     </div>
+
                     <div class="form-group">
                         <label for="pBrand">Brand</label>
                         <input type="text" id="pBrand" placeholder="e.g. Prada">
                     </div>
+
                     <div class="form-group">
                         <label for="pCategory">Category *</label>
                         <select id="pCategory" required>
                             <option value="Men">Men</option>
                             <option value="Women">Women</option>
+                            <option value="Accessories">Accessories</option>
+                            <option value="Footwear">Footwear</option>
                         </select>
                     </div>
+
                     <div class="form-group">
                         <label for="pSubcategory">Subcategory</label>
                         <input type="text" id="pSubcategory" placeholder="e.g. Suits, Footwear">
                     </div>
+
                     <div class="form-group">
                         <label for="pRating">Rating (0–5)</label>
                         <input type="number" id="pRating" min="0" max="5" step="0.1" placeholder="5.0">
                     </div>
+
                     <div class="form-group">
                         <label for="pPrice">Price ($) *</label>
                         <input type="number" id="pPrice" min="0" step="0.01" required placeholder="199.00">
                     </div>
+
                     <div class="form-group">
-                        <label for="pOldPrice">Old Price ($, optional — for discounts)</label>
+                        <label for="pOldPrice">Old Price ($, optional)</label>
                         <input type="number" id="pOldPrice" min="0" step="0.01" placeholder="249.00">
                     </div>
+
                     <div class="form-group full-width">
                         <label>Main Image *</label>
+
                         <div class="admin-image-field">
-                            <div class="admin-image-preview" id="pImagePreviewWrap">
+                            <div class="admin-image-preview">
                                 <img id="pImagePreview" alt="" style="display:none;">
                                 <i class="fas fa-image" id="pImagePreviewIcon"></i>
                             </div>
+
                             <div class="admin-image-inputs">
                                 <label class="admin-upload-btn" for="pImageFile">
-                                    <i class="fas fa-upload"></i> Upload from device
+                                    <i class="fas fa-upload"></i> Upload original
                                     <input type="file" id="pImageFile" accept="image/*" hidden>
                                 </label>
+
                                 <span class="admin-form-hint" id="pImageUploadStatus"></span>
                                 <input type="url" id="pImage" required placeholder="...or paste an image URL">
                             </div>
                         </div>
-                        <p class="admin-form-hint">Uploaded files keep their original quality — nothing here compresses or resizes them.</p>
+
+                        <p class="admin-form-hint">LUXE uploads the selected file directly. No resizing, recompression or format conversion is performed.</p>
                     </div>
+
                     <div class="form-group full-width">
-                        <label>Hover Image (optional — shown on card hover)</label>
+                        <label>Hover Image (optional)</label>
+
                         <div class="admin-image-field">
-                            <div class="admin-image-preview" id="pHoverImagePreviewWrap">
+                            <div class="admin-image-preview">
                                 <img id="pHoverImagePreview" alt="" style="display:none;">
                                 <i class="fas fa-image" id="pHoverImagePreviewIcon"></i>
                             </div>
+
                             <div class="admin-image-inputs">
                                 <label class="admin-upload-btn" for="pHoverImageFile">
-                                    <i class="fas fa-upload"></i> Upload from device
+                                    <i class="fas fa-upload"></i> Upload original
                                     <input type="file" id="pHoverImageFile" accept="image/*" hidden>
                                 </label>
+
                                 <span class="admin-form-hint" id="pHoverImageUploadStatus"></span>
                                 <input type="url" id="pHoverImage" placeholder="...or paste an image URL">
                             </div>
                         </div>
                     </div>
+
                     <div class="form-group full-width">
                         <label for="pDescription">Description</label>
                         <textarea id="pDescription" placeholder="Product description shown on the product page"></textarea>
                     </div>
+
                     <div class="form-group">
                         <label for="pSizes">Sizes (comma-separated)</label>
                         <input type="text" id="pSizes" placeholder="S, M, L, XL">
                     </div>
+
                     <div class="form-group">
                         <label for="pColors">Colors (comma-separated)</label>
                         <input type="text" id="pColors" placeholder="Black, Navy Blue">
                     </div>
+
                     <div class="form-group full-width">
-                        <label for="pTags">Tags (comma-separated, used in search)</label>
+                        <label for="pTags">Tags (comma-separated)</label>
                         <input type="text" id="pTags" placeholder="wool, suit, men, formal">
                     </div>
+
                     <div class="form-group full-width admin-checkbox-row">
                         <input type="checkbox" id="pInStock" checked>
                         <label for="pInStock" style="margin-bottom:0;">In stock</label>
                     </div>
                 </div>
+
                 <div class="admin-modal-actions">
                     <button type="button" class="btn btn-outline" style="background:#eee;color:#111;border-color:#eee;" id="cancelProductBtn">Cancel</button>
                     <button type="submit" class="btn btn-primary" id="saveProductBtn">Save Product</button>

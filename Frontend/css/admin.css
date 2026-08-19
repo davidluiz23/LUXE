@@ -1,8 +1,5 @@
 /* ========================================
-   ADMIN.CSS - Owner Admin Panel
-   Uses the same design tokens as the rest of
-   the site (css/variables.css) so it matches
-   the existing black/gold LUXE look.
+   ADMIN.CSS - LUXE Management Console
    ======================================== */
 
 .admin-section {
@@ -12,7 +9,6 @@
     min-height: 100vh;
 }
 
-/* ---------- Gate: login / not authorized ---------- */
 .admin-gate {
     max-width: 420px;
     margin: 40px auto;
@@ -80,7 +76,6 @@
 
 .admin-error.visible { display: block; }
 
-/* ---------- Layout ---------- */
 .admin-layout {
     display: none;
     grid-template-columns: 240px 1fr;
@@ -118,6 +113,26 @@
     word-break: break-word;
 }
 
+.admin-owner-role {
+    width: fit-content;
+    margin: 7px auto;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+}
+
+.admin-owner-role.owner {
+    background: rgba(212, 175, 55, 0.16);
+    color: #9B7418;
+}
+
+.admin-owner-role.admin {
+    background: #EEF3F8;
+    color: #465A6B;
+}
+
 .admin-nav-btn {
     display: flex;
     align-items: center;
@@ -152,7 +167,6 @@
     border-radius: 0;
 }
 
-/* ---------- Panels ---------- */
 .admin-panel { display: none; }
 .admin-panel.active { display: block; }
 
@@ -184,7 +198,6 @@
     margin-top: 4px;
 }
 
-/* ---------- Table ---------- */
 .admin-table-wrap { overflow-x: auto; }
 
 .admin-table {
@@ -193,7 +206,8 @@
     font-size: 0.88rem;
 }
 
-.admin-table th, .admin-table td {
+.admin-table th,
+.admin-table td {
     text-align: left;
     padding: 12px 14px;
     border-bottom: 1px solid var(--border-color);
@@ -232,7 +246,11 @@
 .admin-badge.in-stock { background: #E8F8EF; color: #1E8E4F; }
 .admin-badge.out-stock { background: #FDECEA; color: #C0392B; }
 
-.admin-row-actions { display: flex; gap: 8px; }
+.admin-row-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
 
 .admin-icon-btn {
     border: none;
@@ -261,7 +279,6 @@
     display: block;
 }
 
-/* ---------- Form (Add/Edit Product modal) ---------- */
 .admin-modal-overlay {
     display: none;
     position: fixed;
@@ -298,7 +315,6 @@
 }
 
 .admin-form-grid .full-width { grid-column: 1 / -1; }
-
 .admin-form-grid .form-group { margin-bottom: 0; }
 
 .admin-form-grid label {
@@ -340,6 +356,7 @@
     align-items: center;
     gap: 8px;
 }
+
 .admin-checkbox-row input { width: auto; }
 
 .admin-modal-actions {
@@ -349,7 +366,6 @@
     margin-top: 24px;
 }
 
-/* ---------- Image upload field ---------- */
 .admin-image-field {
     display: flex;
     gap: 14px;
@@ -403,9 +419,37 @@
     transition: var(--transition);
 }
 
-.admin-upload-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.admin-upload-btn:hover {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
 
-/* ---------- Team panel ---------- */
+.admin-owner-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px;
+    margin-bottom: 22px;
+    border-radius: 12px;
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.admin-owner-notice > i {
+    color: var(--accent);
+    font-size: 1.2rem;
+    margin-top: 2px;
+}
+
+.admin-owner-notice strong { font-size: 0.9rem; }
+
+.admin-owner-notice p {
+    margin-top: 3px;
+    color: var(--gray-text);
+    font-size: 0.8rem;
+}
+
 .admin-you-badge {
     display: inline-block;
     background: rgba(212, 175, 55, 0.15);
@@ -418,7 +462,35 @@
     text-transform: uppercase;
 }
 
-/* ---------- Site updates list ---------- */
+.admin-role-badge {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.admin-role-badge.owner {
+    background: rgba(212, 175, 55, 0.16);
+    color: #9B7418;
+}
+
+.admin-role-badge.admin {
+    background: #EEF3F8;
+    color: #465A6B;
+}
+
+.admin-protected {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--gray-text);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.admin-protected i { color: var(--accent); }
+
 .admin-update-item {
     padding: 16px 0;
     border-bottom: 1px solid var(--border-color);
@@ -462,11 +534,16 @@
     transition: var(--transition);
 }
 
-.admin-toast.visible { transform: translateY(0); opacity: 1; }
+.admin-toast.visible {
+    transform: translateY(0);
+    opacity: 1;
+}
+
 .admin-toast.error-toast { background: #C0392B; }
 
 @media (max-width: 900px) {
     .admin-layout.visible { grid-template-columns: 1fr; }
     .admin-sidebar { position: static; }
     .admin-form-grid { grid-template-columns: 1fr; }
+    .admin-image-field { flex-direction: column; }
 }
