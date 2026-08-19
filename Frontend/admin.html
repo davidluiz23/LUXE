@@ -76,11 +76,12 @@
                 <aside class="admin-sidebar">
                     <div class="admin-owner">
                         <i class="fas fa-user-shield"></i>
-                        <div><strong>Owner</strong></div>
+                        <div><strong>Admin</strong></div>
                         <div class="admin-owner-email" id="adminOwnerEmail"></div>
                     </div>
                     <button class="admin-nav-btn active" data-panel="productsPanel"><i class="fas fa-box"></i> Products</button>
                     <button class="admin-nav-btn" data-panel="updatesPanel"><i class="fas fa-bullhorn"></i> Site Updates</button>
+                    <button class="admin-nav-btn" data-panel="teamPanel"><i class="fas fa-users"></i> Team</button>
                     <button class="admin-nav-btn logout-btn" id="adminSignOutBtn"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
                 </aside>
 
@@ -154,6 +155,34 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- ---------- TEAM PANEL ---------- -->
+                    <div class="admin-panel" id="teamPanel">
+                        <div class="admin-panel-card">
+                            <div class="admin-panel-header">
+                                <div>
+                                    <h2>Team</h2>
+                                    <p>Anyone listed here can sign in to this panel and manage products &amp; updates. They need their own LUXE account first (have them sign up normally), then add their email below.</p>
+                                </div>
+                            </div>
+                            <form id="addAdminForm" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:22px; align-items:flex-end;">
+                                <div class="form-group" style="flex:1; min-width:200px; margin-bottom:0;">
+                                    <label for="newAdminEmail" style="display:block; font-size:0.82rem; font-weight:500; margin-bottom:6px;">Email</label>
+                                    <input type="email" id="newAdminEmail" required placeholder="teammate@example.com" style="width:100%; padding:11px 14px; border:1px solid var(--border-color); border-radius: var(--radius); font-family: var(--font-body);">
+                                    <p class="admin-form-hint">Their name shows automatically once they've saved one in their own Profile — no need to type it here.</p>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="padding:11px 22px; font-size:0.85rem;"><i class="fas fa-user-plus"></i> Add</button>
+                            </form>
+                            <div class="admin-table-wrap">
+                                <table class="admin-table" id="teamTable">
+                                    <thead>
+                                        <tr><th>Email</th><th>Name</th><th>Added</th><th></th></tr>
+                                    </thead>
+                                    <tbody id="teamTableBody"><!-- injected by admin.js --></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -199,12 +228,39 @@
                         <input type="number" id="pOldPrice" min="0" step="0.01" placeholder="249.00">
                     </div>
                     <div class="form-group full-width">
-                        <label for="pImage">Image URL *</label>
-                        <input type="url" id="pImage" required placeholder="https://...">
+                        <label>Main Image *</label>
+                        <div class="admin-image-field">
+                            <div class="admin-image-preview" id="pImagePreviewWrap">
+                                <img id="pImagePreview" alt="" style="display:none;">
+                                <i class="fas fa-image" id="pImagePreviewIcon"></i>
+                            </div>
+                            <div class="admin-image-inputs">
+                                <label class="admin-upload-btn" for="pImageFile">
+                                    <i class="fas fa-upload"></i> Upload from device
+                                    <input type="file" id="pImageFile" accept="image/*" hidden>
+                                </label>
+                                <span class="admin-form-hint" id="pImageUploadStatus"></span>
+                                <input type="url" id="pImage" required placeholder="...or paste an image URL">
+                            </div>
+                        </div>
+                        <p class="admin-form-hint">Uploaded files keep their original quality — nothing here compresses or resizes them.</p>
                     </div>
                     <div class="form-group full-width">
-                        <label for="pHoverImage">Hover Image URL (optional — shown on card hover)</label>
-                        <input type="url" id="pHoverImage" placeholder="https://...">
+                        <label>Hover Image (optional — shown on card hover)</label>
+                        <div class="admin-image-field">
+                            <div class="admin-image-preview" id="pHoverImagePreviewWrap">
+                                <img id="pHoverImagePreview" alt="" style="display:none;">
+                                <i class="fas fa-image" id="pHoverImagePreviewIcon"></i>
+                            </div>
+                            <div class="admin-image-inputs">
+                                <label class="admin-upload-btn" for="pHoverImageFile">
+                                    <i class="fas fa-upload"></i> Upload from device
+                                    <input type="file" id="pHoverImageFile" accept="image/*" hidden>
+                                </label>
+                                <span class="admin-form-hint" id="pHoverImageUploadStatus"></span>
+                                <input type="url" id="pHoverImage" placeholder="...or paste an image URL">
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group full-width">
                         <label for="pDescription">Description</label>

@@ -349,6 +349,75 @@
     margin-top: 24px;
 }
 
+/* ---------- Image upload field ---------- */
+.admin-image-field {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.admin-image-preview {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: var(--light-bg);
+    border: 1px dashed var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.admin-image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.admin-image-preview i {
+    color: var(--gray-text);
+    font-size: 1.3rem;
+}
+
+.admin-image-inputs {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.admin-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    padding: 9px 16px;
+    background: var(--light-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.admin-upload-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ---------- Team panel ---------- */
+.admin-you-badge {
+    display: inline-block;
+    background: rgba(212, 175, 55, 0.15);
+    color: var(--accent);
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-left: 8px;
+    text-transform: uppercase;
+}
+
 /* ---------- Site updates list ---------- */
 .admin-update-item {
     padding: 16px 0;

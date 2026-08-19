@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Account | LUXE Premium Clothing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/variables.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/dashboard.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div id="loader"><div class="loader-spinner"></div></div>
+
+    <header id="navbar">
+      <div class="container nav-container">
+        <div class="logo">
+          <a href="index.html"><span>LUXE</span></a>
+        </div>
+        <nav class="nav-links" id="navLinks">
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="shop.html">Shop</a></li>
+            <li><a href="men.html">Men</a></li>
+            <li><a href="women.html">Women</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </nav>
+        <div class="nav-icons">
+          <a href="#" class="search-icon" id="searchToggle"
+            ><i class="fas fa-search"></i
+          ></a>
+          <a href="wishlist.html" class="wishlist-icon"
+            ><i class="fas fa-heart"></i
+            ><span class="wishlist-count">0</span></a
+          >
+          <a href="cart.html" class="cart-icon"
+            ><i class="fas fa-shopping-bag"></i
+            ><span class="cart-count">0</span></a
+          >
+          <a href="dashboard.html" class="user-icon active"
+            ><i class="fas fa-user"></i
+          ></a>
+          <div class="hamburger" id="hamburger">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+      <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-close" id="mobileClose">
+          <i class="fas fa-times"></i>
+        </div>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="shop.html">Shop</a></li>
+          <li><a href="men.html">Men</a></li>
+          <li><a href="women.html">Women</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="dashboard.html">My Account</a></li>
+          <li><a href="wishlist.html">Wishlist</a></li>
+          <li><a href="cart.html">Cart</a></li>
+        </ul>
+      </div>
+    </header>
+
+    <section class="dashboard-section">
+      <div class="container">
+
+        <!-- ===== Not logged in ===== -->
+        <div class="dashboard-guest" id="dashboardGuest" style="display:none;">
+          <i class="fas fa-user-circle"></i>
+          <h2>Sign In to View Your Account</h2>
+          <p>Track orders and manage your profile once you're signed in.</p>
+          <a href="login.html" class="btn btn-primary">Sign In</a>
+        </div>
+
+        <!-- ===== Logged in ===== -->
+        <div class="dashboard-layout" id="dashboardLayout" style="display:none;">
+          <aside class="dashboard-sidebar">
+            <div class="dashboard-user-card">
+              <div class="dashboard-avatar" id="sidebarAvatar"><i class="fas fa-user"></i></div>
+              <h3 id="sidebarName">Member</h3>
+              <p id="sidebarEmail"></p>
+            </div>
+            <nav class="dashboard-nav">
+              <button class="dashboard-nav-btn active" data-tab="profile">
+                <i class="fas fa-id-card"></i> Profile
+              </button>
+              <button class="dashboard-nav-btn" data-tab="orders">
+                <i class="fas fa-box"></i> Orders
+              </button>
+            </nav>
+            <button class="dashboard-signout" id="signOutBtn">
+              <i class="fas fa-sign-out-alt"></i> Sign Out
+            </button>
+          </aside>
+
+          <div class="dashboard-content">
+            <!-- ---------- Profile panel ---------- -->
+            <div class="dashboard-panel active" id="panel-profile">
+              <h1>My Profile</h1>
+
+              <div class="dashboard-avatar-uploader">
+                <div class="dashboard-avatar-preview" id="profileAvatarPreview"><i class="fas fa-user"></i></div>
+                <div>
+                  <label class="dashboard-upload-btn" for="avatarFile">
+                    <i class="fas fa-camera"></i> Change Photo
+                    <input type="file" id="avatarFile" accept="image/*" hidden>
+                  </label>
+                  <p class="dashboard-avatar-hint" id="avatarUploadStatus">JPG or PNG, uploaded at full quality.</p>
+                </div>
+              </div>
+
+              <form class="dashboard-profile-form" id="profileForm">
+                <div class="form-group">
+                  <label for="profileFullName">Full Name</label>
+                  <input type="text" id="profileFullName" placeholder="Your full name">
+                </div>
+                <div class="form-group">
+                  <label for="profileEmail">Email</label>
+                  <input type="email" id="profileEmail" disabled>
+                </div>
+                <div class="form-group">
+                  <label for="profilePhone">Phone</label>
+                  <input type="tel" id="profilePhone" placeholder="Your phone number">
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+              </form>
+            </div>
+
+            <!-- ---------- Orders panel ---------- -->
+            <div class="dashboard-panel" id="panel-orders">
+              <h1>Order History</h1>
+              <div class="orders-list" id="ordersList">
+                <div class="orders-empty">
+                  <i class="fas fa-box-open"></i>
+                  <p>Loading your orders…</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <footer>
+      <div class="container footer-grid">
+        <div class="footer-col">
+          <h3>LUXE</h3>
+          <p>Premium clothing for the discerning.</p>
+          <div class="social-icons">
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-facebook"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4>Quick Links</h4>
+          <a href="index.html">Home</a>
+          <a href="shop.html">Shop</a>
+          <a href="men.html">Men</a>
+          <a href="women.html">Women</a>
+          <a href="about.html">About</a>
+          <a href="contact.html">Contact</a>
+        </div>
+        <div class="footer-col">
+          <h4>Support</h4>
+          <a href="#">FAQ</a>
+          <a href="#">Returns</a>
+          <a href="#">Shipping</a>
+          <a href="#">Privacy</a>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <p><i class="fas fa-map-marker-alt"></i> Lagos, Nigeria</p>
+          <p><i class="fas fa-phone"></i> +234 810 346 3852</p>
+          <p><i class="fas fa-envelope"></i> hello@luxe.com</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 LUXE. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <button id="backToTop" class="back-to-top">
+      <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/updates-banner.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/wishlist.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/animation.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/dashboard.js"></script>
+  </body>
+</html>

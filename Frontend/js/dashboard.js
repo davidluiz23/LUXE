@@ -31,6 +31,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (sidebarName) sidebarName.textContent = fullName;
     if (sidebarEmail) sidebarEmail.textContent = user.email;
 
+    // ---------------- Avatar ----------------
+    function renderAvatar(url) {
+        const sidebarAvatar = document.getElementById('sidebarAvatar');
+        const profilePreview = document.getElementById('profileAvatarPreview');
+        const html = url ? `<img src="${url}" alt="">` : '<i class="fas fa-user"></i>';
+        if (sidebarAvatar) sidebarAvatar.innerHTML = html;
+        if (profilePreview) profilePreview.innerHTML = html;
+    }
+
+    const avatarFileInput = document.getElementById('avatarFile');
+    const avatarStatus = document.getElementById('avatarUploadStatus');
+    if (avatarFileInput) {
+        avatarFileInput.addEventListener('change', async () => {
+            const file = avatarFileInput.files[0];
+            if (!file || !window.LuxeStorage) return;
+            if (avatarStatus) { avatarStatus.textContent = 'Uploading…'; avatarStatus.style.color = ''; }
+
+            const { url, error } = await window.LuxeStorage.uploadAvatar(file, user.id);
+            if (error) {
+                if (avatarStatus) { avatarStatus.textContent = error.message || 'Upload failed'; avatarStatus.style.color = '#C0392B'; }
+                return;
+            }
+
+            const { error: saveError } = await window.LuxeProfile.update(user.id, { avatar_url: url });
+            if (saveError) {
+                if (avatarStatus) { avatarStatus.textContent = saveError.message || 'Uploaded, but could not save'; avatarStatus.style.color = '#C0392B'; }
+                return;
+            }
+
+            renderAvatar(url);
+            if (avatarStatus) { avatarStatus.textContent = 'Photo updated ✓ (original quality kept)'; avatarStatus.style.color = '#1E8E4F'; }
+        });
+    }
+
     // ---------------- Tab switching ----------------
     const navBtns = document.querySelectorAll('.dashboard-nav-btn');
     const panels = document.querySelectorAll('.dashboard-panel');
@@ -57,6 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (profile) {
             if (profileFullName && profile.full_name) profileFullName.value = profile.full_name;
             if (profilePhone && profile.phone) profilePhone.value = profile.phone;
+            if (profile.avatar_url) renderAvatar(profile.avatar_url);
         }
     }
 
