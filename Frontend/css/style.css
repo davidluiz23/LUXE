@@ -16,6 +16,17 @@ body {
     padding: 0;
     box-sizing: border-box;
     max-width: 100%;
+    -webkit-tap-highlight-color: transparent;
+}
+
+a, button, .product-card, input, textarea, select {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+a:focus-visible, button:focus-visible {
+    outline: 2px solid #111111;
+    outline-offset: 2px;
 }
 
 /* ========== RESET & BASE ========== */

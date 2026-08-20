@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Update counts
     if (typeof updateCartCount === 'function') updateCartCount();
     if (typeof updateWishlistCount === 'function') updateWishlistCount();
-
+    initAdminNav();
     // Newsletter
     const newsletterForm = document.getElementById('newsletterForm');
     if (newsletterForm) {
@@ -227,6 +227,36 @@ function showNotification(message) {
             notification.remove();
         }, 300);
     }, 2000);
+}
+
+async function initAdminNav() {
+  if (!window.LuxeAuth || !window.LuxeAdmins) return;
+
+  try {
+    const session = await window.LuxeAuth.getSession();
+    if (!session) return; // not logged in, nothing to check
+
+    const isAdmin = await window.LuxeAdmins.isAdmin();
+    if (!isAdmin) return;
+
+    const isAdminPage = /\/admin\.html$/.test(window.location.pathname);
+
+    document
+      .querySelectorAll("#navLinks ul, .mobile-menu ul")
+      .forEach(function (list) {
+        if (list.querySelector('a[href="admin.html"]')) return; // already added
+
+        const li = document.createElement("li");
+        const link = document.createElement("a");
+        link.href = "admin.html";
+        link.textContent = "Admin";
+        if (isAdminPage) link.classList.add("active");
+        li.appendChild(link);
+        list.appendChild(li);
+      });
+  } catch (error) {
+    console.error("[LUXE] Admin nav check failed:", error);
+  }
 }
 
 // Secret Keyboard Shortcut to Admin (Ctrl + Shift + A)
