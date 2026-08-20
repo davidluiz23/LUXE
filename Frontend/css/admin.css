@@ -541,11 +541,65 @@
 
 .admin-toast.error-toast { background: #C0392B; }
 
+/* ========== RESPONSIVE ========== */
+
+/* Tablets: collapse the two-column layout, sidebar moves above content */
 @media (max-width: 900px) {
     .admin-layout.visible { grid-template-columns: 1fr; }
     .admin-sidebar { position: static; }
     .admin-form-grid { grid-template-columns: 1fr; }
     .admin-image-field { flex-direction: column; }
+    .admin-panel-card { padding: 24px; }
+}
+
+/* Phones: tighten spacing, keep tap targets comfortable */
+@media (max-width: 600px) {
+    .admin-section { padding-top: 100px; }
+
+    .admin-gate { padding: 34px 24px; margin: 24px auto; }
+
+    .admin-panel-card { padding: 18px; border-radius: 12px; }
+
+    .admin-panel-header h2 { font-size: 1.2rem; }
+    .admin-panel-header p { font-size: 0.8rem; }
+
+    .admin-sidebar { padding: 18px 16px; }
+
+    /* Tap targets under 44px are hard to hit accurately on mobile */
+    .admin-icon-btn { width: 38px; height: 38px; }
+    .admin-nav-btn { padding: 13px 14px; }
+
+    .admin-table th,
+    .admin-table td { padding: 10px 12px; font-size: 0.84rem; }
+
+    .admin-modal-overlay { padding: 24px 12px; align-items: center; }
+    .admin-modal { padding: 22px; border-radius: 12px; }
+    .admin-modal h3 { font-size: 1.15rem; }
+
+    .admin-modal-actions { flex-direction: column-reverse; }
+    .admin-modal-actions button { width: 100%; }
+
+    .admin-owner-notice { flex-direction: column; gap: 8px; padding: 14px 16px; }
+
+    /* Fixed 30px offsets can push the toast partly off small screens */
+    .admin-toast {
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        width: auto;
+        text-align: center;
+    }
+}
+
+/* Small phones */
+@media (max-width: 400px) {
+    .admin-gate { padding: 28px 18px; }
+    .admin-gate h2 { font-size: 1.35rem; }
+
+    .admin-panel-card { padding: 14px; }
+    .admin-panel-header h2 { font-size: 1.1rem; }
+
+    .admin-modal { padding: 18px; }
 }
 
 
