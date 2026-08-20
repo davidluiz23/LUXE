@@ -78,12 +78,22 @@
 
 .admin-layout {
     display: none;
-    grid-template-columns: 240px 1fr;
+    grid-template-columns: 240px minmax(0, 1fr);
     gap: 30px;
     align-items: start;
+    width: 100%;
+    max-width: 100%;
 }
 
 .admin-layout.visible { display: grid; }
+
+.admin-main,
+.admin-panel,
+.admin-panel-card {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+}
 
 .admin-sidebar {
     background: var(--secondary);
@@ -198,10 +208,21 @@
     margin-top: 4px;
 }
 
-.admin-table-wrap { overflow-x: auto; }
+.admin-table-wrap {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-inline: contain;
+}
 
 .admin-table {
-    width: 100%;
+    width: max-content;
+    min-width: 100%;
+    max-width: none;
     border-collapse: collapse;
     font-size: 0.88rem;
 }
@@ -212,6 +233,7 @@
     padding: 12px 14px;
     border-bottom: 1px solid var(--border-color);
     white-space: nowrap;
+    max-width: none;
 }
 
 .admin-table th {
@@ -232,7 +254,9 @@
 
 .admin-table td.product-name-cell {
     white-space: normal;
+    min-width: 150px;
     max-width: 220px;
+    overflow-wrap: anywhere;
 }
 
 .admin-badge {
@@ -296,9 +320,11 @@
 .admin-modal {
     background: var(--secondary);
     border-radius: 16px;
-    max-width: 640px;
+    max-width: min(640px, calc(100vw - 32px));
     width: 100%;
     padding: 32px;
+    box-sizing: border-box;
+    overflow-x: hidden;
     box-shadow: 0 20px 60px rgba(0,0,0,0.3);
 }
 
@@ -398,6 +424,9 @@
 
 .admin-image-inputs {
     flex: 1;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -541,65 +570,345 @@
 
 .admin-toast.error-toast { background: #C0392B; }
 
+/* Keep admin content inside the viewport without changing desktop behavior. */
+.admin-owner-email,
+.admin-panel-header p,
+.admin-owner-notice p,
+.admin-update-item p,
+.admin-form-hint {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.admin-form-grid input,
+.admin-form-grid select,
+.admin-form-grid textarea,
+.admin-image-inputs input {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
 /* ========== RESPONSIVE ========== */
 
 /* Tablets: collapse the two-column layout, sidebar moves above content */
 @media (max-width: 900px) {
-    .admin-layout.visible { grid-template-columns: 1fr; }
-    .admin-sidebar { position: static; }
-    .admin-form-grid { grid-template-columns: 1fr; }
-    .admin-image-field { flex-direction: column; }
-    .admin-panel-card { padding: 24px; }
+    .admin-layout.visible {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 18px;
+    }
+
+    .admin-main,
+    .admin-panel,
+    .admin-panel-card {
+        min-width: 0;
+    }
+
+    .admin-sidebar {
+        position: static;
+        top: auto;
+    }
+
+    .admin-form-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .admin-form-grid .full-width {
+        grid-column: 1;
+    }
+
+    .admin-image-field {
+        flex-direction: column;
+    }
+
+    .admin-panel-card {
+        padding: 24px;
+    }
 }
 
 /* Phones: tighten spacing, keep tap targets comfortable */
 @media (max-width: 600px) {
-    .admin-section { padding-top: 100px; }
+    .admin-section {
+        padding-top: 88px;
+        padding-bottom: 45px;
+        overflow-x: hidden;
+    }
 
-    .admin-gate { padding: 34px 24px; margin: 24px auto; }
+    .admin-section .container,
+    .admin-layout,
+    .admin-main,
+    .admin-panel,
+    .admin-panel-card,
+    .admin-panel-header,
+    .admin-panel-header > *,
+    .admin-sidebar,
+    .admin-owner,
+    .admin-image-field,
+    .admin-image-inputs,
+    .admin-form-grid,
+    .admin-form-grid .form-group {
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
 
-    .admin-panel-card { padding: 18px; border-radius: 12px; }
+    .admin-gate {
+        padding: 34px 24px;
+        margin: 24px auto;
+    }
 
-    .admin-panel-header h2 { font-size: 1.2rem; }
-    .admin-panel-header p { font-size: 0.8rem; }
+    .admin-sidebar {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 14px;
+        border-radius: 12px;
+    }
 
-    .admin-sidebar { padding: 18px 16px; }
+    .admin-owner {
+        grid-column: 1 / -1;
+        padding: 4px 4px 14px;
+        margin-bottom: 2px;
+    }
 
-    /* Tap targets under 44px are hard to hit accurately on mobile */
-    .admin-icon-btn { width: 38px; height: 38px; }
-    .admin-nav-btn { padding: 13px 14px; }
+    .admin-owner i {
+        font-size: 1.55rem;
+        margin-bottom: 5px;
+    }
+
+    .admin-owner-email {
+        font-size: 0.73rem;
+        overflow-wrap: anywhere;
+    }
+
+    .admin-nav-btn {
+        min-width: 0;
+        min-height: 44px;
+        margin: 0;
+        padding: 10px 9px;
+        justify-content: center;
+        text-align: center;
+        font-size: 0.78rem;
+        line-height: 1.25;
+        white-space: normal;
+    }
+
+    .admin-nav-btn.logout-btn {
+        margin: 0;
+        padding: 10px 9px;
+        border-top: 0;
+        border-radius: var(--radius);
+        background: #FDECEA;
+    }
+
+    .admin-panel-card {
+        padding: 15px;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .admin-panel-header {
+        align-items: stretch;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .admin-panel-header > div {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .admin-panel-header > div:last-child {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px !important;
+        width: 100%;
+    }
+
+    .admin-panel-header > div:last-child .btn {
+        width: 100%;
+        max-width: 100%;
+        min-height: 42px;
+        white-space: normal;
+    }
+
+    .admin-panel-header h2 {
+        font-size: 1.18rem;
+    }
+
+    .admin-panel-header p {
+        font-size: 0.79rem;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+    }
+
+    #addAdminForm {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px !important;
+        align-items: stretch !important;
+    }
+
+    #addAdminForm .form-group {
+        width: 100%;
+        min-width: 0 !important;
+    }
+
+    #addAdminForm .btn,
+    #postUpdateForm .btn {
+        width: 100%;
+        min-height: 44px;
+    }
+
+    .admin-form-grid input,
+    .admin-form-grid select,
+    .admin-form-grid textarea,
+    .admin-image-inputs input,
+    #addAdminForm input,
+    #postUpdateForm input,
+    #postUpdateForm textarea {
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .admin-upload-btn {
+        width: 100%;
+        max-width: 100%;
+        justify-content: center;
+        white-space: normal;
+    }
+
+    .admin-owner-notice {
+        flex-direction: row;
+        gap: 10px;
+        padding: 13px;
+    }
+
+    .admin-owner-notice p,
+    .admin-update-item p,
+    .admin-form-hint {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    .admin-update-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .admin-row-actions {
+        flex-wrap: nowrap;
+    }
+
+    .admin-icon-btn {
+        flex: 0 0 38px;
+        width: 38px;
+        height: 38px;
+    }
 
     .admin-table th,
-    .admin-table td { padding: 10px 12px; font-size: 0.84rem; }
+    .admin-table td {
+        padding: 10px;
+        font-size: 0.8rem;
+    }
 
-    .admin-modal-overlay { padding: 24px 12px; align-items: center; }
-    .admin-modal { padding: 22px; border-radius: 12px; }
-    .admin-modal h3 { font-size: 1.15rem; }
+    .admin-modal-overlay {
+        padding: 14px 12px;
+        align-items: flex-start;
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
 
-    .admin-modal-actions { flex-direction: column-reverse; }
-    .admin-modal-actions button { width: 100%; }
+    .admin-modal {
+        width: 100%;
+        max-width: 100%;
+        padding: 18px;
+        margin: 8px auto;
+        border-radius: 12px;
+    }
 
-    .admin-owner-notice { flex-direction: column; gap: 8px; padding: 14px 16px; }
+    .admin-modal h3 {
+        font-size: 1.15rem;
+        padding-right: 28px;
+    }
 
-    /* Fixed 30px offsets can push the toast partly off small screens */
+    .admin-image-field {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .admin-image-preview {
+        width: 72px;
+        height: 72px;
+    }
+
+    .admin-modal-actions {
+        flex-direction: column-reverse;
+        gap: 8px;
+    }
+
+    .admin-modal-actions button {
+        width: 100%;
+    }
+
     .admin-toast {
-        left: 16px;
-        right: 16px;
-        bottom: 16px;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
         width: auto;
+        max-width: none;
         text-align: center;
+        box-sizing: border-box;
     }
 }
 
 /* Small phones */
 @media (max-width: 400px) {
-    .admin-gate { padding: 28px 18px; }
-    .admin-gate h2 { font-size: 1.35rem; }
+    .admin-section {
+        padding-top: 82px;
+    }
 
-    .admin-panel-card { padding: 14px; }
-    .admin-panel-header h2 { font-size: 1.1rem; }
+    .admin-gate {
+        padding: 28px 18px;
+    }
 
-    .admin-modal { padding: 18px; }
+    .admin-gate h2 {
+        font-size: 1.35rem;
+    }
+
+    .admin-sidebar {
+        padding: 11px;
+        gap: 6px;
+    }
+
+    .admin-nav-btn {
+        padding: 9px 7px;
+        font-size: 0.73rem;
+    }
+
+    .admin-panel-card {
+        padding: 12px;
+    }
+
+    .admin-panel-header h2 {
+        font-size: 1.1rem;
+    }
+
+    .admin-table th,
+    .admin-table td {
+        padding: 9px;
+        font-size: 0.76rem;
+    }
+
+    .admin-modal {
+        padding: 15px;
+    }
+
+    .admin-owner-notice {
+        padding: 11px;
+    }
 }
 
 
