@@ -261,7 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (error) {
         showAuthError(
           error.code === "user_banned"
-            ? "This account is currently suspended. Contact LUXE customer care for assistance."
+            ? `This account is currently suspended. Contact ${window.LuxeBrand?.name || "LUXE"} customer care for assistance.`
             : error.message || "Invalid email or password.",
         );
         return;

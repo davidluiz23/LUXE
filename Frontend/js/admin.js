@@ -9,6 +9,7 @@
 
 let currentAdminUserId = null;
 let currentAdminRole = null;
+const adminBrandName = () => window.LuxeBrand?.name || "LUXE";
 
 document.addEventListener("DOMContentLoaded", async () => {
   if (!window.LuxeAuth || !window.LuxeAuth.isReady()) {
@@ -424,7 +425,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           <span>${escapeHtml(item.product_name)} ×${Number(item.quantity)}</span>
           <strong>$${(Number(item.price) * Number(item.quantity)).toFixed(2)}</strong>
         </div>`).join("");
-      const customerMessage = encodeURIComponent(`Hi ${order.contact_name || "there"}, here is an update for LUXE order ${order.order_number}.`);
+      const customerMessage = encodeURIComponent(`Hi ${order.contact_name || "there"}, here is an update for ${adminBrandName()} order ${order.order_number}.`);
       const customerPhone = String(order.contact_phone || "").replace(/\D/g, "").replace(/^0/, "234");
 
       const attribution = order.last_admin_changed_at
@@ -598,7 +599,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function renderProductLivePreview() {
     const name = getValue("pName") || "New product";
-    const brand = getValue("pBrand") || "LUXE";
+    const brand = getValue("pBrand") || adminBrandName();
     const category = getValue("pCategory") || "Men";
     const subcategory = getValue("pSubcategory") || "General";
     const image = getValue("pImage");
@@ -769,7 +770,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const payload = {
       name: getValue("pName"),
-      brand: getValue("pBrand") || "Luxe",
+      brand: getValue("pBrand") || adminBrandName(),
       category: getValue("pCategory"),
       subcategory: getValue("pSubcategory") || "General",
       rating: getValue("pRating") || 5,
@@ -1588,7 +1589,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (error) {
       showToast(
         error.message ||
-          "Could not add admin. Make sure they already have a LUXE account.",
+          `Could not add admin. Make sure they already have a ${adminBrandName()} account.`,
         true
       );
       return;

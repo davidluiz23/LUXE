@@ -433,7 +433,7 @@ function refreshWhatsAppButton(button, verifiedPhone) {
 
 function whatsappVerificationMessage(code, error) {
     const messages = {
-        verification_not_configured: 'WhatsApp verification has not been enabled by LUXE yet.',
+        verification_not_configured: `WhatsApp verification has not been enabled by ${window.LuxeBrand?.name || 'LUXE'} yet.`,
         invalid_phone: 'Enter a valid WhatsApp number with its country code.',
         number_unavailable: 'That WhatsApp number is already linked to another account.',
         too_many_requests: 'Too many codes were requested. Please try again later.',

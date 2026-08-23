@@ -59,6 +59,8 @@ async function sendEmail(
   const from = Deno.env.get("EMAIL_FROM");
   if (!apiKey || !from) return { status: "not_configured" };
 
+  const brand = (Deno.env.get("BRAND_NAME") || "LUXE").trim().slice(0, 80) || "LUXE";
+  const safeBrand = escapeHtml(brand);
   const safeName = escapeHtml(name);
   const safeTitle = escapeHtml(title);
   const safeMessage = escapeHtml(message).replace(/\n/g, "<br>");
@@ -74,9 +76,9 @@ async function sendEmail(
       body: JSON.stringify({
         from,
         to: [email],
-        subject: `LUXE: ${title}`,
-        text: `Hello ${name},\n\n${message}\n\nLUXE Customer Care`,
-        html: `<div style="font-family:Arial,sans-serif;line-height:1.65;color:#1b1b1b"><p>Hello ${safeName},</p><h2 style="font-size:20px">${safeTitle}</h2><p>${safeMessage}</p><p style="color:#777">LUXE Customer Care</p></div>`,
+        subject: `${brand}: ${title}`,
+        text: `Hello ${name},\n\n${message}\n\n${brand} Customer Care`,
+        html: `<div style="font-family:Arial,sans-serif;line-height:1.65;color:#1b1b1b"><p>Hello ${safeName},</p><h2 style="font-size:20px">${safeTitle}</h2><p>${safeMessage}</p><p style="color:#777">${safeBrand} Customer Care</p></div>`,
       }),
       signal: AbortSignal.timeout(10000),
     });

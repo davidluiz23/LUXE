@@ -1,5 +1,20 @@
 # LUXE commerce setup
 
+## Temporary brand name
+
+`LUXE` is currently a working name, not a final client decision. When the final
+name is approved, update `name` and `skuPrefix` in
+`Frontend/js/brand-config.js`, then configure the same server-side name and
+redeploy the customer-message functions:
+
+```sh
+supabase secrets set BRAND_NAME="Approved Brand Name"
+supabase functions deploy order-notifications admin-messaging signup-flow
+```
+
+Internal JavaScript API names such as `LuxeAuth` do not appear as branding and
+do not need to be renamed.
+
 The storefront is WhatsApp-first by default. Every checkout creates a protected
 Supabase order before opening WhatsApp, so the order is visible in both the
 customer dashboard and the admin console even if the WhatsApp tab is closed.

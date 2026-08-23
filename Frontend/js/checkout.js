@@ -8,6 +8,8 @@ let checkoutIdentity = {
   verifiedPhone: null,
 };
 let checkoutIdentityReady = Promise.resolve(checkoutIdentity);
+const checkoutBrandName = () => window.LuxeBrand?.name || "LUXE";
+
 document.addEventListener("DOMContentLoaded", async () => {
   if (window.productsReady) await window.productsReady;
   const loader = document.getElementById("loader");
@@ -291,7 +293,7 @@ function buildAdminWhatsAppUrl(order, cartItems, contact, address) {
     return product ? `• ${product.name} ×${item.quantity} — ${currency(product.price * item.quantity)}` : "";
   }).filter(Boolean).join("\n");
   const message = [
-    `NEW LUXE ORDER ${order.order_number}`, "", items, "",
+    `NEW ${checkoutBrandName().toUpperCase()} ORDER ${order.order_number}`, "", items, "",
     order.promotionCode ? `Promo: ${order.promotionCode} (-${currency(order.discount)})` : "",
     `Total: ${currency(order.total)}`,
     `Customer: ${contact.name}`,
@@ -306,7 +308,7 @@ function buildAdminWhatsAppUrl(order, cartItems, contact, address) {
 function renderOrderSuccess(order, chatUrl, chatOpened) {
   const grid = document.querySelector(".checkout-grid");
   if (!grid) return;
-  grid.innerHTML = `<div class="checkout-success"><i class="fas fa-check-circle"></i><h2>Order saved successfully</h2><p>Your order <strong>${escapeHtml(order.order_number)}</strong> is now in your account and the admin console.</p><p class="success-note">${chatOpened ? "Complete the WhatsApp message in the new tab so LUXE can confirm fulfilment." : "WhatsApp did not open automatically. Use the button below to send the order."}</p><div class="checkout-success-actions"><a href="${escapeAttr(chatUrl)}" target="_blank" rel="noopener" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> Send on WhatsApp</a><a href="dashboard.html" class="btn btn-primary"><i class="fas fa-box"></i> Track order</a><a href="shop.html" class="btn btn-outline">Continue shopping</a></div></div>`;
+  grid.innerHTML = `<div class="checkout-success"><i class="fas fa-check-circle"></i><h2>Order saved successfully</h2><p>Your order <strong>${escapeHtml(order.order_number)}</strong> is now in your account and the admin console.</p><p class="success-note">${chatOpened ? `Complete the WhatsApp message in the new tab so ${escapeHtml(checkoutBrandName())} can confirm fulfilment.` : "WhatsApp did not open automatically. Use the button below to send the order."}</p><div class="checkout-success-actions"><a href="${escapeAttr(chatUrl)}" target="_blank" rel="noopener" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> Send on WhatsApp</a><a href="dashboard.html" class="btn btn-primary"><i class="fas fa-box"></i> Track order</a><a href="shop.html" class="btn btn-outline">Continue shopping</a></div></div>`;
 }
 
 function setButtonState(button, disabled, label) {

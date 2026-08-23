@@ -61,6 +61,10 @@ function money(value: unknown, currency: unknown): string {
   }
 }
 
+function brandName(): string {
+  return (Deno.env.get("BRAND_NAME") || "LUXE").trim().slice(0, 80) || "LUXE";
+}
+
 async function sendWhatsApp(
   to: string,
   templateName: string | null,
@@ -167,9 +171,11 @@ Deno.serve(async (request) => {
     ? `${order.estimated_delivery_min_days}${order.estimated_delivery_max_days && order.estimated_delivery_max_days !== order.estimated_delivery_min_days ? `–${order.estimated_delivery_max_days}` : ""} days`
     : "To be confirmed";
 
+  const brand = brandName();
+
   if (body.action === "order_created") {
     const adminText = [
-      `NEW LUXE ORDER ${order.order_number}`,
+      `NEW ${brand.toUpperCase()} ORDER ${order.order_number}`,
       `Customer: ${order.contact_name}`,
       `Phone: ${order.contact_phone}`,
       `Email: ${order.contact_email}`,
@@ -180,7 +186,7 @@ Deno.serve(async (request) => {
       `Payment: ${order.payment_provider} (${order.payment_status})`,
     ].filter(Boolean).join("\n");
     const promoText = order.promotion_code ? ` Promo ${order.promotion_code} saved ${money(order.discount_amount, order.currency)}.` : "";
-    const customerText = `Hi ${order.contact_name}, LUXE received order ${order.order_number} for ${itemSummary}.${promoText} Total: ${total}. We will confirm it and share delivery updates here.`;
+    const customerText = `Hi ${order.contact_name}, ${brand} received order ${order.order_number} for ${itemSummary}.${promoText} Total: ${total}. We will confirm it and share delivery updates here.`;
 
     const [adminResult, customerResult] = await Promise.all([
       order.admin_notified_at ? Promise.resolve({ sent: true, skipped: true }) : sendWhatsApp(
@@ -209,7 +215,7 @@ Deno.serve(async (request) => {
 
   const alreadySent = order.customer_notified_at && order.updated_at &&
     new Date(order.customer_notified_at).getTime() >= new Date(order.updated_at).getTime();
-  const updateText = `LUXE order ${order.order_number} is now ${String(order.status).replaceAll("_", " ")}. Estimated arrival: ${eta}.${order.waybill_url ? ` Track/waybill: ${order.waybill_url}` : ""}`;
+  const updateText = `${brand} order ${order.order_number} is now ${String(order.status).replaceAll("_", " ")}. Estimated arrival: ${eta}.${order.waybill_url ? ` Track/waybill: ${order.waybill_url}` : ""}`;
   const customerResult = !order.whatsapp_opt_in_at
     ? { sent: false, skipped: true, reason: "Customer did not opt in." }
     : alreadySent

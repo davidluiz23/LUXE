@@ -117,12 +117,16 @@ function primarySiteUrl(): string | null {
   }
 }
 
+function brandName(): string {
+  return (Deno.env.get("BRAND_NAME") || "LUXE").trim().slice(0, 80) || "LUXE";
+}
+
 function genericRequestSuccess(origin: string) {
   return json(
     {
       ok: true,
       message:
-        "If this email can be used for a new LUXE account, a verification link has been sent.",
+        `If this email can be used for a new ${brandName()} account, a verification link has been sent.`,
     },
     200,
     origin,
@@ -136,7 +140,8 @@ async function sendVerificationEmail(
 ): Promise<boolean> {
   const apiKey = Deno.env.get("BREVO_API_KEY");
   const senderEmail = Deno.env.get("BREVO_SENDER_EMAIL");
-  const senderName = Deno.env.get("BREVO_SENDER_NAME") || "LUXE";
+  const brand = brandName();
+  const senderName = Deno.env.get("BREVO_SENDER_NAME") || brand;
 
   if (!apiKey || !senderEmail) {
     console.error(
@@ -146,6 +151,11 @@ async function sendVerificationEmail(
   }
 
   const escapedName = fullName
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+  const escapedBrand = brand
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -171,12 +181,12 @@ async function sendVerificationEmail(
             email,
           },
         ],
-        subject: "Verify your email to create your LUXE account",
+        subject: `Verify your email to create your ${brand} account`,
         htmlContent: `
           <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;padding:24px;color:#111;">
-            <h1 style="font-size:26px;margin-bottom:12px;">LUXE</h1>
+            <h1 style="font-size:26px;margin-bottom:12px;">${escapedBrand}</h1>
             <p>Hello ${escapedName},</p>
-            <p>Confirm that this email belongs to you. Your LUXE account has <strong>not</strong> been created yet.</p>
+            <p>Confirm that this email belongs to you. Your ${escapedBrand} account has <strong>not</strong> been created yet.</p>
             <p style="margin:28px 0;">
               <a href="${verificationUrl}"
                  style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:13px 22px;border-radius:6px;">
@@ -189,7 +199,7 @@ async function sendVerificationEmail(
         `,
         textContent:
           `Hello ${fullName},\n\n` +
-          `Verify your email to continue creating your LUXE account:\n${verificationUrl}\n\n` +
+          `Verify your email to continue creating your ${brand} account:\n${verificationUrl}\n\n` +
           `Your account has not been created yet. This link expires in ${TOKEN_TTL_MINUTES} minutes.`,
         tags: ["luxe-signup-verification"],
       }),
