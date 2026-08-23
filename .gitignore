@@ -1,0 +1,14 @@
+# Local environment files may contain deployment secrets.
+.env
+.env.*
+!.env.example
+
+# Dependencies and generated output.
+node_modules/
+dist/
+coverage/
+
+# Editor and operating-system files.
+.DS_Store
+Thumbs.db
+*.log

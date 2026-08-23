@@ -567,14 +567,33 @@ const LuxeOrders = {
 
   async updateAdminOrder(orderId, fields) {
     if (!supabaseClient) return { data: null, error: { message: "Backend not configured." } };
-    return await supabaseClient.rpc("admin_update_order_v2", {
+    const expectedVersion = Number(fields.expectedVersion);
+    const result = await supabaseClient.rpc("admin_update_order_v3", {
       p_order_id: orderId,
       p_status: fields.status,
       p_estimated_min_days: fields.estimatedMinDays || null,
       p_estimated_max_days: fields.estimatedMaxDays || null,
       p_waybill_url: fields.waybillUrl || null,
-      p_expected_updated_at: fields.expectedUpdatedAt || null,
+      p_expected_version: Number.isSafeInteger(expectedVersion) && expectedVersion >= 0
+        ? expectedVersion
+        : null,
     });
+
+    // Keep a safe rollout path while the new migration reaches production.
+    if (result.error && (
+      result.error.code === "PGRST202" ||
+      String(result.error.message || "").includes("admin_update_order_v3")
+    )) {
+      return await supabaseClient.rpc("admin_update_order_v2", {
+        p_order_id: orderId,
+        p_status: fields.status,
+        p_estimated_min_days: fields.estimatedMinDays || null,
+        p_estimated_max_days: fields.estimatedMaxDays || null,
+        p_waybill_url: fields.waybillUrl || null,
+        p_expected_updated_at: fields.expectedUpdatedAt || null,
+      });
+    }
+    return result;
   },
 
   async markAllAdminSeen() {
@@ -801,7 +820,16 @@ const LuxeCustomers = {
   async getDetail(userId) {
     if (!supabaseClient || !userId) return { data: null, error: { message: "Customer service is unavailable." } };
     try {
-      return await supabaseClient.rpc("admin_customer_detail", { p_user_id: userId });
+      const [detail, commerce] = await Promise.all([
+        supabaseClient.rpc("admin_customer_detail", { p_user_id: userId }),
+        supabaseClient.rpc("admin_customer_commerce_history", { p_user_id: userId }),
+      ]);
+      if (detail.error) return detail;
+      if (commerce.error && commerce.error.code !== "PGRST202") return commerce;
+      return {
+        data: { ...(detail.data || {}), ...(commerce.data || {}) },
+        error: null,
+      };
     } catch (error) {
       return { data: null, error: { message: error?.message || "Unable to load customer history." } };
     }
@@ -965,9 +993,22 @@ const LuxeProducts = {
       category: row.category,
       subcategory: row.subcategory,
       price: Number(row.price),
+      priceUSD: Number(row.price),
+      priceNGN:
+        row.price_ngn !== null && row.price_ngn !== undefined
+          ? Number(row.price_ngn)
+          : null,
       oldPrice:
         row.old_price !== null && row.old_price !== undefined
           ? Number(row.old_price)
+          : null,
+      oldPriceUSD:
+        row.old_price !== null && row.old_price !== undefined
+          ? Number(row.old_price)
+          : null,
+      oldPriceNGN:
+        row.old_price_ngn !== null && row.old_price_ngn !== undefined
+          ? Number(row.old_price_ngn)
           : null,
       image: row.image,
       hoverImage: row.hover_image || row.image,
@@ -983,11 +1024,18 @@ const LuxeProducts = {
 
   _toRow(product) {
     const price = Number.parseFloat(product.price);
+    const priceNGN = Number.parseFloat(product.priceNGN);
     const oldPrice =
       product.oldPrice !== undefined &&
       product.oldPrice !== null &&
       product.oldPrice !== ""
         ? Number.parseFloat(product.oldPrice)
+        : null;
+    const oldPriceNGN =
+      product.oldPriceNGN !== undefined &&
+      product.oldPriceNGN !== null &&
+      product.oldPriceNGN !== ""
+        ? Number.parseFloat(product.oldPriceNGN)
         : null;
 
     return {
@@ -996,13 +1044,17 @@ const LuxeProducts = {
       category: String(product.category || "Men").trim(),
       subcategory: String(product.subcategory || "General").trim(),
       price: Number.isFinite(price) ? price : 0,
+      price_ngn: Number.isFinite(priceNGN) ? priceNGN : null,
       old_price: Number.isFinite(oldPrice) ? oldPrice : null,
+      old_price_ngn: Number.isFinite(oldPriceNGN) ? oldPriceNGN : null,
       image: String(product.image || "").trim(),
       hover_image: String(product.hoverImage || product.image || "").trim(),
       rating: Number.parseFloat(product.rating) || 5.0,
       discount: Boolean(
-        Number.isFinite(oldPrice) &&
-        oldPrice > (Number.isFinite(price) ? price : 0),
+        (Number.isFinite(oldPrice) &&
+          oldPrice > (Number.isFinite(price) ? price : 0)) ||
+        (Number.isFinite(oldPriceNGN) &&
+          oldPriceNGN > (Number.isFinite(priceNGN) ? priceNGN : 0)),
       ),
       description: String(product.description || "").trim(),
       sizes: Array.isArray(product.sizes)

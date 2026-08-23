@@ -141,7 +141,22 @@ and the unique database index prevents it from being attached to another user.
 4. Test initialization, callback, webhook signature validation, amount matching,
    and idempotent fulfilment with Paystack test keys before using live keys.
 
-The current catalog and order schema use USD because that is how the existing
-store is priced. Confirm that the client's Paystack account accepts the chosen
-currency before enabling it; otherwise migrate the storefront and order currency
-to NGN consistently first.
+Products can store merchant-entered USD and NGN prices independently. Existing
+catalog rows keep their USD price and show `NGN price not set` in the admin
+console until an administrator supplies the Nigerian price. The current order
+calculation remains USD-authoritative, so do not treat the NGN catalog field as
+the charged amount until NGN checkout, promotion, shipping and Paystack handling
+are migrated together and tested end to end.
+
+# Production URLs
+
+For the GitHub Pages deployment, enable Pages in the repository under
+**Settings > Pages > Build and deployment > GitHub Actions**.
+
+In Supabase, open **Authentication > URL Configuration** and set:
+
+- Site URL: `https://davidluiz23.github.io/LUXE/`
+- Redirect URL: `https://davidluiz23.github.io/LUXE/**`
+
+Keep the local development redirect URLs as additional entries if local sign-in,
+email confirmation, or password-reset testing is still required.

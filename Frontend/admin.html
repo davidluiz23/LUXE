@@ -12,7 +12,7 @@
 
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/admin.css?v=20260823-3">
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -86,7 +86,10 @@
             <div class="admin-layout" id="adminLayout">
                 <aside class="admin-sidebar">
                     <div class="admin-owner">
-                        <i class="fas fa-user-shield"></i>
+                        <div class="admin-owner-avatar" id="adminOwnerAvatar" aria-hidden="true">
+                            <img id="adminOwnerAvatarImage" alt="" hidden>
+                            <i class="fas fa-user-shield" id="adminOwnerAvatarFallback"></i>
+                        </div>
                         <div><strong id="adminRoleLabel">Admin</strong></div>
                         <div class="admin-owner-role" id="adminRoleBadge"></div>
                         <div class="admin-owner-email" id="adminOwnerEmail"></div>
@@ -155,7 +158,7 @@
                                             <th>Name</th>
                                             <th>Brand</th>
                                             <th>Category</th>
-                                            <th>Price</th>
+                                            <th>Prices</th>
                                             <th>Stock</th>
                                             <th></th>
                                         </tr>
@@ -481,13 +484,23 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="pPrice">Price ($) *</label>
+                        <label for="pPrice">USD Price ($) *</label>
                         <input type="number" id="pPrice" min="0" step="0.01" required placeholder="199.00">
                     </div>
 
                     <div class="form-group">
-                        <label for="pOldPrice">Old Price ($, optional)</label>
+                        <label for="pOldPrice">USD Old Price ($, optional)</label>
                         <input type="number" id="pOldPrice" min="0" step="0.01" placeholder="249.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pPriceNGN">NGN Price (₦) *</label>
+                        <input type="number" id="pPriceNGN" min="0" step="0.01" required placeholder="320000.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pOldPriceNGN">NGN Old Price (₦, optional)</label>
+                        <input type="number" id="pOldPriceNGN" min="0" step="0.01" placeholder="400000.00">
                     </div>
 
                     <div class="form-group full-width">
@@ -571,7 +584,7 @@
                         <div class="product-info">
                             <h4 class="product-name" id="livePreviewName">New product</h4>
                             <p class="product-category" id="livePreviewCategory">Men / General</p>
-                            <div class="product-price" id="livePreviewPrice">$0.00</div>
+                            <div class="product-price admin-dual-price" id="livePreviewPrice"><strong>₦0.00</strong><span>$0.00</span></div>
                         </div>
                     </div>
                 </section>
@@ -588,10 +601,10 @@
 
     <script src="js/icons.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase-client.js"></script>
+    <script src="js/supabase-client.js?v=20260823-3"></script>
     <script src="js/products.js"></script>
     <script src="js/animation.js"></script>
     <script src="js/app.js"></script>
-    <script src="js/admin.js"></script>
+    <script src="js/admin.js?v=20260823-3"></script>
 </body>
 </html>

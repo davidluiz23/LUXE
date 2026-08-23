@@ -1470,7 +1470,7 @@ const products = [
         price: 85.00,
         oldPrice: 100.00,
         image: "https://cdn-images.farfetch-contents.com/36/41/76/97/36417697_68455637_1000.jpg",
-        hoverImage: "https://cdn-images.farfetch-contents.com/36/41/76/97/36417697_68455503_1000.jpg ",
+        hoverImage: "https://cdn-images.farfetch-contents.com/36/41/76/97/36417697_68455503_1000.jpg",
         rating: 4.8,
         discount: true,
         description: "Lightweight weather-resistant full-zip windbreaker jacket featuring iconic 3-Stripes along sleeves and high stand collar.",
