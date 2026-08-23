@@ -221,7 +221,7 @@ function loadCheckoutItems() {
   container.innerHTML = items.map((item) => {
     const product = getProduct(item.id);
     if (!product) return "";
-    return `<div class="order-item"><img src="${escapeAttr(product.image)}" alt="${escapeAttr(product.name)}"><div class="order-item-details"><h4>${escapeHtml(product.name)}</h4><p>Qty: ${item.quantity} × ${currency(product.price)}</p></div><strong>${currency(product.price * item.quantity)}</strong></div>`;
+    return `<div class="order-item"><img src="${escapeCheckoutAttr(product.image)}" alt="${escapeCheckoutAttr(product.name)}"><div class="order-item-details"><h4>${escapeCheckoutHtml(product.name)}</h4><p>Qty: ${item.quantity} × ${currency(product.price)}</p></div><strong>${currency(product.price * item.quantity)}</strong></div>`;
   }).join("");
 }
 
@@ -308,7 +308,7 @@ function buildAdminWhatsAppUrl(order, cartItems, contact, address) {
 function renderOrderSuccess(order, chatUrl, chatOpened) {
   const grid = document.querySelector(".checkout-grid");
   if (!grid) return;
-  grid.innerHTML = `<div class="checkout-success"><i class="fas fa-check-circle"></i><h2>Order saved successfully</h2><p>Your order <strong>${escapeHtml(order.order_number)}</strong> is now in your account and the admin console.</p><p class="success-note">${chatOpened ? `Complete the WhatsApp message in the new tab so ${escapeHtml(checkoutBrandName())} can confirm fulfilment.` : "WhatsApp did not open automatically. Use the button below to send the order."}</p><div class="checkout-success-actions"><a href="${escapeAttr(chatUrl)}" target="_blank" rel="noopener" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> Send on WhatsApp</a><a href="dashboard.html" class="btn btn-primary"><i class="fas fa-box"></i> Track order</a><a href="shop.html" class="btn btn-outline">Continue shopping</a></div></div>`;
+  grid.innerHTML = `<div class="checkout-success"><i class="fas fa-check-circle"></i><h2>Order saved successfully</h2><p>Your order <strong>${escapeCheckoutHtml(order.order_number)}</strong> is now in your account and the admin console.</p><p class="success-note">${chatOpened ? `Complete the WhatsApp message in the new tab so ${escapeCheckoutHtml(checkoutBrandName())} can confirm fulfilment.` : "WhatsApp did not open automatically. Use the button below to send the order."}</p><div class="checkout-success-actions"><a href="${escapeCheckoutAttr(chatUrl)}" target="_blank" rel="noopener" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> Send on WhatsApp</a><a href="dashboard.html" class="btn btn-primary"><i class="fas fa-box"></i> Track order</a><a href="shop.html" class="btn btn-outline">Continue shopping</a></div></div>`;
 }
 
 function setButtonState(button, disabled, label) {
@@ -337,5 +337,5 @@ function prefillSavedAddress() {
   } catch { /* Ignore malformed legacy local storage. */ }
 }
 
-function escapeHtml(value) { const div = document.createElement("div"); div.textContent = String(value || ""); return div.innerHTML; }
-function escapeAttr(value) { return escapeHtml(value).replace(/`/g, "&#96;"); }
+function escapeCheckoutHtml(value) { const div = document.createElement("div"); div.textContent = String(value || ""); return div.innerHTML; }
+function escapeCheckoutAttr(value) { return escapeCheckoutHtml(value).replace(/`/g, "&#96;"); }

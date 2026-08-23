@@ -31,8 +31,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             z-index: 1100;
         `;
         banner.innerHTML = `
-            <strong style="color:#D4AF37;">${escapeHtml(update.title)}</strong>
-            <span style="margin-left:8px;">${escapeHtml(update.message)}</span>
+            <strong style="color:#D4AF37;">${escapeHtmlBanner(update.title)}</strong>
+            <span style="margin-left:8px;">${escapeHtmlBanner(update.message)}</span>
             <button aria-label="Dismiss" id="luxeUpdateBannerClose" style="
                 position:absolute; right:10px; top:50%; transform:translateY(-50%);
                 background:none; border:none; color:#fff; opacity:0.7; cursor:pointer; font-size:1rem;
@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-function escapeHtml(str) {
+function escapeHtmlBanner(str) {
     return String(str || '').replace(/[&<>"']/g, (c) => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[c]));

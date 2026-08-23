@@ -422,27 +422,27 @@ document.addEventListener("DOMContentLoaded", async () => {
       const items = (order.order_items || []).map((item) => `
         <div class="admin-order-item">
           <img src="${escapeAttr(item.image_url || "")}" alt="">
-          <span>${escapeHtml(item.product_name)} ×${Number(item.quantity)}</span>
+          <span>${escapeAdminHtml(item.product_name)} ×${Number(item.quantity)}</span>
           <strong>$${(Number(item.price) * Number(item.quantity)).toFixed(2)}</strong>
         </div>`).join("");
       const customerMessage = encodeURIComponent(`Hi ${order.contact_name || "there"}, here is an update for ${adminBrandName()} order ${order.order_number}.`);
       const customerPhone = String(order.contact_phone || "").replace(/\D/g, "").replace(/^0/, "234");
 
       const attribution = order.last_admin_changed_at
-        ? `<p class="admin-order-attribution"><i class="fas fa-user-check"></i> ${escapeHtml(formatAdminAction(order.last_admin_action))} by ${escapeHtml(order.last_admin_email || "Administrator")} · ${new Date(order.last_admin_changed_at).toLocaleString()}</p>`
+        ? `<p class="admin-order-attribution"><i class="fas fa-user-check"></i> ${escapeAdminHtml(formatAdminAction(order.last_admin_action))} by ${escapeAdminHtml(order.last_admin_email || "Administrator")} · ${new Date(order.last_admin_changed_at).toLocaleString()}</p>`
         : "";
       return `<article class="admin-order-card ${order.admin_seen_at ? "" : "is-new"}" data-order-id="${escapeAttr(order.id)}" data-order-number="${escapeAttr(order.order_number)}" data-updated-at="${escapeAttr(order.updated_at)}" data-order-version="${escapeAttr(order.admin_version ?? 0)}">
         <header class="admin-order-header">
-          <div><strong>${escapeHtml(order.order_number)}</strong><span>${new Date(order.created_at).toLocaleString()}</span></div>
-          <div><span class="admin-order-status">${escapeHtml(String(order.status).replaceAll("_", " "))}</span><strong>$${Number(order.total).toFixed(2)}</strong>${Number(order.discount_amount || 0) > 0 ? `<small>Promo ${escapeHtml(order.promotion_code || "")} · -$${Number(order.discount_amount).toFixed(2)}</small>` : ""}</div>
+          <div><strong>${escapeAdminHtml(order.order_number)}</strong><span>${new Date(order.created_at).toLocaleString()}</span></div>
+          <div><span class="admin-order-status">${escapeAdminHtml(String(order.status).replaceAll("_", " "))}</span><strong>$${Number(order.total).toFixed(2)}</strong>${Number(order.discount_amount || 0) > 0 ? `<small>Promo ${escapeAdminHtml(order.promotion_code || "")} · -$${Number(order.discount_amount).toFixed(2)}</small>` : ""}</div>
         </header>
         <div class="admin-order-grid">
           <div class="admin-order-customer">
             <h4>Customer & delivery</h4>
-            <p><strong>${escapeHtml(order.contact_name || "—")}</strong></p>
-            <p><a href="tel:${escapeAttr(order.contact_phone || "")}">${escapeHtml(order.contact_phone || "—")}</a> · <a href="mailto:${escapeAttr(order.contact_email || "")}">${escapeHtml(order.contact_email || "—")}</a></p>
-            <p>${escapeHtml(addressText || "No delivery address")}</p>
-            <p class="admin-payment-line">${escapeHtml(order.payment_provider || "whatsapp")} ${order.payment_channel ? `· ${escapeHtml(order.payment_channel)}` : ""} · ${escapeHtml(order.payment_status || "pending")}${order.payment_method_label ? `<br>${escapeHtml(order.payment_method_label)}` : ""}</p>
+            <p><strong>${escapeAdminHtml(order.contact_name || "—")}</strong></p>
+            <p><a href="tel:${escapeAttr(order.contact_phone || "")}">${escapeAdminHtml(order.contact_phone || "—")}</a> · <a href="mailto:${escapeAttr(order.contact_email || "")}">${escapeAdminHtml(order.contact_email || "—")}</a></p>
+            <p>${escapeAdminHtml(addressText || "No delivery address")}</p>
+            <p class="admin-payment-line">${escapeAdminHtml(order.payment_provider || "whatsapp")} ${order.payment_channel ? `· ${escapeAdminHtml(order.payment_channel)}` : ""} · ${escapeAdminHtml(order.payment_status || "pending")}${order.payment_method_label ? `<br>${escapeAdminHtml(order.payment_method_label)}` : ""}</p>
             ${attribution}
             <a class="admin-whatsapp-link" href="https://wa.me/${customerPhone}?text=${customerMessage}" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> Message customer</a>
           </div>
@@ -550,9 +550,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     productsTableBody.innerHTML = list.map((product) => `
       <tr>
         <td><img src="${escapeAttr(product.image)}" alt="" onerror="this.style.visibility='hidden'"></td>
-        <td class="product-name-cell">${escapeHtml(product.name)}</td>
-        <td>${escapeHtml(product.brand || "")}</td>
-        <td>${escapeHtml(product.category || "")}</td>
+        <td class="product-name-cell">${escapeAdminHtml(product.name)}</td>
+        <td>${escapeAdminHtml(product.brand || "")}</td>
+        <td>${escapeAdminHtml(product.category || "")}</td>
         <td><div class="admin-price-stack"><strong>$${Number(product.price).toFixed(2)} USD</strong><span>${product.priceNGN !== null && Number.isFinite(Number(product.priceNGN)) ? `₦${Number(product.priceNGN).toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NGN` : "NGN price not set"}</span></div></td>
         <td>
           <span class="admin-badge ${product.inStock ? "in-stock" : "out-stock"}">
@@ -898,8 +898,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     updatesList.innerHTML = data.map((update) => `
       <div class="admin-update-item">
         <div>
-          <h4>${escapeHtml(update.title)}</h4>
-          <p>${escapeHtml(update.message)}</p>
+          <h4>${escapeAdminHtml(update.title)}</h4>
+          <p>${escapeAdminHtml(update.message)}</p>
           <div class="admin-update-date">
             ${new Date(update.created_at).toLocaleString()}
             ${update.active ? "" : " · inactive"}
@@ -1008,10 +1008,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       const accountStatus = customer.account_status === "suspended" ? "suspended" : "active";
       const paymentMethods = (customer.payment_methods || []).filter(Boolean).join(", ") || "No payment method";
       return `<tr>
-        <td><strong>${escapeHtml(name)}</strong><br><span>${escapeHtml(customer.email || "No email")}</span></td>
+        <td><strong>${escapeAdminHtml(name)}</strong><br><span>${escapeAdminHtml(customer.email || "No email")}</span></td>
         <td><span class="admin-account-status ${accountStatus}">${accountStatus}</span></td>
-        <td>${escapeHtml(customer.whatsapp_phone || "Not verified")}</td>
-        <td>${Number(customer.order_count || 0)}<br><span>${escapeHtml(lastOrder)} · ${escapeHtml(paymentMethods)}</span></td>
+        <td>${escapeAdminHtml(customer.whatsapp_phone || "Not verified")}</td>
+        <td>${Number(customer.order_count || 0)}<br><span>${escapeAdminHtml(lastOrder)} · ${escapeAdminHtml(paymentMethods)}</span></td>
         <td>$${Number(customer.total_spent || 0).toFixed(2)}</td>
         <td><div class="admin-contact-flags">
           <span class="admin-contact-flag ${customer.email_updates ? "enabled" : ""}">Email ${customer.email_updates ? "on" : "off"}</span>
@@ -1118,51 +1118,51 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const paymentCards = payments.length ? payments.map((method) => `
       <div class="admin-payment-method">
-        <strong>${escapeHtml(method.label || [method.provider, method.channel].filter(Boolean).join(" · ") || "unknown")}</strong>
+        <strong>${escapeAdminHtml(method.label || [method.provider, method.channel].filter(Boolean).join(" · ") || "unknown")}</strong>
         <span>${Number(method.orders || 0)} order(s) · ${Number(method.successfulOrders || 0)} paid</span>
         <span>$${Number(method.total || 0).toFixed(2)} · Last used ${method.lastUsedAt ? new Date(method.lastUsedAt).toLocaleDateString() : "never"}</span>
       </div>`).join("") : '<p class="admin-detail-note">No payment methods have been used.</p>';
 
     const orderRows = orderHistory.length ? orderHistory.map((order) => {
       const itemSummary = (order.items || []).map((item) =>
-        `${escapeHtml(item.productName || "Product")} x${Number(item.quantity || 0)}`
+        `${escapeAdminHtml(item.productName || "Product")} x${Number(item.quantity || 0)}`
       ).join("<br>") || "No item details";
       const eta = order.estimatedMinDays
         ? `${Number(order.estimatedMinDays)}${order.estimatedMaxDays && order.estimatedMaxDays !== order.estimatedMinDays ? `-${Number(order.estimatedMaxDays)}` : ""} days`
         : "Not set";
       return `
       <tr>
-        <td><strong>${escapeHtml(order.orderNumber)}</strong><span>${new Date(order.createdAt).toLocaleString()}</span></td>
+        <td><strong>${escapeAdminHtml(order.orderNumber)}</strong><span>${new Date(order.createdAt).toLocaleString()}</span></td>
         <td>${itemSummary}</td>
-        <td>${escapeHtml(String(order.status || "").replaceAll("_", " "))}${order.promotionCode ? `<span>Promo ${escapeHtml(order.promotionCode)} - $${Number(order.discountAmount || 0).toFixed(2)}</span>` : ""}</td>
-        <td>${escapeHtml(eta)}${order.waybillUrl ? `<span>Waybill attached</span>` : ""}</td>
-        <td><strong>${escapeHtml(order.currency || "USD")} ${Number(order.total || 0).toFixed(2)}</strong></td>
+        <td>${escapeAdminHtml(String(order.status || "").replaceAll("_", " "))}${order.promotionCode ? `<span>Promo ${escapeAdminHtml(order.promotionCode)} - $${Number(order.discountAmount || 0).toFixed(2)}</span>` : ""}</td>
+        <td>${escapeAdminHtml(eta)}${order.waybillUrl ? `<span>Waybill attached</span>` : ""}</td>
+        <td><strong>${escapeAdminHtml(order.currency || "USD")} ${Number(order.total || 0).toFixed(2)}</strong></td>
       </tr>`;
     }).join("") : '<tr><td colspan="5">No orders recorded.</td></tr>';
 
     const transactionRows = transactionHistory.length ? transactionHistory.map((transaction) => `
       <tr>
-        <td><strong>${escapeHtml(transaction.orderNumber)}</strong><span>${new Date(transaction.createdAt).toLocaleString()}</span></td>
-        <td>${escapeHtml(transaction.provider || "whatsapp/manual")}</td>
-        <td>${escapeHtml(transaction.methodLabel || transaction.channel || "Not recorded")}</td>
-        <td>${escapeHtml(String(transaction.status || "pending").replaceAll("_", " "))}</td>
-        <td>${escapeHtml(shortPaymentReference(transaction.reference))}</td>
-        <td><strong>${escapeHtml(transaction.currency || "USD")} ${Number(transaction.amount || 0).toFixed(2)}</strong></td>
+        <td><strong>${escapeAdminHtml(transaction.orderNumber)}</strong><span>${new Date(transaction.createdAt).toLocaleString()}</span></td>
+        <td>${escapeAdminHtml(transaction.provider || "whatsapp/manual")}</td>
+        <td>${escapeAdminHtml(transaction.methodLabel || transaction.channel || "Not recorded")}</td>
+        <td>${escapeAdminHtml(String(transaction.status || "pending").replaceAll("_", " "))}</td>
+        <td>${escapeAdminHtml(shortPaymentReference(transaction.reference))}</td>
+        <td><strong>${escapeAdminHtml(transaction.currency || "USD")} ${Number(transaction.amount || 0).toFixed(2)}</strong></td>
       </tr>`).join("") : '<tr><td colspan="6">No payment transactions recorded.</td></tr>';
 
     const loginRows = logins.length ? logins.map((event) => `
       <tr>
-        <td>${escapeHtml(formatAdminAction(event.action))}</td>
-        <td>${escapeHtml(event.ipAddress || "Unknown")}</td>
-        <td class="user-agent">${escapeHtml(event.userAgent || "Unknown device")}</td>
+        <td>${escapeAdminHtml(formatAdminAction(event.action))}</td>
+        <td>${escapeAdminHtml(event.ipAddress || "Unknown")}</td>
+        <td class="user-agent">${escapeAdminHtml(event.userAgent || "Unknown device")}</td>
         <td>${new Date(event.createdAt).toLocaleString()}</td>
       </tr>`).join("") : `<tr><td colspan="4">${detail.authAuditAvailable ? "No stored sign-in events for this account." : "Database Auth Audit Logs are not available. Enable them in Supabase Authentication settings."}</td></tr>`;
 
     const actionRows = actions.length ? actions.map((entry) => `
       <tr>
-        <td>${escapeHtml(entry.adminEmail || "Administrator")}</td>
-        <td>${escapeHtml(formatAdminAction(entry.action))}</td>
-        <td>${escapeHtml(entry.targetType || "record")}</td>
+        <td>${escapeAdminHtml(entry.adminEmail || "Administrator")}</td>
+        <td>${escapeAdminHtml(formatAdminAction(entry.action))}</td>
+        <td>${escapeAdminHtml(entry.targetType || "record")}</td>
         <td>${new Date(entry.createdAt).toLocaleString()}</td>
       </tr>`).join("") : '<tr><td colspan="4">No admin actions for this account.</td></tr>';
 
@@ -1173,7 +1173,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         <div class="admin-detail-stat"><span>Recorded spend</span><strong>$${Number(customer.totalSpent || 0).toFixed(2)}</strong></div>
         <div class="admin-detail-stat"><span>Last sign-in</span><strong>${customer.lastSignInAt ? new Date(customer.lastSignInAt).toLocaleString() : "Never"}</strong></div>
       </div>
-      ${suspended ? `<div class="admin-owner-notice"><i class="fas fa-ban"></i><div><strong>Account suspended</strong><p>${escapeHtml(customer.suspensionReason || "No reason recorded")} · ${customer.suspendedAt ? new Date(customer.suspendedAt).toLocaleString() : "Time unavailable"}${customer.suspendedByEmail ? ` · by ${escapeHtml(customer.suspendedByEmail)}` : ""}</p></div></div>` : ""}
+      ${suspended ? `<div class="admin-owner-notice"><i class="fas fa-ban"></i><div><strong>Account suspended</strong><p>${escapeAdminHtml(customer.suspensionReason || "No reason recorded")} · ${customer.suspendedAt ? new Date(customer.suspendedAt).toLocaleString() : "Time unavailable"}${customer.suspendedByEmail ? ` · by ${escapeAdminHtml(customer.suspendedByEmail)}` : ""}</p></div></div>` : ""}
       <section class="admin-detail-section"><div class="admin-detail-section-heading"><h4>Payment methods</h4><span class="admin-detail-note">No card or bank details are stored here.</span></div><div class="admin-payment-methods">${paymentCards}</div></section>
       <section class="admin-detail-section"><div class="admin-detail-section-heading"><h4>Order history</h4><span class="admin-detail-note">Protected admin view</span></div><div class="admin-table-wrap"><table class="admin-table admin-detail-table"><thead><tr><th scope="col">Order</th><th scope="col">Items</th><th scope="col">Status</th><th scope="col">Delivery</th><th scope="col">Total</th></tr></thead><tbody>${orderRows}</tbody></table></div></section>
       <section class="admin-detail-section"><div class="admin-detail-section-heading"><h4>Transaction history</h4><span class="admin-detail-note">References are shortened; no card or bank credentials are stored.</span></div><div class="admin-table-wrap"><table class="admin-table admin-detail-table"><thead><tr><th scope="col">Order</th><th scope="col">Provider</th><th scope="col">Method</th><th scope="col">Status</th><th scope="col">Reference</th><th scope="col">Amount</th></tr></thead><tbody>${transactionRows}</tbody></table></div></section>
@@ -1304,8 +1304,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (adminActivityList) {
       adminActivityList.innerHTML = data.slice(0, 30).map((entry) => `
         <div class="admin-activity-item">
-          <div><strong>${escapeHtml(formatAdminAction(entry.action))}</strong>
-          <span>${escapeHtml(entry.admin_email || "Admin")} · ${escapeHtml(entry.target_type || "record")}</span></div>
+          <div><strong>${escapeAdminHtml(formatAdminAction(entry.action))}</strong>
+          <span>${escapeAdminHtml(entry.admin_email || "Admin")} · ${escapeAdminHtml(entry.target_type || "record")}</span></div>
           <time datetime="${escapeAttr(entry.created_at)}">${new Date(entry.created_at).toLocaleString()}</time>
         </div>`).join("");
     }
@@ -1314,9 +1314,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         const details = entry.details || {};
         const targetLabel = details.orderNumber || details.code || details.label || details.customerName || entry.target_id || entry.target_type || "record";
         return `<tr>
-          <td>${escapeHtml(entry.admin_email || "Administrator")}</td>
-          <td>${escapeHtml(formatAdminAction(entry.action))}</td>
-          <td>${escapeHtml(targetLabel)}<br><span>${escapeHtml(entry.target_type || "record")}</span></td>
+          <td>${escapeAdminHtml(entry.admin_email || "Administrator")}</td>
+          <td>${escapeAdminHtml(formatAdminAction(entry.action))}</td>
+          <td>${escapeAdminHtml(targetLabel)}<br><span>${escapeAdminHtml(entry.target_type || "record")}</span></td>
           <td>${new Date(entry.created_at).toLocaleString()}</td>
         </tr>`;
       }).join("");
@@ -1368,11 +1368,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       const dateRule = promotion.ends_at ? `Ends ${new Date(promotion.ends_at).toLocaleDateString()}` : "No expiry";
       const uses = `${Number(promotion.redemption_count || 0)} / ${promotion.max_redemptions == null ? "∞" : Number(promotion.max_redemptions)}`;
       return `<tr>
-        <td><span class="admin-promo-code">${escapeHtml(promotion.code)}</span></td>
+        <td><span class="admin-promo-code">${escapeAdminHtml(promotion.code)}</span></td>
         <td>${Number(promotion.percent_off).toFixed(2).replace(/\.00$/, "")}%</td>
-        <td>Min $${Number(promotion.minimum_subtotal || 0).toFixed(2)} · ${Number(promotion.per_user_limit)} per customer<br><span>${escapeHtml(dateRule)}</span></td>
-        <td>${escapeHtml(uses)}</td>
-        <td><span class="admin-promo-status ${status}">${escapeHtml(status)}</span></td>
+        <td>Min $${Number(promotion.minimum_subtotal || 0).toFixed(2)} · ${Number(promotion.per_user_limit)} per customer<br><span>${escapeAdminHtml(dateRule)}</span></td>
+        <td>${escapeAdminHtml(uses)}</td>
+        <td><span class="admin-promo-status ${status}">${escapeAdminHtml(status)}</span></td>
         <td>
           <button type="button" class="admin-text-btn edit-promotion-btn" data-id="${escapeAttr(promotion.id)}">Edit</button>
           <button type="button" class="admin-text-btn toggle-promotion-btn" data-id="${escapeAttr(promotion.id)}" data-active="${promotion.active}">${promotion.active ? "Pause" : "Activate"}</button>
@@ -1495,10 +1495,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       return `
         <tr>
           <td>
-            ${escapeHtml(admin.email)}
+            ${escapeAdminHtml(admin.email)}
             ${isSelf ? '<span class="admin-you-badge">You</span>' : ""}
           </td>
-          <td>${escapeHtml(admin.full_name || "—")}</td>
+          <td>${escapeAdminHtml(admin.full_name || "—")}</td>
           <td>
             <span class="admin-role-badge ${isOwner ? "owner" : "admin"}">
               ${isOwner ? "Master Owner" : "Admin"}
@@ -1658,7 +1658,7 @@ function formatBytes(bytes) {
   return `${(value / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function escapeHtml(value) {
+function escapeAdminHtml(value) {
   return String(value || "").replace(/[&<>"']/g, (character) => ({
     "&": "&amp;",
     "<": "&lt;",
@@ -1669,7 +1669,7 @@ function escapeHtml(value) {
 }
 
 function escapeAttr(value) {
-  return escapeHtml(value);
+  return escapeAdminHtml(value);
 }
 
 function formatAdminAction(value) {

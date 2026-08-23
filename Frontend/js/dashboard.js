@@ -342,9 +342,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
         notificationsList.innerHTML = data.map(item => `
-            <article class="dashboard-notification ${item.read_at ? '' : 'is-unread'}" data-id="${escapeHtml(item.id)}">
+            <article class="dashboard-notification ${item.read_at ? '' : 'is-unread'}" data-id="${escapeDashboardHtml(item.id)}">
                 <span class="notification-kind"><i class="fas ${item.kind === 'order' ? 'fa-box' : item.kind === 'welcome' ? 'fa-star' : 'fa-bullhorn'}"></i></span>
-                <div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.message)}</p><time>${new Date(item.created_at).toLocaleString()}</time></div>
+                <div><h3>${escapeDashboardHtml(item.title)}</h3><p>${escapeDashboardHtml(item.message)}</p><time>${new Date(item.created_at).toLocaleString()}</time></div>
             </article>
         `).join('');
     }
@@ -376,8 +376,8 @@ function renderOrderCard(order) {
 
     const itemsHtml = items.map(item => `
         <div class="order-line-item">
-            <img src="${escapeHtml(safeHttpUrl(item.image_url) || 'https://via.placeholder.com/48')}" alt="${escapeHtml(item.product_name)}">
-            <span class="item-name">${escapeHtml(item.product_name)}</span>
+            <img src="${escapeDashboardHtml(safeHttpUrl(item.image_url) || 'https://via.placeholder.com/48')}" alt="${escapeDashboardHtml(item.product_name)}">
+            <span class="item-name">${escapeDashboardHtml(item.product_name)}</span>
             <span class="item-qty">x${item.quantity}</span>
             <span class="item-price">$${Number(item.price).toFixed(2)}</span>
         </div>
@@ -394,16 +394,16 @@ function renderOrderCard(order) {
         <div class="order-card">
             <div class="order-card-header">
                 <div>
-                    <div class="order-number">${escapeHtml(order.order_number)}</div>
+                    <div class="order-number">${escapeDashboardHtml(order.order_number)}</div>
                     <div class="order-date">${date}</div>
                 </div>
-                <span class="order-status ${safeStatus}">${escapeHtml(safeStatus.replaceAll('_', ' '))}</span>
+                <span class="order-status ${safeStatus}">${escapeDashboardHtml(safeStatus.replaceAll('_', ' '))}</span>
             </div>
             <div class="order-card-body">
                 ${itemsHtml}
             </div>
             <div class="order-card-footer">
-                <span>ETA: ${eta}${safeHttpUrl(order.waybill_url) ? ` · <a href="${escapeHtml(safeHttpUrl(order.waybill_url))}" target="_blank" rel="noopener">Track parcel</a>` : ''}${Number(order.discount_amount || 0) > 0 ? ` · Promo ${escapeHtml(order.promotion_code || '')} saved $${Number(order.discount_amount).toFixed(2)}` : ''}</span>
+                <span>ETA: ${eta}${safeHttpUrl(order.waybill_url) ? ` · <a href="${escapeDashboardHtml(safeHttpUrl(order.waybill_url))}" target="_blank" rel="noopener">Track parcel</a>` : ''}${Number(order.discount_amount || 0) > 0 ? ` · Promo ${escapeDashboardHtml(order.promotion_code || '')} saved $${Number(order.discount_amount).toFixed(2)}` : ''}</span>
                 <strong>Total: $${Number(order.total).toFixed(2)}</strong>
             </div>
         </div>
@@ -446,7 +446,7 @@ function whatsappVerificationMessage(code, error) {
     return messages[code] || error?.message || 'WhatsApp verification could not be completed.';
 }
 
-function escapeHtml(str) {
+function escapeDashboardHtml(str) {
     const div = document.createElement('div');
     div.textContent = str == null ? '' : String(str);
     return div.innerHTML;
