@@ -372,10 +372,82 @@ const LuxeProfile = {
       };
     }
   },
+
+  async updateCommunicationPreferences(emailUpdates, whatsappUpdates) {
+    if (!supabaseClient) return { data: null, error: { message: "Backend not configured." } };
+    try {
+      return await supabaseClient.rpc("update_communication_preferences", {
+        p_email_updates: !!emailUpdates,
+        p_whatsapp_updates: !!whatsappUpdates,
+      });
+    } catch (error) {
+      return { data: null, error: { message: error?.message || "Unable to save preferences." } };
+    }
+  },
+};
+
+const LuxeCommerce = {
+  async getSettings() {
+    const fallback = {
+      whatsappVerificationRequired: false,
+      whatsappDefaultCountryCode: "234",
+    };
+    if (!supabaseClient) return fallback;
+    try {
+      const { data, error } = await supabaseClient.rpc("commerce_public_settings");
+      if (error) {
+        console.warn("[LUXE] Could not load commerce settings:", error.message);
+        return fallback;
+      }
+      return { ...fallback, ...(data || {}) };
+    } catch (error) {
+      console.warn("[LUXE] Could not load commerce settings:", error);
+      return fallback;
+    }
+  },
+};
+
+const LuxeWhatsApp = {
+  async _invoke(body) {
+    if (!supabaseClient) {
+      return { data: null, error: { message: "Verification service is not configured." } };
+    }
+    try {
+      const result = await supabaseClient.functions.invoke("whatsapp-verification", { body });
+      if (result.error?.context && typeof result.error.context.json === "function") {
+        try {
+          const detail = await result.error.context.clone().json();
+          return { data: detail, error: result.error };
+        } catch { /* Keep the original gateway error. */ }
+      }
+      return result;
+    } catch (error) {
+      return {
+        data: null,
+        error: { message: error?.message || "WhatsApp verification is unavailable." },
+      };
+    }
+  },
+
+  async requestCode(phone) {
+    return await this._invoke({ action: "request", phone });
+  },
+
+  async verifyCode(phone, code) {
+    return await this._invoke({ action: "verify", phone, code });
+  },
+
+  normalizePhone(phone, countryCode = "234") {
+    let digits = String(phone || "").replace(/\D/g, "");
+    const country = String(countryCode || "234").replace(/\D/g, "");
+    if (digits.startsWith("00")) digits = digits.slice(2);
+    else if (digits.startsWith("0")) digits = country + digits.slice(1);
+    return /^[1-9][0-9]{6,14}$/.test(digits) ? `+${digits}` : null;
+  },
 };
 
 const LuxeOrders = {
-  async createOrder(items, shippingAddress) {
+  async createOrder(items, shippingAddress, contact, paymentProvider = "whatsapp", idempotencyKey, promoCode = null) {
     if (!supabaseClient) {
       return {
         data: null,
@@ -411,9 +483,13 @@ const LuxeOrders = {
         };
       }
 
-      const { data, error } = await supabaseClient.rpc("create_order_secure", {
+      const { data, error } = await supabaseClient.rpc("create_order_secure_v3", {
         p_items: rpcItems,
         p_shipping_address: shippingAddress || {},
+        p_contact: contact || {},
+        p_payment_provider: paymentProvider,
+        p_idempotency_key: idempotencyKey,
+        p_promo_code: promoCode || null,
       });
 
       if (error) {
@@ -428,6 +504,22 @@ const LuxeOrders = {
         data: null,
         error: { message: error?.message || "Unable to create order." },
       };
+    }
+  },
+
+  async quote(items, promoCode = null) {
+    if (!supabaseClient) return { data: null, error: { message: "Order service is not configured." } };
+    const rpcItems = (items || []).map((item) => ({
+      product_id: Number(item.product_id ?? item.id),
+      quantity: Number(item.quantity),
+    }));
+    try {
+      return await supabaseClient.rpc("order_quote_secure_v1", {
+        p_items: rpcItems,
+        p_promo_code: promoCode || null,
+      });
+    } catch (error) {
+      return { data: null, error: { message: error?.message || "Unable to calculate order total." } };
     }
   },
 
@@ -452,6 +544,103 @@ const LuxeOrders = {
       return [];
     }
   },
+
+  async getByPaymentReference(reference) {
+    if (!supabaseClient || !reference) return null;
+    const { data, error } = await supabaseClient
+      .from("orders")
+      .select("id,order_number,payment_status")
+      .eq("payment_reference", reference)
+      .maybeSingle();
+    return error ? null : data;
+  },
+
+  async getAdminOrders() {
+    if (!supabaseClient) return { data: [], error: { message: "Backend not configured." } };
+    try {
+      const { data, error } = await supabaseClient.rpc("admin_list_orders_v2");
+      return { data: data || [], error };
+    } catch (error) {
+      return { data: [], error: { message: error?.message || "Unable to load orders." } };
+    }
+  },
+
+  async updateAdminOrder(orderId, fields) {
+    if (!supabaseClient) return { data: null, error: { message: "Backend not configured." } };
+    return await supabaseClient.rpc("admin_update_order_v2", {
+      p_order_id: orderId,
+      p_status: fields.status,
+      p_estimated_min_days: fields.estimatedMinDays || null,
+      p_estimated_max_days: fields.estimatedMaxDays || null,
+      p_waybill_url: fields.waybillUrl || null,
+      p_expected_updated_at: fields.expectedUpdatedAt || null,
+    });
+  },
+
+  async markAllAdminSeen() {
+    if (!supabaseClient) return { error: { message: "Backend not configured." } };
+    return await supabaseClient.rpc("admin_mark_all_orders_seen");
+  },
+
+  async getAdminUnseenCount() {
+    if (!supabaseClient) return { data: 0, error: { message: "Backend not configured." } };
+    return await supabaseClient.rpc("admin_unseen_order_count");
+  },
+
+  async sendWhatsAppNotifications(action, orderId) {
+    if (!supabaseClient) return { data: null, error: { message: "Backend not configured." } };
+    return await supabaseClient.functions.invoke("order-notifications", {
+      body: { action, orderId },
+    });
+  },
+};
+
+const LuxeNotifications = {
+  async getAll() {
+    if (!supabaseClient) return { data: [], error: { message: "Backend not configured." } };
+    try {
+      const { data, error } = await supabaseClient
+        .from("user_notifications")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      return { data: data || [], error };
+    } catch (error) {
+      return { data: [], error: { message: error?.message || "Unable to load notifications." } };
+    }
+  },
+
+  async markAllRead() {
+    if (!supabaseClient) return { error: { message: "Backend not configured." } };
+    return await supabaseClient
+      .from("user_notifications")
+      .update({ read_at: new Date().toISOString() })
+      .is("read_at", null);
+  },
+
+  async getUnreadCount() {
+    if (!supabaseClient) return { data: 0, error: { message: "Backend not configured." } };
+    try {
+      const { count, error } = await supabaseClient
+        .from("user_notifications")
+        .select("id", { count: "exact", head: true })
+        .is("read_at", null);
+      return { data: count || 0, error };
+    } catch (error) {
+      return { data: 0, error: { message: error?.message || "Unable to count notifications." } };
+    }
+  },
+};
+
+const LuxePayments = {
+  async request(action, orderId) {
+    if (!supabaseClient) return { data: null, error: { message: "Backend not configured." } };
+    return await supabaseClient.functions.invoke("payment-gateway", {
+      body: { action, orderId },
+    });
+  },
+  async initialize(orderId) { return await this.request("initialize", orderId); },
+  async verify(orderId) { return await this.request("verify", orderId); },
 };
 
 const LuxeAdmins = {
@@ -519,6 +708,16 @@ const LuxeAdmins = {
     }
   },
 
+  async touchPresence() {
+    if (!supabaseClient) return { error: { message: "Backend not configured." } };
+    try {
+      const { data, error } = await supabaseClient.rpc("admin_touch_presence");
+      return { data, error };
+    } catch (error) {
+      return { error: { message: error?.message || "Unable to update presence." } };
+    }
+  },
+
   async add(email) {
     if (!supabaseClient) {
       return {
@@ -568,8 +767,108 @@ const LuxeAdmins = {
   },
 };
 
+const LuxeCustomers = {
+  async getAll(search = "", limit = 100) {
+    if (!supabaseClient) return { data: [], error: { message: "Backend not configured." } };
+    try {
+      const { data, error } = await supabaseClient.rpc("admin_list_customers", {
+        p_search: String(search || "").trim(),
+        p_limit: Math.min(100, Math.max(1, Number(limit) || 100)),
+      });
+      return { data: data || [], error };
+    } catch (error) {
+      return { data: [], error: { message: error?.message || "Unable to load customers." } };
+    }
+  },
+
+  async sendMessage(userId, title, message, channels) {
+    if (!supabaseClient) return { data: null, error: { message: "Backend not configured." } };
+    try {
+      const result = await supabaseClient.functions.invoke("admin-messaging", {
+        body: { action: "send", userId, title, message, channels },
+      });
+      if (result.error?.context && typeof result.error.context.json === "function") {
+        try {
+          return { data: await result.error.context.clone().json(), error: result.error };
+        } catch { /* Return the original function error below. */ }
+      }
+      return result;
+    } catch (error) {
+      return { data: null, error: { message: error?.message || "Unable to send message." } };
+    }
+  },
+
+  async getDetail(userId) {
+    if (!supabaseClient || !userId) return { data: null, error: { message: "Customer service is unavailable." } };
+    try {
+      return await supabaseClient.rpc("admin_customer_detail", { p_user_id: userId });
+    } catch (error) {
+      return { data: null, error: { message: error?.message || "Unable to load customer history." } };
+    }
+  },
+
+  async setSuspension(userId, suspended, reason, confirmation) {
+    if (!supabaseClient) return { data: null, error: { message: "Backend not configured." } };
+    try {
+      const result = await supabaseClient.functions.invoke("account-administration", {
+        body: { action: "set_suspension", userId, suspended: !!suspended, reason, confirmation },
+      });
+      if (result.error?.context && typeof result.error.context.json === "function") {
+        try {
+          return { data: await result.error.context.clone().json(), error: result.error };
+        } catch { /* Return the original function error below. */ }
+      }
+      return result;
+    } catch (error) {
+      return { data: null, error: { message: error?.message || "Unable to change account access." } };
+    }
+  },
+
+  async getRecentActivity(limit = 30) {
+    if (!supabaseClient) return { data: [], error: { message: "Backend not configured." } };
+    const { data, error } = await supabaseClient.rpc("admin_recent_activity", {
+      p_limit: Math.min(100, Math.max(1, Number(limit) || 30)),
+    });
+    return { data: data || [], error };
+  },
+};
+
+const LuxePromotions = {
+  async getAll() {
+    if (!supabaseClient) return { data: [], error: { message: "Backend not configured." } };
+    const { data, error } = await supabaseClient.rpc("admin_list_promotions");
+    return { data: data || [], error };
+  },
+
+  async save(promotion) {
+    if (!supabaseClient) return { data: null, error: { message: "Backend not configured." } };
+    return await supabaseClient.rpc("admin_upsert_promotion", {
+      p_id: promotion.id || null,
+      p_code: promotion.code,
+      p_percent_off: promotion.percentOff,
+      p_minimum_subtotal: promotion.minimumSubtotal || 0,
+      p_max_redemptions: promotion.maxRedemptions || null,
+      p_per_user_limit: promotion.perUserLimit || 1,
+      p_starts_at: promotion.startsAt || null,
+      p_ends_at: promotion.endsAt || null,
+      p_active: promotion.active !== false,
+    });
+  },
+
+  async setActive(id, active) {
+    if (!supabaseClient) return { error: { message: "Backend not configured." } };
+    return await supabaseClient.rpc("admin_set_promotion_active", {
+      p_id: id,
+      p_active: !!active,
+    });
+  },
+};
+
 const LuxeStorage = {
   BUCKET: "luxe-uploads",
+  ALLOWED_IMAGE_TYPES: new Set([
+    "image/jpeg", "image/png", "image/webp", "image/gif", "image/avif",
+  ]),
 
   _sanitizeName(filename) {
     return String(filename || "image").replace(/[^a-zA-Z0-9.\-_]/g, "_");
@@ -584,7 +883,7 @@ const LuxeStorage = {
     return `${folder}/${unique}-${this._sanitizeName(file.name)}`;
   },
 
-  async _upload(file, path) {
+  async _upload(file, path, maxBytes = 8 * 1024 * 1024) {
     if (!supabaseClient) {
       return {
         url: null,
@@ -599,10 +898,17 @@ const LuxeStorage = {
       };
     }
 
-    if (file.type && !file.type.startsWith("image/")) {
+    if (!this.ALLOWED_IMAGE_TYPES.has(file.type)) {
       return {
         url: null,
-        error: { message: "Only image files are allowed." },
+        error: { message: "Use a JPG, PNG, WebP, GIF or AVIF image." },
+      };
+    }
+
+    if (!Number.isFinite(file.size) || file.size < 1 || file.size > maxBytes) {
+      return {
+        url: null,
+        error: { message: `Image must be smaller than ${Math.round(maxBytes / 1024 / 1024)} MB.` },
       };
     }
 
@@ -612,7 +918,7 @@ const LuxeStorage = {
         .upload(path, file, {
           upsert: false,
           contentType: file.type || undefined,
-          cacheControl: "3600",
+          cacheControl: "31536000",
         });
 
       if (uploadError) {
@@ -645,6 +951,7 @@ const LuxeStorage = {
     return await this._upload(
       file,
       this._uniquePath(`avatars/${userId}`, file),
+      5 * 1024 * 1024,
     );
   },
 };
@@ -731,18 +1038,26 @@ const LuxeProducts = {
     }
 
     try {
-      const { data, error } = await supabaseClient
-        .from("products")
-        .select("*")
-        .order("id", { ascending: false });
+      const [productResult, trendingResult] = await Promise.all([
+        supabaseClient.from("products").select("*").order("id", { ascending: false }),
+        supabaseClient.rpc("get_trending_products", { p_limit: 8, p_days: 30 }),
+      ]);
+      const { data, error } = productResult;
 
       if (error) {
         console.error("[LUXE] Failed to load products:", error);
         return { data: null, error };
       }
 
+      const trending = new Map(
+        (trendingResult.data || []).map((row) => [Number(row.product_id), Number(row.units_sold)]),
+      );
       return {
-        data: (data || []).map((row) => this._fromRow(row)),
+        data: (data || []).map((row) => ({
+          ...this._fromRow(row),
+          trending: trending.has(Number(row.id)),
+          unitsSold: trending.get(Number(row.id)) || 0,
+        })),
         error: null,
       };
     } catch (error) {
@@ -1075,39 +1390,107 @@ function addAdminLinkToList(listElement) {
 }
 
 async function syncAdminNavigation() {
-  if (typeof document === "undefined" || !supabaseClient) {
+  return await syncStorefrontNavigation();
+}
+
+function safeNavigationImage(value) {
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol) ? url.href : "";
+  } catch { return ""; }
+}
+
+function renderAccountControls(user, profile) {
+  document.querySelectorAll('.user-icon:not([href="index.html"])').forEach((anchor) => {
+    anchor.replaceChildren();
+    if (!user) {
+      anchor.href = "login.html";
+      anchor.title = "Sign in";
+      anchor.setAttribute("aria-label", "Sign in to your LUXE account");
+      anchor.innerHTML = window.LuxeIcons?.svg("user", "nav-svg-icon") || "";
+      return;
+    }
+
+    anchor.href = "dashboard.html";
+    const name = profile?.full_name || user.user_metadata?.full_name || user.email || "Member";
+    anchor.title = name;
+    anchor.setAttribute("aria-label", `Open ${name}'s account`);
+    const avatarUrl = safeNavigationImage(profile?.avatar_url);
+    if (avatarUrl) {
+      const image = document.createElement("img");
+      image.className = "nav-user-avatar";
+      image.src = avatarUrl;
+      image.alt = "";
+      anchor.appendChild(image);
+      return;
+    }
+
+    const initial = document.createElement("span");
+    initial.className = "nav-user-initial";
+    initial.textContent = String(name).trim().charAt(0).toUpperCase() || "M";
+    anchor.appendChild(initial);
+  });
+}
+
+function ensureNavbarNotificationControls() {
+  document.querySelectorAll(".nav-icons").forEach((container) => {
+    if (container.querySelector(".notification-icon")) return;
+    const link = document.createElement("a");
+    link.className = "notification-icon";
+    link.href = "dashboard.html?tab=notifications";
+    link.title = "Notifications";
+    link.setAttribute("aria-label", "Open notifications");
+    link.hidden = true;
+    link.innerHTML = `${window.LuxeIcons?.svg("bell", "nav-svg-icon") || ""}<span class="navbar-notification-badge" hidden>0</span>`;
+    container.insertBefore(link, container.querySelector(".user-icon, .hamburger"));
+  });
+}
+
+function updateNavbarNotificationBadge(count, signedIn = true) {
+  const safeCount = Math.max(0, Number(count) || 0);
+  document.querySelectorAll(".notification-icon").forEach((link) => {
+    link.hidden = !signedIn;
+    const badge = link.querySelector(".navbar-notification-badge");
+    if (!badge) return;
+    badge.textContent = safeCount > 99 ? "99+" : String(safeCount);
+    badge.hidden = safeCount < 1;
+  });
+}
+
+async function syncStorefrontNavigation() {
+  if (typeof document === "undefined") return;
+  ensureNavbarNotificationControls();
+  removeInjectedAdminNavLinks();
+
+  if (!supabaseClient) {
+    renderAccountControls(null, null);
+    updateNavbarNotificationBadge(0, false);
     return;
   }
 
-  removeInjectedAdminNavLinks();
-
   try {
-    // Avoid calling an authenticated-only RPC for signed-out visitors.
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabaseClient.auth.getSession();
-
-    if (sessionError || !session?.user) {
+    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+    const user = session?.user || null;
+    if (sessionError || !user) {
+      renderAccountControls(null, null);
+      updateNavbarNotificationBadge(0, false);
       return;
     }
 
-    const { data: role, error: roleError } =
-      await supabaseClient.rpc("current_admin_role");
+    const [profileResult, notificationResult, roleResult] = await Promise.all([
+      supabaseClient.from("profiles").select("full_name,avatar_url").eq("id", user.id).maybeSingle(),
+      LuxeNotifications.getUnreadCount(),
+      supabaseClient.rpc("current_admin_role"),
+    ]);
 
-    if (roleError) {
-      return;
+    renderAccountControls(user, profileResult.data || null);
+    updateNavbarNotificationBadge(notificationResult.data, true);
+    if (!roleResult.error && ["owner", "admin"].includes(roleResult.data)) {
+      addAdminLinkToList(document.querySelector(".nav-links ul"));
+      addAdminLinkToList(document.querySelector(".mobile-menu ul"));
     }
-
-    if (role !== "owner" && role !== "admin") {
-      return;
-    }
-
-    addAdminLinkToList(document.querySelector(".nav-links ul"));
-
-    addAdminLinkToList(document.querySelector(".mobile-menu ul"));
   } catch (error) {
-    console.warn("[LUXE] Could not refresh admin navigation:", error);
+    console.warn("[LUXE] Could not refresh navigation:", error);
   }
 }
 
@@ -1115,7 +1498,7 @@ function initializeStorefrontUiIntegration() {
   ensureProductCardImageFit();
 
   const refresh = () => {
-    syncAdminNavigation();
+    syncStorefrontNavigation();
   };
 
   if (document.readyState === "loading") {
@@ -1136,8 +1519,14 @@ function initializeStorefrontUiIntegration() {
 if (typeof window !== "undefined") {
   window.LuxeAuth = LuxeAuth;
   window.LuxeProfile = LuxeProfile;
+  window.LuxeCommerce = LuxeCommerce;
+  window.LuxeWhatsApp = LuxeWhatsApp;
   window.LuxeOrders = LuxeOrders;
+  window.LuxeNotifications = LuxeNotifications;
+  window.LuxePayments = LuxePayments;
   window.LuxeAdmins = LuxeAdmins;
+  window.LuxeCustomers = LuxeCustomers;
+  window.LuxePromotions = LuxePromotions;
   window.LuxeStorage = LuxeStorage;
   window.LuxeProducts = LuxeProducts;
   window.LuxeUpdates = LuxeUpdates;
@@ -1145,6 +1534,8 @@ if (typeof window !== "undefined") {
   window.isSupabaseConfigured = isSupabaseConfigured;
   window.testSupabaseConnection = testSupabaseConnection;
   window.syncAdminNavigation = syncAdminNavigation;
+  window.syncStorefrontNavigation = syncStorefrontNavigation;
+  window.updateNavbarNotificationBadge = updateNavbarNotificationBadge;
 
   initializeStorefrontUiIntegration();
 }

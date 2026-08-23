@@ -259,7 +259,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (error) {
-        showAuthError(error.message || "Invalid email or password.");
+        showAuthError(
+          error.code === "user_banned"
+            ? "This account is currently suspended. Contact LUXE customer care for assistance."
+            : error.message || "Invalid email or password.",
+        );
         return;
       }
 
@@ -302,13 +306,11 @@ document.addEventListener("DOMContentLoaded", () => {
 function updateHeaderUserIcon(isLoggedIn) {
   document.querySelectorAll(".user-icon").forEach((userIcon) => {
     if (isLoggedIn) {
-      userIcon.innerHTML = '<i class="fas fa-user-check"></i>';
       userIcon.title = "My Account";
       userIcon.href = "dashboard.html";
     } else {
-      userIcon.innerHTML = '<i class="fas fa-user"></i>';
-      userIcon.title = "Sign Up";
-      userIcon.href = "signup.html";
+      userIcon.title = "Sign In";
+      userIcon.href = "login.html";
     }
   });
 }

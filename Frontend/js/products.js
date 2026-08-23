@@ -670,7 +670,7 @@ const products = [
         hoverImage: "https://www.prada.com/content/dam/pradabkg_products/P/P3T/P3T00R/120MF0002/P3T00R_120M_F0002_S_OOO_MDF.jpg",
         rating: 4.7,
         discount: false,
-        description: "Pure silk twill sleeveless top styled with a LavalliÃ¨re neck collar bow and vintage Prada archive print.",
+        description: "Pure silk twill sleeveless top styled with a lavallière neck collar bow and vintage Prada archive print.",
         sizes: ["36", "38", "40", "42"],
         colors: ["Print / Multi"],
         inStock: true,

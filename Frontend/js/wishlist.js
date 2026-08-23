@@ -42,7 +42,7 @@ function addToWishlist(productId) {
     const isLoggedIn = localStorage.getItem('luxe_logged_in') === 'true';
     if (!isLoggedIn) {
         if (typeof showNotification === 'function') {
-            showNotification('Please log in or create an account to save wishlist items! 🔒');
+            showNotification('Please sign in or create an account to save wishlist items.', 'lock');
         } else {
             alert('Please log in or create an account to save wishlist items!');
         }
@@ -57,7 +57,7 @@ function addToWishlist(productId) {
         wishlist.push(productId);
         saveWishlist(wishlist);
         if (typeof showNotification === 'function') {
-            showNotification('Added to wishlist ❤️');
+            showNotification('Added to wishlist.', 'heart');
         }
         return true;
     }
@@ -69,7 +69,7 @@ function removeFromWishlist(productId) {
     wishlist = wishlist.filter(id => id !== productId);
     saveWishlist(wishlist);
     if (typeof showNotification === 'function') {
-        showNotification('Removed from wishlist 💔');
+        showNotification('Removed from wishlist.', 'heart');
     }
     if (document.getElementById('wishlistGrid')) {
         renderWishlistPage();
@@ -80,7 +80,7 @@ function toggleWishlist(productId, button) {
     const isLoggedIn = localStorage.getItem('luxe_logged_in') === 'true';
     if (!isLoggedIn) {
         if (typeof showNotification === 'function') {
-            showNotification('Please log in or create an account to save wishlist items! 🔒');
+            showNotification('Please sign in or create an account to save wishlist items.', 'lock');
         } else {
             alert('Please log in or create an account to save wishlist items!');
         }
@@ -101,7 +101,7 @@ function toggleWishlist(productId, button) {
             button.style.background = '#FFEBEE';
         }
         if (typeof showNotification === 'function') {
-            showNotification('Added to wishlist ❤️');
+            showNotification('Added to wishlist.', 'heart');
         }
     } else {
         wishlist.splice(index, 1);
@@ -111,7 +111,7 @@ function toggleWishlist(productId, button) {
             button.style.background = '';
         }
         if (typeof showNotification === 'function') {
-            showNotification('Removed from wishlist 💔');
+            showNotification('Removed from wishlist.', 'heart');
         }
         if (document.getElementById('wishlistGrid')) {
             renderWishlistPage();

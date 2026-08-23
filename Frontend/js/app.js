@@ -56,13 +56,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Update counts
     if (typeof updateCartCount === 'function') updateCartCount();
     if (typeof updateWishlistCount === 'function') updateWishlistCount();
-    initAdminNav();
     // Newsletter
     const newsletterForm = document.getElementById('newsletterForm');
     if (newsletterForm) {
         newsletterForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            showNotification('Thank you for subscribing! 📧');
+            showNotification('Thank you for subscribing.', 'mail');
             this.reset();
         });
     }
@@ -111,6 +110,7 @@ function renderProducts(products, grid) {
                     <img src="${product.image}" alt="${product.name}">
                     ${product.brand ? `<span class="brand-badge">${product.brand}</span>` : ''}
                     ${product.discount && product.oldPrice ? `<span class="discount-badge">${Math.round((1 - product.price / product.oldPrice) * 100)}% OFF</span>` : ''}
+                    ${product.trending ? `<span class="trending-badge"><i class="fas fa-fire"></i> Trending</span>` : ''}
                     <div class="product-actions">
                         <button class="add-cart" data-id="${product.id}">
                             <i class="fas fa-shopping-bag"></i> Add
@@ -133,7 +133,7 @@ function renderProducts(products, grid) {
                     </div>
                     ${product.rating ? `
                         <div class="product-rating">
-                            <span class="stars">${'★'.repeat(Math.floor(product.rating))}${product.rating % 1 >= 0.5 ? '★' : ''}</span>
+                            ${window.LuxeIcons?.rating(product.rating, 'stars') || ''}
                             <span class="rating-count">(${product.rating})</span>
                         </div>
                     ` : ''}
@@ -196,7 +196,7 @@ function renderProducts(products, grid) {
 }
 
 // ========== NOTIFICATION TOAST ==========
-function showNotification(message) {
+function showNotification(message, type = 'check') {
     var existing = document.querySelector('.notification-toast');
     if (existing) {
         existing.remove();
@@ -204,21 +204,12 @@ function showNotification(message) {
 
     var notification = document.createElement('div');
     notification.className = 'notification-toast';
-    notification.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: #111111;
-        color: #FFFFFF;
-        padding: 12px 24px;
-        border-radius: 8px;
-        z-index: 9999;
-        font-family: 'Poppins', sans-serif;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        font-weight: 400;
-        animation: slideIn 0.3s ease;
-    `;
-    notification.textContent = message;
+    const icon = document.createElement('span');
+    icon.className = 'notification-toast-icon';
+    icon.innerHTML = window.LuxeIcons?.svg(type) || '';
+    const text = document.createElement('span');
+    text.textContent = message;
+    notification.append(icon, text);
     document.body.appendChild(notification);
     setTimeout(function() {
         notification.style.opacity = '0';
@@ -227,36 +218,6 @@ function showNotification(message) {
             notification.remove();
         }, 300);
     }, 2000);
-}
-
-async function initAdminNav() {
-  if (!window.LuxeAuth || !window.LuxeAdmins) return;
-
-  try {
-    const session = await window.LuxeAuth.getSession();
-    if (!session) return; // not logged in, nothing to check
-
-    const isAdmin = await window.LuxeAdmins.isAdmin();
-    if (!isAdmin) return;
-
-    const isAdminPage = /\/admin\.html$/.test(window.location.pathname);
-
-    document
-      .querySelectorAll("#navLinks ul, .mobile-menu ul")
-      .forEach(function (list) {
-        if (list.querySelector('a[href="admin.html"]')) return; // already added
-
-        const li = document.createElement("li");
-        const link = document.createElement("a");
-        link.href = "admin.html";
-        link.textContent = "Admin";
-        if (isAdminPage) link.classList.add("active");
-        li.appendChild(link);
-        list.appendChild(li);
-      });
-  } catch (error) {
-    console.error("[LUXE] Admin nav check failed:", error);
-  }
 }
 
 // Secret Keyboard Shortcut to Admin (Ctrl + Shift + A)

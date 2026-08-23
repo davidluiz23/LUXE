@@ -127,6 +127,7 @@ function renderCategoryProducts(productsList, grid) {
             <div class="product-image">
                 <img src="${product.image}" alt="${product.name}" loading="lazy">
                 ${product.discount && product.oldPrice ? `<span class="discount-badge">${Math.round((1 - product.price / product.oldPrice) * 100)}% OFF</span>` : ''}
+                ${product.trending ? `<span class="trending-badge"><i class="fas fa-fire"></i> Trending</span>` : ''}
                 <div class="product-actions">
                     <button class="add-cart" onclick="event.stopPropagation(); if(typeof window.addToCart==='function') window.addToCart(${product.id});"><i class="fas fa-shopping-bag"></i> Add</button>
                     <button class="wishlist-btn" onclick="event.stopPropagation(); if(typeof window.toggleWishlist==='function') window.toggleWishlist(${product.id}, this);"><i class="fas fa-heart"></i></button>

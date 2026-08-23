@@ -19,6 +19,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Initialize event listeners
   setupFilterListeners();
 
+  const requestedCategory = new URLSearchParams(window.location.search).get("category");
+  if (requestedCategory) {
+    const requestedFilter = Array.from(document.querySelectorAll(".category-filter"))
+      .find((filter) => filter.dataset.category === requestedCategory.toLowerCase());
+    if (requestedFilter) {
+      document.querySelectorAll(".category-filter").forEach((filter) => filter.classList.remove("active"));
+      requestedFilter.classList.add("active");
+    }
+  }
+
   // Initial Filter & Render
   applyFilters();
 
@@ -32,6 +42,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         categoryFilters.forEach((f) => f.classList.remove("active"));
         // Add active to clicked
         filter.classList.add("active");
+        const category = filter.dataset.category || "all";
+        const nextUrl = category === "all" ? "shop.html" : `shop.html?category=${encodeURIComponent(category)}`;
+        window.history.replaceState({}, "", nextUrl);
         applyFilters();
       });
     });
@@ -179,6 +192,7 @@ function renderShopProducts(productsList, grid) {
             <div class="product-image">
                 <img src="${product.image}" alt="${product.name}" loading="lazy">
                 ${product.discount && product.oldPrice ? `<span class="discount-badge">${Math.round((1 - product.price / product.oldPrice) * 100)}% OFF</span>` : ""}
+                ${product.trending ? `<span class="trending-badge"><i class="fas fa-fire"></i> Trending</span>` : ""}
                 ${product.brand ? `<span style="position:absolute;top:10px;left:10px;background:rgba(0,0,0,0.7);color:white;padding:4px 10px;border-radius:4px;font-size:0.7rem;font-weight:600;">${product.brand}</span>` : ""}
                 <div class="product-actions">
                     <button class="add-cart" onclick="event.stopPropagation(); if (typeof window.addToCart === 'function') window.addToCart(${product.id});">
@@ -203,7 +217,7 @@ function renderShopProducts(productsList, grid) {
                   product.rating
                     ? `
                     <div style="margin-top: 5px; font-size: 0.8rem; color: #D4AF37;">
-                        ${"★".repeat(Math.floor(product.rating))}${product.rating % 1 >= 0.5 ? "★" : ""}
+                        ${window.LuxeIcons?.rating(product.rating) || ""}
                         <span style="color: #777; margin-left: 5px;">(${product.rating})</span>
                     </div>
                 `

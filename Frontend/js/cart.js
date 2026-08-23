@@ -42,7 +42,7 @@ function addToCart(productId, quantity = 1) {
     const isLoggedIn = localStorage.getItem('luxe_logged_in') === 'true';
     if (!isLoggedIn) {
         if (typeof showNotification === 'function') {
-            showNotification('Please log in or create an account to add items to cart! 🔒');
+            showNotification('Please sign in or create an account to add items to your cart.', 'lock');
         } else {
             alert('Please log in or create an account to add items to cart!');
         }
@@ -61,7 +61,7 @@ function addToCart(productId, quantity = 1) {
     }
     saveCart(cart);
     if (typeof showNotification === 'function') {
-        showNotification('Added to cart! 🛒');
+        showNotification('Added to cart.', 'bag');
     }
     return true;
 }
@@ -178,77 +178,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-const WHATSAPP_NUMBER = '2348103463852';
-
-function formatCurrency(amount) {
-    return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
 function sendCartToWhatsApp() {
     const cart = loadCart();
     if (!cart || cart.length === 0) {
-        alert('Your cart is empty! Add products before sending to WhatsApp.');
+        alert('Your cart is empty! Add products before checking out.');
         return;
     }
-
-    let itemsText = '';
-    let subtotal = 0;
-
-    cart.forEach((item, index) => {
-        const product = (typeof getProductById === 'function') ? getProductById(item.id) : ((window.products || []).find(p => p.id === item.id));
-        if (!product) return;
-
-        const itemTotal = product.price * item.quantity;
-        subtotal += itemTotal;
-
-        const fullImageUrl = product.image.startsWith('http') ? product.image : (window.location.origin + '/' + product.image);
-
-        itemsText += `🖼️ *Image:* ${fullImageUrl}\n` +
-                     `📦 *Product:* ${product.name}\n` +
-                     `💰 *Price:* ${formatCurrency(product.price)} | *Qty:* ${item.quantity} | *Subtotal:* ${formatCurrency(itemTotal)}\n\n`;
-    });
-
-    const shipping = subtotal > 200 ? 0 : 15;
-    const tax = subtotal * 0.08;
-    const total = subtotal + shipping + tax;
-
-    const message = `🛍️ *NEW ORDER - LUXE STORE*\n` +
-                    `=================================\n\n` +
-                    `${itemsText}` +
-                    `=================================\n` +
-                    `💵 *Cart Subtotal:* ${formatCurrency(subtotal)}\n` +
-                    `🚚 *Shipping:* ${shipping === 0 ? 'Free' : formatCurrency(shipping)}\n` +
-                    `🏛️ *Tax (8%):* ${formatCurrency(tax)}\n` +
-                    `💳 *Grand Total:* ${formatCurrency(total)}\n` +
-                    `=================================\n` +
-                    `Please process my order. Thank you!`;
-
-    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
+    window.location.href = 'checkout.html';
 }
 
 function sendProductToWhatsApp(productId, quantity = 1) {
-    const product = (typeof getProductById === 'function') ? getProductById(productId) : ((window.products || []).find(p => p.id === productId));
-    if (!product) {
-        alert('Product not found!');
-        return;
+    if (addToCart(productId, Math.max(1, Number(quantity) || 1))) {
+        window.location.href = 'checkout.html';
     }
-
-    const total = product.price * quantity;
-    const fullImageUrl = product.image.startsWith('http') ? product.image : (window.location.origin + '/' + product.image);
-
-    const message = `🛍️ *PRODUCT ORDER - LUXE STORE*\n` +
-                    `=================================\n` +
-                    `🖼️ *Image:* ${fullImageUrl}\n` +
-                    `📦 *Product:* ${product.name}\n` +
-                    `💰 *Price:* ${formatCurrency(product.price)}\n` +
-                    `🔢 *Quantity:* ${quantity}\n` +
-                    `💳 *Total Amount:* ${formatCurrency(total)}\n` +
-                    `=================================\n` +
-                    `Hi, I would like to order this item directly. Please confirm availability!`;
-
-    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
 }
 
 // Expose functions globally

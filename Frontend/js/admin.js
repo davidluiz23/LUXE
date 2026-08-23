@@ -21,6 +21,49 @@ document.addEventListener("DOMContentLoaded", async () => {
   const layout = document.getElementById("adminLayout");
   const teamNavButton = document.getElementById("teamNavBtn");
   const teamPanel = document.getElementById("teamPanel");
+  const confirmationOverlay = document.getElementById("adminConfirmationOverlay");
+  const confirmationInput = document.getElementById("adminConfirmationInput");
+  const confirmationAccept = document.getElementById("acceptAdminConfirmation");
+  let confirmationResolver = null;
+
+  function closeAdminConfirmation(confirmed = false) {
+    confirmationOverlay?.classList.remove("visible");
+    const resolve = confirmationResolver;
+    confirmationResolver = null;
+    if (resolve) resolve(confirmed);
+  }
+
+  function requestAdminConfirmation({ title, message, expectedText = "", danger = false }) {
+    if (!confirmationOverlay) return Promise.resolve(false);
+    setText("adminConfirmationTitle", title || "Confirm sensitive action");
+    setText("adminConfirmationMessage", message || "Review this change before continuing.");
+    setText("adminConfirmationExpected", expectedText);
+    const inputWrap = document.getElementById("adminConfirmationInputWrap");
+    if (inputWrap) inputWrap.hidden = !expectedText;
+    if (confirmationInput) confirmationInput.value = "";
+    if (confirmationAccept) {
+      confirmationAccept.disabled = !!expectedText;
+      confirmationAccept.textContent = danger ? "Confirm action" : "Confirm";
+      confirmationAccept.classList.toggle("admin-danger-btn", !!danger);
+    }
+    confirmationOverlay.classList.add("visible");
+    setTimeout(() => (expectedText ? confirmationInput : confirmationAccept)?.focus(), 0);
+    return new Promise((resolve) => { confirmationResolver = resolve; });
+  }
+
+  confirmationInput?.addEventListener("input", () => {
+    if (confirmationAccept) {
+      confirmationAccept.disabled = confirmationInput.value !== document.getElementById("adminConfirmationExpected")?.textContent;
+    }
+  });
+  confirmationInput?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && confirmationAccept && !confirmationAccept.disabled) confirmationAccept.click();
+  });
+  confirmationAccept?.addEventListener("click", () => closeAdminConfirmation(true));
+  document.getElementById("cancelAdminConfirmation")?.addEventListener("click", () => closeAdminConfirmation(false));
+  confirmationOverlay?.addEventListener("click", (event) => {
+    if (event.target === confirmationOverlay) closeAdminConfirmation(false);
+  });
 
   function activatePanel(panelId) {
     document.querySelectorAll(".admin-nav-btn[data-panel]").forEach((button) => {
@@ -30,6 +73,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.querySelectorAll(".admin-panel").forEach((panel) => {
       panel.classList.toggle("active", panel.id === panelId);
     });
+
+    if (panelId === "ordersPanel") {
+      window.LuxeOrders.markAllAdminSeen().then(() => updateAdminOrderBadge(0));
+      loadOrders();
+    }
+    if (panelId === "customersPanel") {
+      loadCustomers();
+      loadAdminActivity();
+    }
+    if (panelId === "promotionsPanel") {
+      loadPromotions();
+    }
+    if (panelId === "activityPanel") {
+      loadAdminActivity();
+    }
   }
 
   async function checkAccess() {
@@ -59,6 +117,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     currentAdminUserId = user.id;
     currentAdminRole = role;
+    const presenceRequest = window.LuxeAdmins.touchPresence();
 
     loginGate.style.display = "none";
     deniedGate.style.display = "none";
@@ -89,12 +148,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
-    await loadProducts();
-    await loadUpdates();
-
-    if (role === "owner") {
-      await loadTeam();
-    }
+    await Promise.all([
+      loadProducts(),
+      loadUpdates(),
+      refreshOrderBadge(),
+      role === "owner" ? presenceRequest.then(() => loadTeam()) : presenceRequest,
+    ]);
 
     return true;
   }
@@ -166,6 +225,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && confirmationOverlay?.classList.contains("visible")) {
+      closeAdminConfirmation(false);
+      return;
+    }
+    if (event.key === "Escape" && customerDetailOverlay?.classList.contains("visible")) {
+      closeCustomerDetail();
+      return;
+    }
     if (
       event.key === "Escape" &&
       resetModal?.classList.contains("visible")
@@ -289,6 +356,129 @@ document.addEventListener("DOMContentLoaded", async () => {
   const productModalOverlay = document.getElementById("productModalOverlay");
   const productForm = document.getElementById("productForm");
   const productModalTitle = document.getElementById("productModalTitle");
+  const adminOrdersList = document.getElementById("adminOrdersList");
+  const adminOrdersEmpty = document.getElementById("adminOrdersEmpty");
+  const adminOrderCount = document.getElementById("adminOrderCount");
+
+  function updateAdminOrderBadge(count) {
+    const badge = document.getElementById("adminOrderBadge");
+    if (!badge) return;
+    badge.textContent = count > 99 ? "99+" : String(count);
+    badge.hidden = count < 1;
+  }
+
+  async function refreshOrderBadge() {
+    const { data, error } = await window.LuxeOrders.getAdminUnseenCount();
+    if (!error) updateAdminOrderBadge(Number(data) || 0);
+  }
+
+  async function loadOrders() {
+    if (!adminOrdersList) return;
+    if (adminOrderCount) adminOrderCount.textContent = "Loading customer orders…";
+    const { data: orders, error } = await window.LuxeOrders.getAdminOrders();
+    if (error) {
+      if (adminOrderCount) adminOrderCount.textContent = "Could not load orders.";
+      showToast(error.message || "Failed to load orders", true);
+      return;
+    }
+
+    const unseen = orders.filter((order) => !order.admin_seen_at).length;
+    updateAdminOrderBadge(unseen);
+    if (adminOrderCount) adminOrderCount.textContent = `${orders.length} order${orders.length === 1 ? "" : "s"} · ${unseen} new`;
+    adminOrdersEmpty.style.display = orders.length ? "none" : "block";
+    if (!orders.length) { adminOrdersList.innerHTML = ""; return; }
+
+    adminOrdersList.innerHTML = orders.map((order) => {
+      const address = order.shipping_address || {};
+      const addressText = [address.address, address.city, address.state, address.zip].filter(Boolean).join(", ");
+      const items = (order.order_items || []).map((item) => `
+        <div class="admin-order-item">
+          <img src="${escapeAttr(item.image_url || "")}" alt="">
+          <span>${escapeHtml(item.product_name)} ×${Number(item.quantity)}</span>
+          <strong>$${(Number(item.price) * Number(item.quantity)).toFixed(2)}</strong>
+        </div>`).join("");
+      const customerMessage = encodeURIComponent(`Hi ${order.contact_name || "there"}, here is an update for LUXE order ${order.order_number}.`);
+      const customerPhone = String(order.contact_phone || "").replace(/\D/g, "").replace(/^0/, "234");
+
+      const attribution = order.last_admin_changed_at
+        ? `<p class="admin-order-attribution"><i class="fas fa-user-check"></i> ${escapeHtml(formatAdminAction(order.last_admin_action))} by ${escapeHtml(order.last_admin_email || "Administrator")} · ${new Date(order.last_admin_changed_at).toLocaleString()}</p>`
+        : "";
+      return `<article class="admin-order-card ${order.admin_seen_at ? "" : "is-new"}" data-order-id="${escapeAttr(order.id)}" data-order-number="${escapeAttr(order.order_number)}" data-updated-at="${escapeAttr(order.updated_at)}">
+        <header class="admin-order-header">
+          <div><strong>${escapeHtml(order.order_number)}</strong><span>${new Date(order.created_at).toLocaleString()}</span></div>
+          <div><span class="admin-order-status">${escapeHtml(String(order.status).replaceAll("_", " "))}</span><strong>$${Number(order.total).toFixed(2)}</strong>${Number(order.discount_amount || 0) > 0 ? `<small>Promo ${escapeHtml(order.promotion_code || "")} · -$${Number(order.discount_amount).toFixed(2)}</small>` : ""}</div>
+        </header>
+        <div class="admin-order-grid">
+          <div class="admin-order-customer">
+            <h4>Customer & delivery</h4>
+            <p><strong>${escapeHtml(order.contact_name || "—")}</strong></p>
+            <p><a href="tel:${escapeAttr(order.contact_phone || "")}">${escapeHtml(order.contact_phone || "—")}</a> · <a href="mailto:${escapeAttr(order.contact_email || "")}">${escapeHtml(order.contact_email || "—")}</a></p>
+            <p>${escapeHtml(addressText || "No delivery address")}</p>
+            <p class="admin-payment-line">${escapeHtml(order.payment_provider || "whatsapp")} ${order.payment_channel ? `· ${escapeHtml(order.payment_channel)}` : ""} · ${escapeHtml(order.payment_status || "pending")}${order.payment_method_label ? `<br>${escapeHtml(order.payment_method_label)}` : ""}</p>
+            ${attribution}
+            <a class="admin-whatsapp-link" href="https://wa.me/${customerPhone}?text=${customerMessage}" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> Message customer</a>
+          </div>
+          <div class="admin-order-items"><h4>Items</h4>${items}</div>
+        </div>
+        <form class="admin-order-fulfilment">
+          <label>Status<select name="status">${["pending_confirmation","awaiting_payment","processing","confirmed","shipped","delivered","cancelled"].map((status) => `<option value="${status}" ${status === order.status ? "selected" : ""}>${status.replaceAll("_", " ")}</option>`).join("")}</select></label>
+          <label>ETA from (days)<input name="etaMin" type="number" min="1" max="90" value="${escapeAttr(order.estimated_delivery_min_days || "")}" placeholder="2"></label>
+          <label>ETA to (days)<input name="etaMax" type="number" min="1" max="120" value="${escapeAttr(order.estimated_delivery_max_days || "")}" placeholder="5"></label>
+          <label class="waybill-field">Waybill / tracking URL<input name="waybill" type="url" maxlength="1000" value="${escapeAttr(order.waybill_url || "")}" placeholder="https://…"></label>
+          <button class="btn btn-primary" type="submit">Save & notify</button>
+        </form>
+      </article>`;
+    }).join("");
+
+    adminOrdersList.querySelectorAll(".admin-order-fulfilment").forEach((form) => {
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const card = form.closest(".admin-order-card");
+        const button = form.querySelector('button[type="submit"]');
+        const orderNumber = card.dataset.orderNumber;
+        const nextStatus = form.elements.status.value;
+        const isCancellation = nextStatus === "cancelled";
+        const confirmed = await requestAdminConfirmation({
+          title: isCancellation ? `Cancel ${orderNumber}?` : `Confirm changes to ${orderNumber}?`,
+          message: isCancellation
+            ? "Cancelling an order affects fulfilment, promo usage and customer notifications. This action will be attributed to your admin account."
+            : `Save this order as ${nextStatus.replaceAll("_", " ")} and notify the customer? Your identity and the exact time will be recorded.`,
+          expectedText: isCancellation ? `CANCEL ${orderNumber}` : "",
+          danger: isCancellation,
+        });
+        if (!confirmed) return;
+        button.disabled = true;
+        button.textContent = "Saving…";
+        const { error } = await window.LuxeOrders.updateAdminOrder(card.dataset.orderId, {
+          status: nextStatus,
+          estimatedMinDays: Number(form.elements.etaMin.value) || null,
+          estimatedMaxDays: Number(form.elements.etaMax.value) || null,
+          waybillUrl: form.elements.waybill.value.trim(),
+          expectedUpdatedAt: card.dataset.updatedAt,
+        });
+        button.disabled = false;
+        button.textContent = "Save & notify";
+        if (error) {
+          showToast(error.message || "Could not update order", true);
+          if (String(error.message || "").includes("another administrator")) await loadOrders();
+          return;
+        }
+        const notification = await window.LuxeOrders.sendWhatsAppNotifications("order_updated", card.dataset.orderId);
+        if (notification.error || !notification.data?.customer?.sent) {
+          showToast("Order saved and in-app notification sent. WhatsApp delivery needs API setup.");
+        } else {
+          showToast("Order saved and WhatsApp update sent.");
+        }
+        await Promise.all([loadOrders(), loadAdminActivity()]);
+      });
+    });
+  }
+
+  document.getElementById("refreshOrdersBtn")?.addEventListener("click", async () => {
+    await window.LuxeOrders.markAllAdminSeen();
+    updateAdminOrderBadge(0);
+    await loadOrders();
+  });
 
   async function loadProducts() {
     if (productCountLabel) productCountLabel.textContent = "Loading catalog…";
@@ -370,6 +560,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  function renderProductLivePreview() {
+    const name = getValue("pName") || "New product";
+    const brand = getValue("pBrand") || "LUXE";
+    const category = getValue("pCategory") || "Men";
+    const subcategory = getValue("pSubcategory") || "General";
+    const image = getValue("pImage");
+    const price = Number.parseFloat(getValue("pPrice")) || 0;
+    const oldPrice = Number.parseFloat(getValue("pOldPrice"));
+    setText("livePreviewName", name);
+    setText("livePreviewBrand", brand);
+    setText("livePreviewCategory", `${category} / ${subcategory}`);
+    const priceElement = document.getElementById("livePreviewPrice");
+    if (priceElement) {
+      priceElement.innerHTML = `$${price.toFixed(2)}${Number.isFinite(oldPrice) && oldPrice > price ? ` <span class="old-price">$${oldPrice.toFixed(2)}</span>` : ""}`;
+    }
+    const imageElement = document.getElementById("livePreviewImage");
+    if (imageElement) {
+      imageElement.src = image || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='500'%3E%3Crect width='100%25' height='100%25' fill='%23f2f2f2'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' fill='%23999' font-family='Arial' font-size='22'%3EProduct image%3C/text%3E%3C/svg%3E";
+    }
+    const discount = document.getElementById("livePreviewDiscount");
+    if (discount) {
+      const visible = Number.isFinite(oldPrice) && oldPrice > price && price >= 0;
+      discount.hidden = !visible;
+      discount.textContent = visible ? `${Math.round((1 - price / oldPrice) * 100)}% OFF` : "";
+    }
+  }
+
   function wireImageUpload(fileInputId, urlInputId, previewImageId, previewIconId, statusId) {
     const fileInput = document.getElementById(fileInputId);
     const urlInput = document.getElementById(urlInputId);
@@ -400,6 +617,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       urlInput.value = url;
       setImagePreview(previewImageId, previewIconId, url);
+      renderProductLivePreview();
       status.textContent = `Uploaded ✓ Original file kept (${formatBytes(file.size)})`;
       status.style.color = "#1E8E4F";
     });
@@ -407,11 +625,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     urlInput.addEventListener("input", () => {
       setImagePreview(previewImageId, previewIconId, urlInput.value.trim());
       status.textContent = "";
+      renderProductLivePreview();
     });
   }
 
   wireImageUpload("pImageFile", "pImage", "pImagePreview", "pImagePreviewIcon", "pImageUploadStatus");
   wireImageUpload("pHoverImageFile", "pHoverImage", "pHoverImagePreview", "pHoverImagePreviewIcon", "pHoverImageUploadStatus");
+  productForm?.addEventListener("input", renderProductLivePreview);
+  productForm?.addEventListener("change", renderProductLivePreview);
 
   function openProductModal(id) {
     productForm?.reset();
@@ -459,6 +680,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     productModalOverlay?.classList.add("visible");
+    renderProductLivePreview();
   }
 
   function closeProductModal() {
@@ -483,6 +705,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
+    if (!isSafeHttpsUrl(getValue("pImage"))) {
+      showToast("Main image must use a secure https:// URL", true);
+      return;
+    }
+    if (getValue("pHoverImage") && !isSafeHttpsUrl(getValue("pHoverImage"))) {
+      showToast("Hover image must use a secure https:// URL", true);
+      return;
+    }
+
     const payload = {
       name: getValue("pName"),
       brand: getValue("pBrand") || "Luxe",
@@ -499,6 +730,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       tags: getValue("pTags"),
       inStock: !!document.getElementById("pInStock")?.checked,
     };
+
+    const confirmed = await requestAdminConfirmation({
+      title: id ? `Publish changes to ${payload.name}?` : `Add ${payload.name} to the store?`,
+      message: "This can change live storefront pricing, availability and product information immediately.",
+    });
+    if (!confirmed) return;
 
     const saveButton = document.getElementById("saveProductBtn");
 
@@ -528,10 +765,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function confirmDeleteProduct(id) {
     const product = window.getProductById?.(id);
-
-    if (!confirm(`Delete "${product?.name || "this product"}"? This cannot be undone.`)) {
-      return;
-    }
+    const productName = product?.name || "this product";
+    const confirmed = await requestAdminConfirmation({
+      title: `Delete ${productName}?`,
+      message: "This permanently removes the product from the live catalog. Existing order records are preserved.",
+      expectedText: `DELETE ${productName}`,
+      danger: true,
+    });
+    if (!confirmed) return;
 
     const { error } = await window.deleteProduct(id);
 
@@ -546,6 +787,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("importCatalogBtn")?.addEventListener("click", async () => {
     const button = document.getElementById("importCatalogBtn");
+
+    const confirmed = await requestAdminConfirmation({
+      title: "Import the starter catalog?",
+      message: "New catalog products will be published to the live storefront. Existing matching products will not be duplicated.",
+    });
+    if (!confirmed) return;
 
     if (button) {
       button.disabled = true;
@@ -611,7 +858,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     updatesList.querySelectorAll(".delete-update-btn").forEach((button) => {
       button.addEventListener("click", async () => {
-        if (!confirm("Delete this update?")) return;
+        const confirmed = await requestAdminConfirmation({
+          title: "Delete this site update?",
+          message: "The announcement will be removed from the storefront. The action remains in the admin audit log.",
+          expectedText: "DELETE UPDATE",
+          danger: true,
+        });
+        if (!confirmed) return;
 
         const { error } = await window.LuxeUpdates.remove(button.dataset.id);
 
@@ -637,6 +890,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
+    const confirmed = await requestAdminConfirmation({
+      title: `Publish “${title}”?`,
+      message: "This update will appear on the storefront and create an in-app notification for customer accounts.",
+    });
+    if (!confirmed) return;
+
     const { error } = await window.LuxeUpdates.create(title, message);
 
     if (error) {
@@ -647,6 +906,469 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("postUpdateForm")?.reset();
     showToast("Update posted");
     await loadUpdates();
+  });
+
+  const customersTableBody = document.getElementById("customersTableBody");
+  const customerMessageForm = document.getElementById("customerMessageForm");
+  const customerMessageResult = document.getElementById("customerMessageResult");
+  const adminActivityList = document.getElementById("adminActivityList");
+  const globalActivityTableBody = document.getElementById("globalActivityTableBody");
+  const customerDetailOverlay = document.getElementById("customerDetailOverlay");
+  const customerDetailContent = document.getElementById("customerDetailContent");
+  const promotionsTableBody = document.getElementById("promotionsTableBody");
+  const promotionForm = document.getElementById("promotionForm");
+  let customerRows = [];
+  let promotionRows = [];
+  let customerLoadGeneration = 0;
+  let customerSearchTimer = null;
+
+  async function loadCustomers() {
+    if (!customersTableBody || !window.LuxeCustomers) return;
+    const generation = ++customerLoadGeneration;
+    customersTableBody.innerHTML = '<tr><td colspan="7">Loading customers...</td></tr>';
+    const search = getValue("customerSearch");
+    const { data, error } = await window.LuxeCustomers.getAll(search, 100);
+    if (generation !== customerLoadGeneration) return;
+    if (error) {
+      customersTableBody.innerHTML = '<tr><td colspan="7">Customers could not be loaded.</td></tr>';
+      showToast(error.message || "Failed to load customers", true);
+      return;
+    }
+    customerRows = data || [];
+    renderCustomers();
+  }
+
+  function renderCustomers() {
+    if (!customersTableBody) return;
+    if (!customerRows.length) {
+      customersTableBody.innerHTML = '<tr><td colspan="7">No matching customer accounts.</td></tr>';
+      return;
+    }
+    customersTableBody.innerHTML = customerRows.map((customer) => {
+      const name = customer.full_name || "Unnamed customer";
+      const lastOrder = customer.last_order_at
+        ? new Date(customer.last_order_at).toLocaleDateString()
+        : "No orders";
+      const accountStatus = customer.account_status === "suspended" ? "suspended" : "active";
+      const paymentMethods = (customer.payment_methods || []).filter(Boolean).join(", ") || "No payment method";
+      return `<tr>
+        <td><strong>${escapeHtml(name)}</strong><br><span>${escapeHtml(customer.email || "No email")}</span></td>
+        <td><span class="admin-account-status ${accountStatus}">${accountStatus}</span></td>
+        <td>${escapeHtml(customer.whatsapp_phone || "Not verified")}</td>
+        <td>${Number(customer.order_count || 0)}<br><span>${escapeHtml(lastOrder)} · ${escapeHtml(paymentMethods)}</span></td>
+        <td>$${Number(customer.total_spent || 0).toFixed(2)}</td>
+        <td><div class="admin-contact-flags">
+          <span class="admin-contact-flag ${customer.email_updates ? "enabled" : ""}">Email ${customer.email_updates ? "on" : "off"}</span>
+          <span class="admin-contact-flag ${customer.whatsapp_updates ? "enabled" : ""}">WA ${customer.whatsapp_updates ? "on" : "off"}</span>
+        </div></td>
+        <td><div class="admin-customer-actions"><button type="button" class="admin-text-btn view-customer-btn" data-user-id="${escapeAttr(customer.user_id)}">View history</button><button type="button" class="admin-text-btn message-customer-btn" data-user-id="${escapeAttr(customer.user_id)}">Message</button></div></td>
+      </tr>`;
+    }).join("");
+
+    customersTableBody.querySelectorAll(".message-customer-btn").forEach((button) => {
+      button.addEventListener("click", () => selectMessageCustomer(button.dataset.userId));
+    });
+    customersTableBody.querySelectorAll(".view-customer-btn").forEach((button) => {
+      button.addEventListener("click", () => openCustomerDetail(button.dataset.userId));
+    });
+  }
+
+  function selectMessageCustomer(userId) {
+    const customer = customerRows.find((entry) => entry.user_id === userId);
+    if (!customer || !customerMessageForm) return;
+    setValue("messageCustomerId", customer.user_id);
+    setText("messageCustomerLabel", `${customer.full_name || "Customer"} · ${customer.email || "No email"}`);
+    const emailChannel = document.getElementById("messageViaEmail");
+    const whatsappChannel = document.getElementById("messageViaWhatsApp");
+    if (emailChannel) {
+      emailChannel.checked = false;
+      emailChannel.disabled = !customer.email_updates;
+    }
+    if (whatsappChannel) {
+      whatsappChannel.checked = false;
+      whatsappChannel.disabled = !customer.whatsapp_updates;
+    }
+    if (customerMessageResult) {
+      customerMessageResult.textContent = "";
+      customerMessageResult.classList.remove("is-error");
+    }
+    customerMessageForm.hidden = false;
+    document.getElementById("customerMessageTitle")?.focus();
+    customerMessageForm.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function closeCustomerDetail() {
+    customerDetailOverlay?.classList.remove("visible");
+  }
+
+  document.getElementById("closeCustomerDetail")?.addEventListener("click", closeCustomerDetail);
+  customerDetailOverlay?.addEventListener("click", (event) => {
+    if (event.target === customerDetailOverlay) closeCustomerDetail();
+  });
+
+  async function openCustomerDetail(userId) {
+    if (!customerDetailOverlay || !customerDetailContent) return;
+    customerDetailOverlay.classList.add("visible");
+    setText("customerDetailTitle", "Customer account");
+    setText("customerDetailSubtitle", "Loading protected account history...");
+    customerDetailContent.innerHTML = '<p class="admin-detail-note">Loading transactions, payments and security activity...</p>';
+    const { data, error } = await window.LuxeCustomers.getDetail(userId);
+    if (error || !data?.customer) {
+      customerDetailContent.innerHTML = '<p class="admin-detail-note">Customer history could not be loaded.</p>';
+      showToast(error?.message || "Could not load customer history", true);
+      return;
+    }
+    renderCustomerDetail(data);
+  }
+
+  function shortPaymentReference(reference) {
+    const value = String(reference || "");
+    if (!value) return "Not initialized";
+    return value.length <= 12 ? value : `${value.slice(0, 4)}...${value.slice(-6)}`;
+  }
+
+  function renderCustomerDetail(detail) {
+    const customer = detail.customer;
+    const orders = detail.orders || [];
+    const payments = detail.paymentMethods || [];
+    const logins = detail.loginHistory || [];
+    const actions = detail.adminActivity || [];
+    const suspended = customer.accountStatus === "suspended";
+    setText("customerDetailTitle", customer.fullName || "Unnamed customer");
+    setText("customerDetailSubtitle", `${customer.email || "No email"} · Joined ${new Date(customer.joinedAt).toLocaleDateString()}`);
+
+    const paymentCards = payments.length ? payments.map((method) => `
+      <div class="admin-payment-method">
+        <strong>${escapeHtml(method.label || [method.provider, method.channel].filter(Boolean).join(" · ") || "unknown")}</strong>
+        <span>${Number(method.orders || 0)} order(s) · ${Number(method.successfulOrders || 0)} paid</span>
+        <span>$${Number(method.total || 0).toFixed(2)} · Last used ${method.lastUsedAt ? new Date(method.lastUsedAt).toLocaleDateString() : "never"}</span>
+      </div>`).join("") : '<p class="admin-detail-note">No payment methods have been used.</p>';
+
+    const orderRows = orders.length ? orders.map((order) => `
+      <tr>
+        <td><strong>${escapeHtml(order.order_number)}</strong><span>${new Date(order.created_at).toLocaleString()}</span></td>
+        <td>${escapeHtml(String(order.status || "").replaceAll("_", " "))}${order.promotion_code ? `<span>Promo ${escapeHtml(order.promotion_code)} · -$${Number(order.discount_amount || 0).toFixed(2)}</span>` : ""}</td>
+        <td>${escapeHtml(order.payment_method_label || [order.payment_provider, order.payment_channel].filter(Boolean).join(" · ") || "unknown")}<span>${escapeHtml(order.payment_status || "pending")} · ${escapeHtml(shortPaymentReference(order.payment_reference))}</span></td>
+        <td><strong>$${Number(order.total || 0).toFixed(2)}</strong></td>
+        <td>${order.last_admin_changed_at ? `${escapeHtml(formatAdminAction(order.last_admin_action))}<span>${escapeHtml(order.last_admin_email || "Administrator")} · ${new Date(order.last_admin_changed_at).toLocaleString()}</span>` : '<span>No admin change yet</span>'}</td>
+      </tr>`).join("") : '<tr><td colspan="5">No transactions recorded.</td></tr>';
+
+    const loginRows = logins.length ? logins.map((event) => `
+      <tr>
+        <td>${escapeHtml(formatAdminAction(event.action))}</td>
+        <td>${escapeHtml(event.ipAddress || "Unknown")}</td>
+        <td class="user-agent">${escapeHtml(event.userAgent || "Unknown device")}</td>
+        <td>${new Date(event.createdAt).toLocaleString()}</td>
+      </tr>`).join("") : `<tr><td colspan="4">${detail.authAuditAvailable ? "No stored sign-in events for this account." : "Database Auth Audit Logs are not available. Enable them in Supabase Authentication settings."}</td></tr>`;
+
+    const actionRows = actions.length ? actions.map((entry) => `
+      <tr>
+        <td>${escapeHtml(entry.adminEmail || "Administrator")}</td>
+        <td>${escapeHtml(formatAdminAction(entry.action))}</td>
+        <td>${escapeHtml(entry.targetType || "record")}</td>
+        <td>${new Date(entry.createdAt).toLocaleString()}</td>
+      </tr>`).join("") : '<tr><td colspan="4">No admin actions for this account.</td></tr>';
+
+    customerDetailContent.innerHTML = `
+      <div class="admin-detail-stats">
+        <div class="admin-detail-stat"><span>Account</span><strong><span class="admin-account-status ${suspended ? "suspended" : "active"}">${suspended ? "suspended" : "active"}</span></strong></div>
+        <div class="admin-detail-stat"><span>Orders</span><strong>${Number(customer.orderCount || 0)}</strong></div>
+        <div class="admin-detail-stat"><span>Recorded spend</span><strong>$${Number(customer.totalSpent || 0).toFixed(2)}</strong></div>
+        <div class="admin-detail-stat"><span>Last sign-in</span><strong>${customer.lastSignInAt ? new Date(customer.lastSignInAt).toLocaleString() : "Never"}</strong></div>
+      </div>
+      ${suspended ? `<div class="admin-owner-notice"><i class="fas fa-ban"></i><div><strong>Account suspended</strong><p>${escapeHtml(customer.suspensionReason || "No reason recorded")} · ${customer.suspendedAt ? new Date(customer.suspendedAt).toLocaleString() : "Time unavailable"}${customer.suspendedByEmail ? ` · by ${escapeHtml(customer.suspendedByEmail)}` : ""}</p></div></div>` : ""}
+      <section class="admin-detail-section"><div class="admin-detail-section-heading"><h4>Payment methods</h4><span class="admin-detail-note">No card or bank details are stored here.</span></div><div class="admin-payment-methods">${paymentCards}</div></section>
+      <section class="admin-detail-section"><h4>Transactions and orders</h4><div class="admin-table-wrap"><table class="admin-table admin-detail-table"><thead><tr><th scope="col">Order</th><th scope="col">Status</th><th scope="col">Payment</th><th scope="col">Total</th><th scope="col">Last admin change</th></tr></thead><tbody>${orderRows}</tbody></table></div></section>
+      <section class="admin-detail-section"><div class="admin-detail-section-heading"><h4>Sign-in history</h4><span class="admin-detail-note">IP addresses are sensitive security data. Use only for fraud and support review.</span></div><div class="admin-table-wrap"><table class="admin-table admin-detail-table"><thead><tr><th scope="col">Event</th><th scope="col">IP address</th><th scope="col">Device</th><th scope="col">Time</th></tr></thead><tbody>${loginRows}</tbody></table></div></section>
+      <section class="admin-detail-section"><h4>Admin actions affecting this customer</h4><div class="admin-table-wrap"><table class="admin-table admin-detail-table"><thead><tr><th scope="col">Administrator</th><th scope="col">Action</th><th scope="col">Target</th><th scope="col">Time</th></tr></thead><tbody>${actionRows}</tbody></table></div></section>
+      <section class="admin-detail-section admin-suspension-box ${suspended ? "is-suspended" : ""}">
+        <h4>${suspended ? "Restore account access" : "Suspend account access"}</h4>
+        <p>${suspended ? "Restoring access allows the customer to sign in and place new orders again." : "Suspension blocks authentication refresh and new orders while preserving orders, payments and audit evidence."}</p>
+        <form class="admin-suspension-form" id="customerSuspensionForm">
+          <label>Reason for this decision<input type="text" id="customerSuspensionReason" minlength="5" maxlength="300" required placeholder="Required for the audit trail"></label>
+          <button type="submit" class="btn ${suspended ? "btn-primary" : "admin-danger-btn"}">${suspended ? "Restore access" : "Suspend account"}</button>
+        </form>
+      </section>`;
+
+    document.getElementById("customerSuspensionForm")?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const reason = getValue("customerSuspensionReason");
+      const nextSuspended = !suspended;
+      const expectedText = `${nextSuspended ? "BAN" : "UNBAN"} ${customer.email}`;
+      const confirmed = await requestAdminConfirmation({
+        title: `${nextSuspended ? "Suspend" : "Restore"} ${customer.email}?`,
+        message: nextSuspended
+          ? "This is a reversible ban. Transaction history will not be deleted, and administrator accounts are protected."
+          : "This restores sign-in and checkout access. The reason and your admin identity will be recorded.",
+        expectedText,
+        danger: nextSuspended,
+      });
+      if (!confirmed) return;
+      const button = event.currentTarget.querySelector('button[type="submit"]');
+      button.disabled = true;
+      button.textContent = nextSuspended ? "Suspending..." : "Restoring...";
+      const result = await window.LuxeCustomers.setSuspension(
+        customer.userId, nextSuspended, reason, expectedText,
+      );
+      button.disabled = false;
+      if (result.error || result.data?.error) {
+        button.textContent = nextSuspended ? "Suspend account" : "Restore access";
+        const errorCode = result.data?.error;
+        const errorMessages = {
+          admin_account_protected: "Admin accounts are protected. Manage them in Team Management.",
+          cannot_suspend_self: "You cannot suspend your own account.",
+          account_action_rate_limit: "Too many account access changes. Wait before trying again.",
+          auth_update_failed: "The authentication service could not change this account.",
+          account_update_failed: "The account change was rolled back because its audit record could not be saved.",
+        };
+        showToast(errorMessages[errorCode] || errorCode || result.error?.message || "Account access could not be changed", true);
+        return;
+      }
+      showToast(nextSuspended ? "Customer account suspended" : "Customer account restored");
+      await Promise.all([loadCustomers(), loadAdminActivity()]);
+      await openCustomerDetail(customer.userId);
+    });
+  }
+
+  document.getElementById("customerSearchForm")?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await loadCustomers();
+  });
+
+  document.getElementById("customerSearch")?.addEventListener("input", (event) => {
+    clearTimeout(customerSearchTimer);
+    const search = event.target.value.trim();
+    if (search.length === 1) return;
+    customerSearchTimer = setTimeout(loadCustomers, 300);
+  });
+
+  document.getElementById("clearMessageCustomer")?.addEventListener("click", () => {
+    customerMessageForm?.reset();
+    setValue("messageCustomerId", "");
+    if (customerMessageForm) customerMessageForm.hidden = true;
+  });
+
+  customerMessageForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const button = document.getElementById("sendCustomerMessageBtn");
+    const channels = ["in_app"];
+    if (document.getElementById("messageViaEmail")?.checked) channels.push("email");
+    if (document.getElementById("messageViaWhatsApp")?.checked) channels.push("whatsapp");
+    const customerLabel = document.getElementById("messageCustomerLabel")?.textContent || "this customer";
+    const confirmed = await requestAdminConfirmation({
+      title: `Send update to ${customerLabel}?`,
+      message: `Delivery channels: ${channels.join(", ")}. The message and delivery result will be attributed to your admin account.`,
+    });
+    if (!confirmed) return;
+    button.disabled = true;
+    button.textContent = "Sending...";
+    const { data, error } = await window.LuxeCustomers.sendMessage(
+      getValue("messageCustomerId"),
+      getValue("customerMessageTitle"),
+      getValue("customerMessageBody"),
+      channels,
+    );
+    button.disabled = false;
+    button.innerHTML = '<i class="fas fa-paper-plane"></i> Send update';
+    if (error || data?.error) {
+      if (customerMessageResult) {
+        customerMessageResult.textContent = data?.error || error?.message || "Message could not be sent.";
+        customerMessageResult.classList.add("is-error");
+      }
+      return;
+    }
+    const labels = [`In-app: ${data?.inApp || "sent"}`];
+    if (channels.includes("email")) labels.push(`Email: ${data?.email || "unavailable"}`);
+    if (channels.includes("whatsapp")) labels.push(`WhatsApp: ${data?.whatsapp || "unavailable"}`);
+    if (customerMessageResult) {
+      customerMessageResult.textContent = labels.join(" · ");
+      customerMessageResult.classList.remove("is-error");
+    }
+    setValue("customerMessageTitle", "");
+    setValue("customerMessageBody", "");
+    showToast("Customer update processed");
+    await loadAdminActivity();
+  });
+
+  async function loadAdminActivity() {
+    if ((!adminActivityList && !globalActivityTableBody) || !window.LuxeCustomers) return;
+    const { data, error } = await window.LuxeCustomers.getRecentActivity(100);
+    if (error) {
+      if (adminActivityList) adminActivityList.textContent = "Activity could not be loaded.";
+      if (globalActivityTableBody) globalActivityTableBody.innerHTML = '<tr><td colspan="4">Activity could not be loaded.</td></tr>';
+      return;
+    }
+    if (!data?.length) {
+      if (adminActivityList) adminActivityList.textContent = "No admin actions recorded yet.";
+      if (globalActivityTableBody) globalActivityTableBody.innerHTML = '<tr><td colspan="4">No admin actions recorded yet.</td></tr>';
+      return;
+    }
+    if (adminActivityList) {
+      adminActivityList.innerHTML = data.slice(0, 30).map((entry) => `
+        <div class="admin-activity-item">
+          <div><strong>${escapeHtml(formatAdminAction(entry.action))}</strong>
+          <span>${escapeHtml(entry.admin_email || "Admin")} · ${escapeHtml(entry.target_type || "record")}</span></div>
+          <time datetime="${escapeAttr(entry.created_at)}">${new Date(entry.created_at).toLocaleString()}</time>
+        </div>`).join("");
+    }
+    if (globalActivityTableBody) {
+      globalActivityTableBody.innerHTML = data.map((entry) => {
+        const details = entry.details || {};
+        const targetLabel = details.orderNumber || details.code || details.label || details.customerName || entry.target_id || entry.target_type || "record";
+        return `<tr>
+          <td>${escapeHtml(entry.admin_email || "Administrator")}</td>
+          <td>${escapeHtml(formatAdminAction(entry.action))}</td>
+          <td>${escapeHtml(targetLabel)}<br><span>${escapeHtml(entry.target_type || "record")}</span></td>
+          <td>${new Date(entry.created_at).toLocaleString()}</td>
+        </tr>`;
+      }).join("");
+    }
+  }
+
+  document.getElementById("refreshActivityBtn")?.addEventListener("click", loadAdminActivity);
+
+  function resetPromotionForm() {
+    promotionForm?.reset();
+    setValue("promotionId", "");
+    setValue("promotionMinimum", "0");
+    setValue("promotionPerUser", "1");
+    const active = document.getElementById("promotionActive");
+    if (active) active.checked = true;
+    const cancel = document.getElementById("cancelPromotionEdit");
+    if (cancel) cancel.hidden = true;
+  }
+
+  async function loadPromotions() {
+    if (!promotionsTableBody || !window.LuxePromotions) return;
+    promotionsTableBody.innerHTML = '<tr><td colspan="6">Loading promo codes...</td></tr>';
+    const { data, error } = await window.LuxePromotions.getAll();
+    if (error) {
+      promotionsTableBody.innerHTML = '<tr><td colspan="6">Promo codes could not be loaded.</td></tr>';
+      showToast(error.message || "Failed to load promo codes", true);
+      return;
+    }
+    promotionRows = data || [];
+    renderPromotions();
+  }
+
+  function promotionStatus(promotion) {
+    const now = Date.now();
+    if (!promotion.active) return "paused";
+    if (promotion.starts_at && new Date(promotion.starts_at).getTime() > now) return "scheduled";
+    if (promotion.ends_at && new Date(promotion.ends_at).getTime() <= now) return "expired";
+    return "active";
+  }
+
+  function renderPromotions() {
+    if (!promotionsTableBody) return;
+    if (!promotionRows.length) {
+      promotionsTableBody.innerHTML = '<tr><td colspan="6">No promo codes created yet.</td></tr>';
+      return;
+    }
+    promotionsTableBody.innerHTML = promotionRows.map((promotion) => {
+      const status = promotionStatus(promotion);
+      const dateRule = promotion.ends_at ? `Ends ${new Date(promotion.ends_at).toLocaleDateString()}` : "No expiry";
+      const uses = `${Number(promotion.redemption_count || 0)} / ${promotion.max_redemptions == null ? "∞" : Number(promotion.max_redemptions)}`;
+      return `<tr>
+        <td><span class="admin-promo-code">${escapeHtml(promotion.code)}</span></td>
+        <td>${Number(promotion.percent_off).toFixed(2).replace(/\.00$/, "")}%</td>
+        <td>Min $${Number(promotion.minimum_subtotal || 0).toFixed(2)} · ${Number(promotion.per_user_limit)} per customer<br><span>${escapeHtml(dateRule)}</span></td>
+        <td>${escapeHtml(uses)}</td>
+        <td><span class="admin-promo-status ${status}">${escapeHtml(status)}</span></td>
+        <td>
+          <button type="button" class="admin-text-btn edit-promotion-btn" data-id="${escapeAttr(promotion.id)}">Edit</button>
+          <button type="button" class="admin-text-btn toggle-promotion-btn" data-id="${escapeAttr(promotion.id)}" data-active="${promotion.active}">${promotion.active ? "Pause" : "Activate"}</button>
+        </td>
+      </tr>`;
+    }).join("");
+    promotionsTableBody.querySelectorAll(".edit-promotion-btn").forEach((button) => {
+      button.addEventListener("click", () => editPromotion(button.dataset.id));
+    });
+    promotionsTableBody.querySelectorAll(".toggle-promotion-btn").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const nextActive = button.dataset.active !== "true";
+        const promotion = promotionRows.find((entry) => entry.id === button.dataset.id);
+        const confirmed = await requestAdminConfirmation({
+          title: `${nextActive ? "Activate" : "Pause"} ${promotion?.code || "this promo"}?`,
+          message: nextActive
+            ? "Eligible customers will be able to apply this discount at checkout."
+            : "New checkouts will no longer be able to apply this code.",
+        });
+        if (!confirmed) return;
+        button.disabled = true;
+        const { error } = await window.LuxePromotions.setActive(button.dataset.id, nextActive);
+        button.disabled = false;
+        if (error) return showToast(error.message || "Promo status could not be changed", true);
+        showToast(nextActive ? "Promo activated" : "Promo paused");
+        await Promise.all([loadPromotions(), loadAdminActivity()]);
+      });
+    });
+  }
+
+  function toLocalDateTime(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    const offset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+  }
+
+  function editPromotion(id) {
+    const promotion = promotionRows.find((entry) => entry.id === id);
+    if (!promotion || !promotionForm) return;
+    setValue("promotionId", promotion.id);
+    setValue("promotionCode", promotion.code);
+    setValue("promotionPercent", promotion.percent_off);
+    setValue("promotionMinimum", promotion.minimum_subtotal);
+    setValue("promotionMaxUses", promotion.max_redemptions);
+    setValue("promotionPerUser", promotion.per_user_limit);
+    setValue("promotionStarts", toLocalDateTime(promotion.starts_at));
+    setValue("promotionEnds", toLocalDateTime(promotion.ends_at));
+    document.getElementById("promotionActive").checked = !!promotion.active;
+    document.getElementById("cancelPromotionEdit").hidden = false;
+    promotionForm.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  document.getElementById("promotionCode")?.addEventListener("input", (event) => {
+    event.target.value = event.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, "");
+  });
+
+  document.getElementById("cancelPromotionEdit")?.addEventListener("click", resetPromotionForm);
+
+  promotionForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const startsAt = getValue("promotionStarts");
+    const endsAt = getValue("promotionEnds");
+    if (startsAt && endsAt && new Date(endsAt) <= new Date(startsAt)) {
+      showToast("Promo end time must be after its start time.", true);
+      return;
+    }
+    const promotionId = getValue("promotionId");
+    const promoCode = getValue("promotionCode").toUpperCase();
+    const confirmed = await requestAdminConfirmation({
+      title: `${promotionId ? "Update" : "Create"} promo ${promoCode}?`,
+      message: `This code will deduct ${getValue("promotionPercent")}% from eligible product subtotals. Limits and dates will be enforced by the server.`,
+    });
+    if (!confirmed) return;
+    const button = document.getElementById("savePromotionBtn");
+    button.disabled = true;
+    button.textContent = "Saving...";
+    const { error } = await window.LuxePromotions.save({
+      id: promotionId || null,
+      code: promoCode,
+      percentOff: Number(getValue("promotionPercent")),
+      minimumSubtotal: Number(getValue("promotionMinimum") || 0),
+      maxRedemptions: getValue("promotionMaxUses") ? Number(getValue("promotionMaxUses")) : null,
+      perUserLimit: Number(getValue("promotionPerUser") || 1),
+      startsAt: startsAt ? new Date(startsAt).toISOString() : null,
+      endsAt: endsAt ? new Date(endsAt).toISOString() : null,
+      active: document.getElementById("promotionActive")?.checked,
+    });
+    button.disabled = false;
+    button.innerHTML = '<i class="fas fa-save"></i> Save promo';
+    if (error) return showToast(error.message || "Promo could not be saved", true);
+    showToast(promotionId ? "Promo updated" : "Promo created");
+    resetPromotionForm();
+    await Promise.all([loadPromotions(), loadAdminActivity()]);
   });
 
   const teamTableBody = document.getElementById("teamTableBody");
@@ -662,13 +1384,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     if (!data.length) {
-      teamTableBody.innerHTML = '<tr><td colspan="5">No admin accounts found.</td></tr>';
+      teamTableBody.innerHTML = '<tr><td colspan="6">No admin accounts found.</td></tr>';
       return;
     }
 
     teamTableBody.innerHTML = data.map((admin) => {
       const isOwner = admin.role === "owner";
       const isSelf = admin.user_id === currentAdminUserId;
+      const lastSeenTime = admin.last_seen_at ? new Date(admin.last_seen_at).getTime() : 0;
+      const isOnline = lastSeenTime > Date.now() - 2 * 60 * 1000;
 
       return `
         <tr>
@@ -680,6 +1404,12 @@ document.addEventListener("DOMContentLoaded", async () => {
           <td>
             <span class="admin-role-badge ${isOwner ? "owner" : "admin"}">
               ${isOwner ? "Master Owner" : "Admin"}
+            </span>
+          </td>
+          <td>
+            <span class="admin-presence ${isOnline ? "online" : "offline"}">
+              <span class="admin-presence-dot" aria-hidden="true"></span>
+              ${isOnline ? "Online" : "Offline"}
             </span>
           </td>
           <td>${new Date(admin.added_at).toLocaleDateString()}</td>
@@ -713,9 +1443,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         const userId = button.dataset.userid;
         const email = button.dataset.email;
 
-        if (!confirm(`Remove ${email} from the admin team?`)) {
-          return;
-        }
+        const confirmed = await requestAdminConfirmation({
+          title: `Remove ${email}?`,
+          message: "This account will immediately lose access to the management console. The master owner remains protected.",
+          expectedText: `REMOVE ${email}`,
+          danger: true,
+        });
+        if (!confirmed) return;
 
         const { error } = await window.LuxeAdmins.remove(userId);
 
@@ -725,7 +1459,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         showToast("Admin removed from team");
-        await loadTeam();
+        await Promise.all([loadTeam(), loadAdminActivity()]);
       });
     });
   }
@@ -745,6 +1479,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
+    const confirmed = await requestAdminConfirmation({
+      title: `Grant admin access to ${email}?`,
+      message: "This account will be able to manage products, orders, customers, promotions and site updates.",
+      expectedText: `ADD ${email}`,
+    });
+    if (!confirmed) return;
+
     const { error } = await window.LuxeAdmins.add(email);
 
     if (error) {
@@ -758,10 +1499,28 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("addAdminForm")?.reset();
     showToast("Admin added");
-    await loadTeam();
+    await Promise.all([loadTeam(), loadAdminActivity()]);
   });
 
   await checkAccess();
+
+  // Lightweight polling keeps the red order indicator useful without
+  // requiring a permanently open realtime socket.
+  window.setInterval(() => {
+    if (currentAdminRole && document.visibilityState === "visible") refreshOrderBadge();
+  }, 30000);
+
+  window.setInterval(async () => {
+    if (!currentAdminRole || document.visibilityState !== "visible") return;
+    await window.LuxeAdmins.touchPresence();
+    if (currentAdminRole === "owner") await loadTeam();
+  }, 60000);
+
+  document.addEventListener("visibilitychange", async () => {
+    if (!currentAdminRole || document.visibilityState !== "visible") return;
+    await window.LuxeAdmins.touchPresence();
+    if (currentAdminRole === "owner") await loadTeam();
+  });
 });
 
 function getValue(id) {
@@ -813,4 +1572,35 @@ function escapeHtml(value) {
 
 function escapeAttr(value) {
   return escapeHtml(value);
+}
+
+function formatAdminAction(value) {
+  const labels = {
+    customer_message_sent: "Message sent",
+    customer_suspended: "Account suspended",
+    customer_reactivated: "Account reactivated",
+    order_confirmed: "Order confirmed",
+    order_shipped: "Order shipped",
+    order_delivered: "Order delivered",
+    order_cancelled: "Order cancelled",
+    order_updated: "Order updated",
+    promotion_created: "Promo created",
+    promotion_updated: "Promo updated",
+    promotion_status_changed: "Promo status changed",
+    products_insert: "Product added",
+    products_update: "Product updated",
+    products_delete: "Product deleted",
+    site_updates_insert: "Site update posted",
+    site_updates_update: "Site update changed",
+    site_updates_delete: "Site update deleted",
+    admin_users_insert: "Admin added",
+    admin_users_update: "Admin changed",
+    admin_users_delete: "Admin removed",
+  };
+  return labels[value] || String(value || "Admin action").replaceAll("_", " ");
+}
+
+function isSafeHttpsUrl(value) {
+  try { return new URL(value).protocol === "https:"; }
+  catch { return false; }
 }

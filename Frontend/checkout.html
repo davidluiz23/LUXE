@@ -100,6 +100,7 @@
                 <div class="form-group">
                   <label for="phone">Phone Number *</label>
                   <input type="tel" id="phone" required />
+                  <p class="checkout-identity-note" id="whatsappIdentityNotice" hidden></p>
                 </div>
                 <div class="form-group">
                   <label for="address">Street Address *</label>
@@ -127,68 +128,24 @@
               </div>
 
               <div class="form-section">
-                <h3>Payment Method</h3>
-                <div class="payment-methods">
-                  <div class="payment-option">
-                    <input
-                      type="radio"
-                      name="payment"
-                      id="creditCard"
-                      value="credit"
-                      checked
-                    />
-                    <label for="creditCard">
-                      <i class="fas fa-credit-card"></i> Credit Card
-                    </label>
-                  </div>
-                  <div class="payment-option">
-                    <input
-                      type="radio"
-                      name="payment"
-                      id="paypal"
-                      value="paypal"
-                    />
-                    <label for="paypal">
-                      <i class="fab fa-paypal"></i> PayPal
-                    </label>
-                  </div>
-                  <div class="payment-option">
-                    <input
-                      type="radio"
-                      name="payment"
-                      id="applePay"
-                      value="apple"
-                    />
-                    <label for="applePay">
-                      <i class="fab fa-apple"></i> Apple Pay
-                    </label>
-                  </div>
+                <h3>How would you like to order?</h3>
+                <div class="payment-methods checkout-provider-list">
+                  <label class="payment-option checkout-provider-option">
+                    <input type="radio" name="payment" id="whatsappOrder" value="whatsapp" checked />
+                    <span class="provider-icon whatsapp"><i class="fab fa-whatsapp"></i></span>
+                    <span><strong>Order via WhatsApp</strong><small>Your order is saved first, then sent to LUXE for confirmation.</small></span>
+                  </label>
+                  <label class="payment-option checkout-provider-option is-disabled" id="paystackOption">
+                    <input type="radio" name="payment" id="paystackPayment" value="paystack" disabled />
+                    <span class="provider-icon"><i class="fas fa-credit-card"></i></span>
+                    <span><strong>Pay securely online <em>Coming soon</em></strong><small>Card, bank, USSD and transfer through Paystack.</small></span>
+                  </label>
                 </div>
-
-                <div id="creditCardFields">
-                  <div class="form-group">
-                    <label for="cardNumber">Card Number *</label>
-                    <input
-                      type="text"
-                      id="cardNumber"
-                      placeholder="1234 5678 9012 3456"
-                    />
-                  </div>
-                  <div class="form-row">
-                    <div class="form-group">
-                      <label for="expiryDate">Expiry Date *</label>
-                      <input type="text" id="expiryDate" placeholder="MM/YY" />
-                    </div>
-                    <div class="form-group">
-                      <label for="cvv">CVV *</label>
-                      <input type="text" id="cvv" placeholder="123" />
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label for="cardName">Name on Card *</label>
-                    <input type="text" id="cardName" placeholder="John Doe" />
-                  </div>
-                </div>
+                <p class="payment-security-note"><i class="fas fa-shield-alt"></i> LUXE never stores card numbers. When enabled, payment details stay on the payment processor's secure checkout.</p>
+                <label class="whatsapp-consent">
+                  <input type="checkbox" id="whatsappConsent" required />
+                  <span>I agree to receive order confirmations and delivery updates on WhatsApp.</span>
+                </label>
               </div>
 
               <button type="submit" class="btn btn-primary checkout-btn">
@@ -200,12 +157,23 @@
           <div class="order-summary">
             <h3>Order Summary</h3>
             <div class="order-items" id="orderItems"></div>
+            <div class="promo-entry">
+              <label for="promoCode">Promo code</label>
+              <div class="promo-entry-row">
+                <input type="text" id="promoCode" maxlength="32" autocomplete="off" placeholder="Enter code" />
+                <button type="button" id="applyPromoBtn">Apply</button>
+              </div>
+              <p id="promoStatus" class="promo-status" role="status"></p>
+            </div>
             <div class="order-totals">
               <div class="total-row">
                 <span>Subtotal</span><span id="checkoutSubtotal">$0.00</span>
               </div>
               <div class="total-row">
                 <span>Shipping</span><span id="checkoutShipping">$0.00</span>
+              </div>
+              <div class="total-row promo-discount-row" id="promoDiscountRow" hidden>
+                <span>Promo discount</span><span id="checkoutDiscount">-$0.00</span>
               </div>
               <div class="total-row">
                 <span>Tax (8%)</span><span id="checkoutTax">$0.00</span>
@@ -216,15 +184,9 @@
             </div>
             <div class="secure-checkout">
               <i class="fas fa-shield-alt"></i>
-              <span>Secure checkout with SSL encryption</span>
+              <span>Secure order storage and protected account access</span>
             </div>
-            <div class="payment-icons">
-              <i class="fab fa-cc-visa"></i>
-              <i class="fab fa-cc-mastercard"></i>
-              <i class="fab fa-cc-amex"></i>
-              <i class="fab fa-cc-paypal"></i>
-              <i class="fab fa-apple-pay"></i>
-            </div>
+            <div class="payment-icons"><i class="fab fa-whatsapp"></i><span>WhatsApp-first fulfilment</span></div>
           </div>
         </div>
       </div>
@@ -252,10 +214,10 @@
         </div>
         <div class="footer-col">
           <h4>Support</h4>
-          <a href="#">FAQ</a>
-          <a href="#">Returns</a>
-          <a href="#">Shipping</a>
-          <a href="#">Privacy</a>
+          <a href="faq.html">FAQ</a>
+          <a href="returns.html">Returns</a>
+          <a href="shipping.html">Shipping</a>
+          <a href="privacy.html">Privacy</a>
         </div>
         <div class="footer-col">
           <h4>Contact</h4>
@@ -273,10 +235,13 @@
       <i class="fas fa-arrow-up"></i>
     </button>
 
+    <script src="js/icons.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-client.js"></script>
     <script src="js/updates-banner.js"></script>
     <script src="js/products.js"></script>
+    <script src="js/store-config.js"></script>
+    <script src="js/payments.js"></script>
     <script src="js/cart.js"></script>
     <script src="js/wishlist.js"></script>
     <script src="js/search.js"></script>

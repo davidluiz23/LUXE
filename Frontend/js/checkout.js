@@ -1,338 +1,339 @@
-// js/checkout.js - Checkout Page Form Handling and Summary
+// Secure WhatsApp-first checkout. Prices are recalculated by PostgreSQL.
+let checkoutAttemptMemory = null;
+let appliedPromoCode = null;
+let checkoutIdentity = {
+  user: null,
+  required: false,
+  defaultCountryCode: "234",
+  verifiedPhone: null,
+};
+let checkoutIdentityReady = Promise.resolve(checkoutIdentity);
+document.addEventListener("DOMContentLoaded", async () => {
+  if (window.productsReady) await window.productsReady;
+  const loader = document.getElementById("loader");
+  if (loader) setTimeout(() => { loader.style.display = "none"; }, 250);
 
-document.addEventListener('DOMContentLoaded', async () => {
-    // Wait for the live product catalog (Supabase) to finish loading.
-    if (window.productsReady) await window.productsReady;
-    // Hide loader
-    const loader = document.getElementById('loader');
-    if (loader) {
-        setTimeout(() => {
-            loader.style.display = 'none';
-        }, 300);
+  configurePaymentOptions();
+  loadCheckoutItems();
+  updateOrderTotals();
+  prefillSavedAddress();
+  checkoutIdentityReady = loadCheckoutIdentity();
+
+  document.getElementById("applyPromoBtn")?.addEventListener("click", applyPromoCode);
+  document.getElementById("promoCode")?.addEventListener("input", () => {
+    if (!appliedPromoCode) return;
+    appliedPromoCode = null;
+    setPromoStatus("Code changed. Apply it again to update the total.");
+    updateOrderTotals();
+  });
+
+  const form = document.getElementById("checkoutForm");
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!validateCheckoutForm()) return;
+
+    const cartItems = getCheckoutCartItems();
+    if (!cartItems.length) return showCheckoutError("Your cart is empty.");
+
+    const identity = await checkoutIdentityReady;
+    const user = identity.user || (window.LuxeAuth?.isReady() ? await window.LuxeAuth.getCurrentUser() : null);
+    if (!user) {
+      showCheckoutError("Please sign in before placing your order.");
+      setTimeout(() => { window.location.href = "login.html"; }, 1200);
+      return;
     }
 
-    // Load cart items & order totals
-    loadCheckoutItems();
-    updateOrderTotals();
-    prefillSavedAddress();
+    if (value("promoCode") && !appliedPromoCode) {
+      showCheckoutError("Apply the promo code before placing your order.");
+      return;
+    }
 
-    // Payment method toggle
-    document.querySelectorAll('input[name="payment"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            const creditCardFields = document.getElementById('creditCardFields');
-            if (creditCardFields) {
-                if (e.target.value === 'credit') {
-                    creditCardFields.style.display = 'block';
-                } else {
-                    creditCardFields.style.display = 'none';
-                }
-            }
-        });
+    if (identity.required) {
+      const orderPhone = window.LuxeWhatsApp?.normalizePhone(
+        value("phone"),
+        identity.defaultCountryCode,
+      );
+      if (!identity.verifiedPhone || orderPhone !== identity.verifiedPhone) {
+        showCheckoutError("Verify this WhatsApp number in My Account before placing your order.");
+        return;
+      }
+    }
+
+    const provider = document.querySelector('input[name="payment"]:checked')?.value || "whatsapp";
+    const providerConfig = window.LuxePaymentConfig?.providers?.[provider];
+    if (!providerConfig?.enabled) return showCheckoutError("That payment option is not available yet.");
+
+    const whatsappWindow = provider === "whatsapp" ? window.open("about:blank", "_blank") : null;
+    const button = form.querySelector(".checkout-btn");
+    setButtonState(button, true, "Saving secure order…");
+
+    const contact = {
+      name: `${value("firstName")} ${value("lastName")}`.trim(),
+      email: value("email"),
+      phone: value("phone"),
+      whatsappOptIn: !!document.getElementById("whatsappConsent")?.checked,
+    };
+    const shippingAddress = {
+      address: value("address"), city: value("city"), state: value("state"), zip: value("zip"),
+    };
+    const items = cartItems.map((item) => ({ id: item.id, quantity: item.quantity }));
+    const idempotencyKey = getCheckoutIdempotencyKey({ items, shippingAddress, contact, provider, promoCode: appliedPromoCode });
+    const { data: order, error } = await window.LuxeOrders.createOrder(
+      items, shippingAddress, contact, provider, idempotencyKey, appliedPromoCode,
+    );
+
+    if (error || !order) {
+      whatsappWindow?.close();
+      setButtonState(button, false, "Place Order");
+      showCheckoutError(`Could not place order: ${error?.message || "Please try again."}`);
+      return;
+    }
+
+    const chatUrl = buildAdminWhatsAppUrl(order, cartItems, contact, shippingAddress);
+    if (provider === "whatsapp" && whatsappWindow) whatsappWindow.location.href = chatUrl;
+
+    window.LuxeOrders.sendWhatsAppNotifications("order_created", order.id).catch((notifyError) => {
+      console.warn("[LUXE] WhatsApp API notification was not sent:", notifyError);
     });
 
-    // Checkout form submission
-    const checkoutForm = document.getElementById('checkoutForm');
-    if (checkoutForm) {
-        checkoutForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            // Validate form
-            if (!validateCheckoutForm()) return;
-
-            // Orders are tied to a real account so Row Level Security
-            // can guarantee only this user can ever read them back.
-            const currentUser = (window.LuxeAuth && window.LuxeAuth.isReady())
-                ? await window.LuxeAuth.getCurrentUser()
-                : null;
-
-            if (!currentUser) {
-                showCheckoutError('Please sign in before placing your order.');
-                setTimeout(() => { window.location.href = 'login.html'; }, 1500);
-                return;
-            }
-
-            // Show loading state
-            const btn = checkoutForm.querySelector('.checkout-btn');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing Order...';
-            btn.disabled = true;
-
-            const cartItems = getCheckoutCartItems();
-
-            // Just id + quantity — the database looks up the real,
-            // current price/stock for each item itself and computes
-            // the total server-side, so nothing the browser sends for
-            // pricing is ever trusted directly.
-            const itemsList = cartItems.map(item => ({
-                id: item.id,
-                quantity: item.quantity
-            }));
-
-            const shippingAddress = {
-                firstName: document.getElementById('firstName')?.value || '',
-                lastName: document.getElementById('lastName')?.value || '',
-                address: document.getElementById('address')?.value || '',
-                city: document.getElementById('city')?.value || '',
-                state: document.getElementById('state')?.value || '',
-                zip: document.getElementById('zip')?.value || ''
-            };
-
-            const { data: order, error } = await window.LuxeOrders.createOrder(
-                itemsList,
-                shippingAddress
-            );
-
-            if (error) {
-                btn.innerHTML = 'Place Order';
-                btn.disabled = false;
-                showCheckoutError('Could not place order: ' + error.message);
-                return;
-            }
-
-            // Clear cart
-            localStorage.removeItem('luxe_cart');
-            if (typeof updateCartCount === 'function') updateCartCount();
-
-            // Show success message
-            const orderSummary = document.querySelector('.checkout-grid');
-            if (orderSummary) {
-                orderSummary.innerHTML = `
-                    <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: #ffffff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
-                        <i class="fas fa-check-circle" style="font-size: 4.5rem; color: #27AE60; margin-bottom: 20px;"></i>
-                        <h2 style="font-family: 'Playfair Display', serif; font-size: 2.2rem; margin-bottom: 15px;">Order Placed Successfully!</h2>
-                        <p style="color: #777777; font-size: 1.1rem; max-width: 500px; margin: 0 auto 20px;">Thank you for your order (<strong>${order.order_number}</strong>). A confirmation has been saved to your account.</p>
-                        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 25px;">
-                            <a href="dashboard.html" class="btn btn-primary" style="padding: 14px 30px; border-radius: 30px; text-decoration: none;"><i class="fas fa-box"></i> Track Order in Dashboard</a>
-                            <a href="shop.html" class="btn btn-outline" style="padding: 14px 30px; border-radius: 30px; text-decoration: none;">Continue Shopping</a>
-                        </div>
-                    </div>
-                `;
-            }
-        });
+    if (provider !== "whatsapp") {
+      const payment = await window.LuxePaymentProviders.begin(provider, order);
+      if (!payment.ok) {
+        setButtonState(button, false, "Try Payment Again");
+        return showCheckoutError(payment.error);
+      }
+      clearCheckoutAttempt();
+      window.location.assign(payment.authorizationUrl);
+      return;
     }
 
-    // Format card input
-    const cardNumber = document.getElementById('cardNumber');
-    if (cardNumber) {
-        cardNumber.addEventListener('input', (e) => {
-            let value = e.target.value.replace(/\D/g, '');
-            value = value.replace(/(.{4})/g, '$1 ').trim();
-            e.target.value = value.substring(0, 19);
-        });
-    }
-
-    const expiryDate = document.getElementById('expiryDate');
-    if (expiryDate) {
-        expiryDate.addEventListener('input', (e) => {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length >= 2) {
-                value = value.substring(0, 2) + '/' + value.substring(2, 4);
-            }
-            e.target.value = value.substring(0, 5);
-        });
-    }
-
-    const cvv = document.getElementById('cvv');
-    if (cvv) {
-        cvv.addEventListener('input', (e) => {
-            e.target.value = e.target.value.replace(/\D/g, '').substring(0, 4);
-        });
-    }
+    clearCheckoutAttempt();
+    window.saveCart?.([]);
+    localStorage.removeItem("luxe_cart");
+    window.updateCartCount?.();
+    renderOrderSuccess(order, chatUrl, !!whatsappWindow);
+  });
 });
 
-function getCheckoutCartItems() {
-    if (typeof loadCart === 'function') {
-        return loadCart();
-    }
-    try {
-        const stored = localStorage.getItem('luxe_cart');
-        return stored ? JSON.parse(stored) : [];
-    } catch (e) {
-        return [];
-    }
+async function loadCheckoutIdentity() {
+  const notice = document.getElementById("whatsappIdentityNotice");
+  if (!window.LuxeAuth?.isReady()) return checkoutIdentity;
+  const user = await window.LuxeAuth.getCurrentUser();
+  if (!user) return checkoutIdentity;
+
+  const [settings, profile] = await Promise.all([
+    window.LuxeCommerce?.getSettings() || Promise.resolve({}),
+    window.LuxeProfile?.get(user.id) || Promise.resolve(null),
+  ]);
+  checkoutIdentity = {
+    user,
+    required: !!settings.whatsappVerificationRequired,
+    defaultCountryCode: settings.whatsappDefaultCountryCode || "234",
+    verifiedPhone: profile?.whatsapp_verified_at ? profile.whatsapp_phone : null,
+  };
+
+  const phoneInput = document.getElementById("phone");
+  if (checkoutIdentity.verifiedPhone && phoneInput) phoneInput.value = checkoutIdentity.verifiedPhone;
+  if (!checkoutIdentity.required || !notice) return checkoutIdentity;
+
+  notice.hidden = false;
+  if (checkoutIdentity.verifiedPhone) {
+    notice.className = "checkout-identity-note is-verified";
+    notice.textContent = `Verified WhatsApp number: ${checkoutIdentity.verifiedPhone}`;
+    if (phoneInput) phoneInput.readOnly = true;
+  } else {
+    notice.className = "checkout-identity-note is-error";
+    notice.replaceChildren(
+      document.createTextNode("Verify your WhatsApp number in "),
+      Object.assign(document.createElement("a"), { href: "dashboard.html", textContent: "My Account" }),
+      document.createTextNode(" before ordering."),
+    );
+  }
+  return checkoutIdentity;
 }
 
-function getProduct(id) {
-    if (typeof getProductById === 'function') {
-        return getProductById(id);
-    }
-    const all = window.products || [];
-    return all.find(p => p.id === id);
+function configurePaymentOptions() {
+  const enabled = !!window.LuxePaymentConfig?.providers?.paystack?.enabled;
+  const radio = document.getElementById("paystackPayment");
+  const option = document.getElementById("paystackOption");
+  if (radio) radio.disabled = !enabled;
+  option?.classList.toggle("is-disabled", !enabled);
+  if (enabled) option?.querySelector("em")?.remove();
+}
+
+function value(id) { return document.getElementById(id)?.value.trim() || ""; }
+function getCheckoutCartItems() {
+  try { return window.loadCart ? window.loadCart() : JSON.parse(localStorage.getItem("luxe_cart") || "[]"); }
+  catch { return []; }
+}
+function getProduct(id) { return window.getProductById?.(id) || (window.products || []).find((p) => p.id === id); }
+function currency(amount) { return `$${Number(amount || 0).toFixed(2)}`; }
+
+async function applyPromoCode() {
+  const input = document.getElementById("promoCode");
+  const button = document.getElementById("applyPromoBtn");
+  const code = String(input?.value || "").trim().toUpperCase();
+  if (!code) {
+    appliedPromoCode = null;
+    updateOrderTotals();
+    setPromoStatus("Enter a promo code.", "error");
+    return;
+  }
+  const user = window.LuxeAuth?.isReady() ? await window.LuxeAuth.getCurrentUser() : null;
+  if (!user) {
+    setPromoStatus("Sign in before applying a promo code.", "error");
+    return;
+  }
+  const items = getCheckoutCartItems().map((item) => ({ id: item.id, quantity: item.quantity }));
+  if (!items.length) return setPromoStatus("Your cart is empty.", "error");
+  if (button) { button.disabled = true; button.textContent = "Checking…"; }
+  const { data, error } = await window.LuxeOrders.quote(items, code);
+  if (button) { button.disabled = false; button.textContent = "Apply"; }
+  if (error || !data?.promotionCode) {
+    appliedPromoCode = null;
+    updateOrderTotals();
+    setPromoStatus(error?.message || "Promo code could not be applied.", "error");
+    return;
+  }
+  appliedPromoCode = data.promotionCode;
+  if (input) input.value = appliedPromoCode;
+  renderOrderTotals(data);
+  setPromoStatus(`${data.percentOff}% discount applied.`, "success");
+}
+
+function setPromoStatus(message, state = "") {
+  const status = document.getElementById("promoStatus");
+  if (!status) return;
+  status.textContent = message;
+  status.className = `promo-status${state ? ` is-${state}` : ""}`;
 }
 
 function loadCheckoutItems() {
-    const container = document.getElementById('orderItems');
-    if (!container) return;
-
-    const cartItems = getCheckoutCartItems();
-
-    if (cartItems.length === 0) {
-        container.innerHTML = `
-            <div style="text-align: center; padding: 20px 0;">
-                <p style="color: #777777;">Your cart is empty</p>
-                <a href="shop.html" class="btn btn-primary" style="margin-top: 10px; display: inline-block; padding: 8px 16px; font-size: 0.85rem;">Shop Now</a>
-            </div>
-        `;
-        return;
-    }
-
-    let html = '';
-    cartItems.forEach(item => {
-        const product = getProduct(item.id);
-        if (!product) return;
-
-        html += `
-            <div class="order-item" style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
-                <img src="${product.image}" alt="${product.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px;">
-                <div class="order-item-details" style="flex: 1;">
-                    <h4 style="font-size: 0.95rem; font-weight: 500; margin-bottom: 4px;">${product.name}</h4>
-                    <p style="font-size: 0.85rem; color: #777777;">Qty: ${item.quantity} × $${product.price.toFixed(2)}</p>
-                </div>
-                <div style="font-weight: 600; font-size: 0.95rem;">$${(product.price * item.quantity).toFixed(2)}</div>
-            </div>
-        `;
-    });
-
-    container.innerHTML = html;
+  const container = document.getElementById("orderItems");
+  if (!container) return;
+  const items = getCheckoutCartItems();
+  if (!items.length) {
+    container.innerHTML = '<div class="checkout-empty"><p>Your cart is empty</p><a href="shop.html" class="btn btn-primary">Shop Now</a></div>';
+    return;
+  }
+  container.innerHTML = items.map((item) => {
+    const product = getProduct(item.id);
+    if (!product) return "";
+    return `<div class="order-item"><img src="${escapeAttr(product.image)}" alt="${escapeAttr(product.name)}"><div class="order-item-details"><h4>${escapeHtml(product.name)}</h4><p>Qty: ${item.quantity} × ${currency(product.price)}</p></div><strong>${currency(product.price * item.quantity)}</strong></div>`;
+  }).join("");
 }
 
 function updateOrderTotals() {
-    const cartItems = getCheckoutCartItems();
+  const subtotal = getCheckoutCartItems().reduce((sum, item) => {
+    const product = getProduct(item.id);
+    return sum + (product ? product.price * item.quantity : 0);
+  }, 0);
+  const shipping = subtotal ? (subtotal > 200 ? 0 : 15) : 0;
+  const tax = subtotal * 0.08;
+  renderOrderTotals({ subtotal, shipping, discount: 0, tax, total: subtotal + shipping + tax });
+}
 
-    let subtotal = 0;
-    cartItems.forEach(item => {
-        const product = getProduct(item.id);
-        if (product) {
-            subtotal += product.price * item.quantity;
-        }
-    });
-
-    const shipping = cartItems.length > 0 ? (subtotal > 200 ? 0 : 15) : 0;
-    const tax = subtotal * 0.08;
-    const total = subtotal + shipping + tax;
-
-    if (document.getElementById('checkoutSubtotal')) document.getElementById('checkoutSubtotal').textContent = `$${subtotal.toFixed(2)}`;
-    if (document.getElementById('checkoutShipping')) document.getElementById('checkoutShipping').textContent = shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`;
-    if (document.getElementById('checkoutTax')) document.getElementById('checkoutTax').textContent = `$${tax.toFixed(2)}`;
-    if (document.getElementById('checkoutTotal')) document.getElementById('checkoutTotal').textContent = `$${total.toFixed(2)}`;
+function renderOrderTotals(totals) {
+  const discount = Number(totals.discount || 0);
+  document.getElementById("checkoutSubtotal").textContent = currency(totals.subtotal);
+  document.getElementById("checkoutShipping").textContent = Number(totals.shipping) ? currency(totals.shipping) : "Free";
+  document.getElementById("checkoutTax").textContent = currency(totals.tax);
+  document.getElementById("checkoutTotal").textContent = currency(totals.total);
+  const row = document.getElementById("promoDiscountRow");
+  if (row) row.hidden = discount <= 0;
+  const valueElement = document.getElementById("checkoutDiscount");
+  if (valueElement) valueElement.textContent = `-${currency(discount)}`;
 }
 
 function validateCheckoutForm() {
-    const requiredFields = document.querySelectorAll('#checkoutForm [required]');
-    let isValid = true;
-
-    requiredFields.forEach(field => {
-        if (!field.value.trim()) {
-            field.style.borderColor = '#E74C3C';
-            isValid = false;
-        } else {
-            field.style.borderColor = '';
-        }
-    });
-
-    // Validate email
-    const email = document.getElementById('email');
-    if (email && email.value) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email.value)) {
-            email.style.borderColor = '#E74C3C';
-            isValid = false;
-            showCheckoutError('Please enter a valid email address');
-        }
-    }
-
-    // Validate card fields if credit card is selected
-    const creditCardRadio = document.getElementById('creditCard');
-    if (creditCardRadio && creditCardRadio.checked) {
-        const cardNumber = document.getElementById('cardNumber');
-        const expiry = document.getElementById('expiryDate');
-        const cvv = document.getElementById('cvv');
-        const cardName = document.getElementById('cardName');
-
-        if (cardNumber && cardNumber.value.replace(/\s/g, '').length < 16) {
-            cardNumber.style.borderColor = '#E74C3C';
-            isValid = false;
-            showCheckoutError('Please enter a valid 16-digit card number');
-        }
-
-        if (expiry && expiry.value.length < 5) {
-            expiry.style.borderColor = '#E74C3C';
-            isValid = false;
-            showCheckoutError('Please enter a valid expiry date (MM/YY)');
-        }
-
-        if (cvv && cvv.value.length < 3) {
-            cvv.style.borderColor = '#E74C3C';
-            isValid = false;
-            showCheckoutError('Please enter a valid CVV');
-        }
-
-        if (cardName && !cardName.value.trim()) {
-            cardName.style.borderColor = '#E74C3C';
-            isValid = false;
-            showCheckoutError('Please enter the name on card');
-        }
-    }
-
-    if (!isValid) {
-        showCheckoutError('Please fill in all required fields correctly');
-    }
-
-    return isValid;
+  let valid = true;
+  document.querySelectorAll("#checkoutForm [required]").forEach((field) => {
+    const filled = field.type === "radio"
+      ? document.querySelector(`[name="${field.name}"]:checked`)
+      : field.type === "checkbox" ? field.checked : field.value.trim();
+    field.classList.toggle("field-invalid", !filled);
+    if (!filled) valid = false;
+  });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value("email"))) valid = false;
+  if (!/^\+?[0-9\s()-]{7,20}$/.test(value("phone"))) valid = false;
+  if (!valid) showCheckoutError("Please fill in all required contact and delivery details correctly.");
+  return valid;
 }
 
+function getCheckoutIdempotencyKey(payload) {
+  const fingerprint = JSON.stringify(payload);
+  if (checkoutAttemptMemory?.fingerprint === fingerprint) return checkoutAttemptMemory.key;
+  try {
+    const saved = JSON.parse(sessionStorage.getItem("luxe_checkout_attempt") || "null");
+    if (saved?.fingerprint === fingerprint && saved?.key) return saved.key;
+  } catch { /* Create a fresh attempt below. */ }
+
+  const key = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() :
+    "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (character) => {
+      const random = Math.floor(Math.random() * 16);
+      const value = character === "x" ? random : (random & 0x3) | 0x8;
+      return value.toString(16);
+    });
+  checkoutAttemptMemory = { fingerprint, key };
+  try { sessionStorage.setItem("luxe_checkout_attempt", JSON.stringify(checkoutAttemptMemory)); }
+  catch { /* The key still protects this in-page submission. */ }
+  return key;
+}
+
+function clearCheckoutAttempt() {
+  checkoutAttemptMemory = null;
+  try { sessionStorage.removeItem("luxe_checkout_attempt"); } catch { /* Storage may be unavailable. */ }
+}
+
+function buildAdminWhatsAppUrl(order, cartItems, contact, address) {
+  const items = cartItems.map((item) => {
+    const product = getProduct(item.id);
+    return product ? `• ${product.name} ×${item.quantity} — ${currency(product.price * item.quantity)}` : "";
+  }).filter(Boolean).join("\n");
+  const message = [
+    `NEW LUXE ORDER ${order.order_number}`, "", items, "",
+    order.promotionCode ? `Promo: ${order.promotionCode} (-${currency(order.discount)})` : "",
+    `Total: ${currency(order.total)}`,
+    `Customer: ${contact.name}`,
+    `Phone: ${contact.phone}`,
+    `Email: ${contact.email}`,
+    `Deliver to: ${address.address}, ${address.city}, ${address.state} ${address.zip}`,
+    "", "Please confirm this order and the estimated delivery date.",
+  ].filter((line, index, lines) => line !== "" || (index > 0 && lines[index - 1] !== "")).join("\n");
+  return `https://wa.me/${window.LuxePaymentConfig.adminWhatsApp}?text=${encodeURIComponent(message)}`;
+}
+
+function renderOrderSuccess(order, chatUrl, chatOpened) {
+  const grid = document.querySelector(".checkout-grid");
+  if (!grid) return;
+  grid.innerHTML = `<div class="checkout-success"><i class="fas fa-check-circle"></i><h2>Order saved successfully</h2><p>Your order <strong>${escapeHtml(order.order_number)}</strong> is now in your account and the admin console.</p><p class="success-note">${chatOpened ? "Complete the WhatsApp message in the new tab so LUXE can confirm fulfilment." : "WhatsApp did not open automatically. Use the button below to send the order."}</p><div class="checkout-success-actions"><a href="${escapeAttr(chatUrl)}" target="_blank" rel="noopener" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> Send on WhatsApp</a><a href="dashboard.html" class="btn btn-primary"><i class="fas fa-box"></i> Track order</a><a href="shop.html" class="btn btn-outline">Continue shopping</a></div></div>`;
+}
+
+function setButtonState(button, disabled, label) {
+  if (!button) return;
+  button.disabled = disabled;
+  button.innerHTML = disabled ? `<i class="fas fa-spinner fa-spin"></i> ${label}` : label;
+}
 function showCheckoutError(message) {
-    const existing = document.querySelector('.checkout-error');
-    if (existing) existing.remove();
-
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'checkout-error';
-    errorDiv.style.cssText = `
-        background: #E74C3C;
-        color: white;
-        padding: 12px 16px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        font-weight: 500;
-    `;
-    errorDiv.textContent = message;
-
-    const form = document.querySelector('.checkout-form-wrapper');
-    if (form) {
-        form.insertBefore(errorDiv, form.firstChild);
-    }
-
-    setTimeout(() => errorDiv.remove(), 4000);
+  document.querySelector(".checkout-error")?.remove();
+  const box = document.createElement("div");
+  box.className = "checkout-error";
+  box.textContent = message;
+  document.querySelector(".checkout-form-wrapper")?.prepend(box);
+  box.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 function prefillSavedAddress() {
-    const isLoggedIn = localStorage.getItem('luxe_logged_in') === 'true';
-    const storedUser = localStorage.getItem('luxe_user');
-    if (!isLoggedIn || !storedUser) return;
-
-    const user = JSON.parse(storedUser);
-    const userId = user.email;
-    const addresses = JSON.parse(localStorage.getItem(`luxe_addresses_${userId}`) || '[]');
-    const defaultAddr = addresses.find(a => a.isDefault) || addresses[0];
-
-    if (defaultAddr) {
-        const firstName = document.getElementById('firstName');
-        const lastName = document.getElementById('lastName');
-        const email = document.getElementById('email');
-        const phone = document.getElementById('phone');
-        const address = document.getElementById('address');
-        const city = document.getElementById('city');
-        const state = document.getElementById('state');
-        const zip = document.getElementById('zip');
-
-        if (firstName) firstName.value = defaultAddr.fullName.split(' ')[0] || user.fullName.split(' ')[0] || '';
-        if (lastName) lastName.value = defaultAddr.fullName.split(' ').slice(1).join(' ') || '';
-        if (email) email.value = user.email || '';
-        if (phone) phone.value = defaultAddr.phone || user.phone || '';
-        if (address) address.value = defaultAddr.street || '';
-        if (city) city.value = defaultAddr.city || '';
-        if (state) state.value = defaultAddr.state || '';
-        if (zip) zip.value = defaultAddr.zip || '';
-    }
+  try {
+    const user = JSON.parse(localStorage.getItem("luxe_user") || "null");
+    if (!user?.email) return;
+    const addresses = JSON.parse(localStorage.getItem(`luxe_addresses_${user.email}`) || "[]");
+    const address = addresses.find((item) => item.isDefault) || addresses[0];
+    const names = String(address?.fullName || user.fullName || "").split(" ");
+    const values = { firstName: names.shift() || "", lastName: names.join(" "), email: user.email || "", phone: address?.phone || user.phone || "", address: address?.street || "", city: address?.city || "", state: address?.state || "", zip: address?.zip || "" };
+    Object.entries(values).forEach(([id, content]) => { const input = document.getElementById(id); if (input && content) input.value = content; });
+  } catch { /* Ignore malformed legacy local storage. */ }
 }
 
-window.prefillSavedAddress = prefillSavedAddress;
+function escapeHtml(value) { const div = document.createElement("div"); div.textContent = String(value || ""); return div.innerHTML; }
+function escapeAttr(value) { return escapeHtml(value).replace(/`/g, "&#96;"); }

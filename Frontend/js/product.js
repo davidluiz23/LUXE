@@ -85,6 +85,7 @@ function renderProductDetails(product) {
             <div class="product-gallery">
                 <img src="${product.image}" alt="${product.name}" class="main-image" id="mainImage">
                 ${discountPercent > 0 ? `<span class="discount-badge-large">${discountPercent}% OFF</span>` : ''}
+                ${product.trending ? `<span class="trending-badge-large"><i class="fas fa-fire"></i> Trending now</span>` : ''}
                 <div class="thumbnail-grid">
                     <img src="${product.image}" alt="Thumbnail 1" class="active" onclick="window.changeImage(this, '${product.image}')">
                     <img src="${product.hoverImage || product.image}" alt="Thumbnail 2" onclick="window.changeImage(this, '${product.hoverImage || product.image}')">
@@ -232,6 +233,7 @@ function renderRelatedProducts(product) {
             <div class="product-image">
                 <img src="${p.image}" alt="${p.name}" loading="lazy">
                 ${p.discount && p.oldPrice ? `<span class="discount-badge">${Math.round((1 - p.price / p.oldPrice) * 100)}% OFF</span>` : ''}
+                ${p.trending ? `<span class="trending-badge"><i class="fas fa-fire"></i> Trending</span>` : ''}
                 <div class="product-actions">
                     <button class="add-cart" onclick="event.stopPropagation(); if(typeof window.addToCart==='function') window.addToCart(${p.id});"><i class="fas fa-shopping-bag"></i> Add</button>
                     <button class="wishlist-btn" onclick="event.stopPropagation(); if(typeof window.toggleWishlist==='function') window.toggleWishlist(${p.id}, this);"><i class="fas fa-heart"></i></button>

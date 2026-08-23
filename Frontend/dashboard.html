@@ -101,6 +101,10 @@
               <button class="dashboard-nav-btn" data-tab="orders">
                 <i class="fas fa-box"></i> Orders
               </button>
+              <button type="button" class="dashboard-nav-btn" data-tab="notifications" id="notificationsTabBtn">
+                <i class="fas fa-bell"></i> Notifications
+                <span class="dashboard-notification-badge" id="notificationBadge" hidden>0</span>
+              </button>
             </nav>
             <button class="dashboard-signout" id="signOutBtn">
               <i class="fas fa-sign-out-alt"></i> Sign Out
@@ -117,9 +121,9 @@
                 <div>
                   <label class="dashboard-upload-btn" for="avatarFile">
                     <i class="fas fa-camera"></i> Change Photo
-                    <input type="file" id="avatarFile" accept="image/*" hidden>
+                    <input type="file" id="avatarFile" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" hidden>
                   </label>
-                  <p class="dashboard-avatar-hint" id="avatarUploadStatus">JPG or PNG, uploaded at full quality.</p>
+                  <p class="dashboard-avatar-hint" id="avatarUploadStatus">JPG, PNG, WebP, GIF or AVIF · maximum 5 MB.</p>
                 </div>
               </div>
 
@@ -133,10 +137,42 @@
                   <input type="email" id="profileEmail" disabled>
                 </div>
                 <div class="form-group">
-                  <label for="profilePhone">Phone</label>
-                  <input type="tel" id="profilePhone" placeholder="Your phone number">
+                  <label for="profilePhone">WhatsApp Number</label>
+                  <input type="tel" id="profilePhone" placeholder="+234 801 234 5678" autocomplete="tel">
+                  <div class="whatsapp-verification-status" id="whatsappVerificationStatus" role="status">
+                    <span class="verification-dot"></span>
+                    <span id="whatsappVerificationText">Checking verification…</span>
+                  </div>
+                  <p class="dashboard-avatar-hint" id="whatsappRequirementNote"></p>
+                  <button type="button" class="dashboard-verify-btn" id="requestWhatsAppCode">
+                    <i class="fab fa-whatsapp"></i> Send verification code
+                  </button>
+                </div>
+                <div class="whatsapp-code-panel" id="whatsappCodePanel" hidden>
+                  <label for="whatsappCode">6-digit code</label>
+                  <div class="whatsapp-code-row">
+                    <input type="text" id="whatsappCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="000000">
+                    <button type="button" class="dashboard-verify-btn is-primary" id="verifyWhatsAppCode">Verify</button>
+                  </div>
                 </div>
                 <button type="submit" class="btn btn-primary">Save Changes</button>
+              </form>
+
+              <form class="communication-preferences" id="communicationPreferencesForm">
+                <div class="communication-preferences-heading">
+                  <h2>Communication Preferences</h2>
+                  <p>Choose where account, product and promotional updates may be sent. Essential order updates are managed separately.</p>
+                </div>
+                <label class="communication-option">
+                  <input type="checkbox" id="emailUpdatesPreference">
+                  <span><strong>Email updates</strong><small>Receive selected account and store updates by email.</small></span>
+                </label>
+                <label class="communication-option">
+                  <input type="checkbox" id="whatsappUpdatesPreference">
+                  <span><strong>WhatsApp updates</strong><small>A verified WhatsApp number is required.</small></span>
+                </label>
+                <button type="submit" class="btn btn-outline">Save Preferences</button>
+                <p class="communication-preferences-status" id="communicationPreferencesStatus" role="status"></p>
               </form>
             </div>
 
@@ -148,6 +184,16 @@
                   <i class="fas fa-box-open"></i>
                   <p>Loading your orders…</p>
                 </div>
+              </div>
+            </div>
+
+            <div class="dashboard-panel" id="panel-notifications">
+              <div class="notification-panel-heading">
+                <h1>Notifications</h1>
+                <button class="notification-mark-all" id="markAllNotificationsRead" type="button">Mark all as read</button>
+              </div>
+              <div class="dashboard-notifications" id="notificationsList">
+                <div class="orders-empty"><i class="fas fa-bell"></i><p>Loading notifications…</p></div>
               </div>
             </div>
           </div>
@@ -178,10 +224,10 @@
         </div>
         <div class="footer-col">
           <h4>Support</h4>
-          <a href="#">FAQ</a>
-          <a href="#">Returns</a>
-          <a href="#">Shipping</a>
-          <a href="#">Privacy</a>
+          <a href="faq.html">FAQ</a>
+          <a href="returns.html">Returns</a>
+          <a href="shipping.html">Shipping</a>
+          <a href="privacy.html">Privacy</a>
         </div>
         <div class="footer-col">
           <h4>Contact</h4>
@@ -199,6 +245,7 @@
       <i class="fas fa-arrow-up"></i>
     </button>
 
+    <script src="js/icons.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-client.js"></script>
     <script src="js/updates-banner.js"></script>

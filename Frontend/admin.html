@@ -96,8 +96,25 @@
                         <i class="fas fa-box"></i> Products
                     </button>
 
+                    <button type="button" class="admin-nav-btn" data-panel="ordersPanel" id="ordersNavBtn">
+                        <i class="fas fa-receipt"></i> Orders
+                        <span class="admin-nav-badge" id="adminOrderBadge" hidden>0</span>
+                    </button>
+
                     <button class="admin-nav-btn" data-panel="updatesPanel">
                         <i class="fas fa-bullhorn"></i> Site Updates
+                    </button>
+
+                    <button type="button" class="admin-nav-btn" data-panel="customersPanel">
+                        <i class="fas fa-user-tag"></i> Customers
+                    </button>
+
+                    <button type="button" class="admin-nav-btn" data-panel="promotionsPanel">
+                        <i class="fas fa-tags"></i> Promo Codes
+                    </button>
+
+                    <button type="button" class="admin-nav-btn" data-panel="activityPanel">
+                        <i class="fas fa-history"></i> Activity Log
                     </button>
 
                     <button class="admin-nav-btn" data-panel="teamPanel" id="teamNavBtn" style="display:none;">
@@ -150,6 +167,25 @@
                             <div class="admin-empty-state" id="productsEmptyState" style="display:none;">
                                 <i class="fas fa-box-open"></i>
                                 <p>No products yet. Import the starter catalog or add a product manually.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="admin-panel" id="ordersPanel">
+                        <div class="admin-panel-card">
+                            <div class="admin-panel-header">
+                                <div>
+                                    <h2>Orders</h2>
+                                    <p id="adminOrderCount">Loading customer orders…</p>
+                                </div>
+                                <button type="button" class="btn btn-outline" id="refreshOrdersBtn" style="background:#111;color:#fff;padding:10px 18px;font-size:.82rem;">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                            </div>
+                            <div class="admin-orders-list" id="adminOrdersList"></div>
+                            <div class="admin-empty-state" id="adminOrdersEmpty" style="display:none;">
+                                <i class="fas fa-receipt"></i>
+                                <p>No customer orders yet.</p>
                             </div>
                         </div>
                     </div>
@@ -224,6 +260,7 @@
                                             <th>Email</th>
                                             <th>Name</th>
                                             <th>Role</th>
+                                            <th>Status</th>
                                             <th>Added</th>
                                             <th></th>
                                         </tr>
@@ -234,10 +271,151 @@
                         </div>
                     </div>
 
+                    <div class="admin-panel" id="customersPanel">
+                        <div class="admin-panel-card">
+                            <div class="admin-panel-header">
+                                <div>
+                                    <h2>Customer Messaging</h2>
+                                    <p>Search by name, email, WhatsApp number or order number. Review payments, transactions, sign-ins and account actions.</p>
+                                </div>
+                            </div>
+
+                            <form id="customerSearchForm" class="admin-search-row">
+                                <label class="sr-only" for="customerSearch">Search customers</label>
+                                <input type="search" id="customerSearch" maxlength="100" autocomplete="off" placeholder="Name, email, WhatsApp or order number">
+                                <button type="submit" class="btn btn-outline">Search</button>
+                            </form>
+
+                            <div class="admin-table-wrap">
+                                <table class="admin-table" id="customersTable">
+                                    <thead><tr><th scope="col">Customer</th><th scope="col">Status</th><th scope="col">WhatsApp</th><th scope="col">Orders</th><th scope="col">Spent</th><th scope="col">Updates</th><th scope="col">Actions</th></tr></thead>
+                                    <tbody id="customersTableBody"><tr><td colspan="7">Open this section to load customers.</td></tr></tbody>
+                                </table>
+                            </div>
+
+                            <form id="customerMessageForm" class="admin-message-composer" hidden>
+                                <input type="hidden" id="messageCustomerId">
+                                <div class="admin-composer-heading">
+                                    <div><span>Message to</span><strong id="messageCustomerLabel"></strong></div>
+                                    <button type="button" class="admin-text-btn" id="clearMessageCustomer">Clear</button>
+                                </div>
+                                <div class="admin-form-grid">
+                                    <div class="form-group full-width">
+                                        <label for="customerMessageTitle">Title</label>
+                                        <input type="text" id="customerMessageTitle" minlength="3" maxlength="100" required placeholder="Order or account update">
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label for="customerMessageBody">Message</label>
+                                        <textarea id="customerMessageBody" minlength="3" maxlength="1000" rows="4" required placeholder="Write a clear, customer-specific message"></textarea>
+                                    </div>
+                                </div>
+                                <fieldset class="admin-channel-options">
+                                    <legend>Delivery channels</legend>
+                                    <label><input type="checkbox" checked disabled> In-app notification</label>
+                                    <label><input type="checkbox" id="messageViaEmail"> Email, when opted in</label>
+                                    <label><input type="checkbox" id="messageViaWhatsApp"> WhatsApp, when opted in</label>
+                                </fieldset>
+                                <button type="submit" class="btn btn-primary" id="sendCustomerMessageBtn"><i class="fas fa-paper-plane"></i> Send update</button>
+                                <p class="admin-delivery-result" id="customerMessageResult" role="status"></p>
+                            </form>
+
+                            <div class="admin-subsection">
+                                <h3>Recent Admin Activity</h3>
+                                <div id="adminActivityList" class="admin-activity-list"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="admin-panel" id="promotionsPanel">
+                        <div class="admin-panel-card">
+                            <div class="admin-panel-header">
+                                <div>
+                                    <h2>Promo Codes</h2>
+                                    <p>Create percentage discounts with minimum spend, dates, total usage and per-customer limits.</p>
+                                </div>
+                            </div>
+
+                            <form id="promotionForm" class="admin-promotion-form">
+                                <input type="hidden" id="promotionId">
+                                <div class="admin-form-grid">
+                                    <div class="form-group"><label for="promotionCode">Code</label><input type="text" id="promotionCode" minlength="3" maxlength="32" pattern="[A-Za-z0-9_-]{3,32}" required placeholder="LUXE15"></div>
+                                    <div class="form-group"><label for="promotionPercent">Percent off</label><input type="number" id="promotionPercent" min="1" max="95" step="0.01" required placeholder="15"></div>
+                                    <div class="form-group"><label for="promotionMinimum">Minimum subtotal ($)</label><input type="number" id="promotionMinimum" min="0" step="0.01" value="0"></div>
+                                    <div class="form-group"><label for="promotionMaxUses">Maximum uses</label><input type="number" id="promotionMaxUses" min="1" step="1" placeholder="Unlimited"></div>
+                                    <div class="form-group"><label for="promotionPerUser">Uses per customer</label><input type="number" id="promotionPerUser" min="1" max="100" step="1" value="1" required></div>
+                                    <div class="form-group"><label for="promotionStarts">Starts</label><input type="datetime-local" id="promotionStarts"></div>
+                                    <div class="form-group"><label for="promotionEnds">Ends</label><input type="datetime-local" id="promotionEnds"></div>
+                                    <div class="form-group admin-check-field"><label><input type="checkbox" id="promotionActive" checked> Active</label></div>
+                                </div>
+                                <div class="admin-form-actions">
+                                    <button type="submit" class="btn btn-primary" id="savePromotionBtn"><i class="fas fa-save"></i> Save promo</button>
+                                    <button type="button" class="btn btn-outline" id="cancelPromotionEdit" hidden>Cancel edit</button>
+                                </div>
+                            </form>
+
+                            <div class="admin-table-wrap">
+                                <table class="admin-table" id="promotionsTable">
+                                    <thead><tr><th scope="col">Code</th><th scope="col">Discount</th><th scope="col">Rules</th><th scope="col">Uses</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
+                                    <tbody id="promotionsTableBody"><tr><td colspan="6">Open this section to load promo codes.</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="admin-panel" id="activityPanel">
+                        <div class="admin-panel-card">
+                            <div class="admin-panel-header">
+                                <div>
+                                    <h2>Admin Activity Log</h2>
+                                    <p>See who changed protected store data and when. The newest actions appear first.</p>
+                                </div>
+                                <button type="button" class="btn btn-outline" id="refreshActivityBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
+                            </div>
+                            <div class="admin-table-wrap">
+                                <table class="admin-table">
+                                    <thead><tr><th scope="col">Administrator</th><th scope="col">Action</th><th scope="col">Target</th><th scope="col">Time</th></tr></thead>
+                                    <tbody id="globalActivityTableBody"><tr><td colspan="4">Open this section to load activity.</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
     </section>
+
+    <div class="admin-modal-overlay" id="customerDetailOverlay">
+        <div class="admin-modal admin-customer-detail-modal" role="dialog" aria-modal="true" aria-labelledby="customerDetailTitle">
+            <div class="admin-detail-heading">
+                <div>
+                    <span class="admin-detail-kicker">Customer intelligence</span>
+                    <h3 id="customerDetailTitle">Customer account</h3>
+                    <p id="customerDetailSubtitle"></p>
+                </div>
+                <button type="button" class="admin-modal-close" id="closeCustomerDetail" aria-label="Close customer details"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="customerDetailContent" class="admin-customer-detail-content">
+                <p>Loading account history...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-modal-overlay" id="adminConfirmationOverlay">
+        <div class="admin-modal admin-confirmation-modal" role="dialog" aria-modal="true" aria-labelledby="adminConfirmationTitle">
+            <div class="admin-confirmation-icon"><i class="fas fa-shield-alt"></i></div>
+            <h3 id="adminConfirmationTitle">Confirm sensitive action</h3>
+            <p id="adminConfirmationMessage"></p>
+            <div class="admin-confirmation-input-wrap" id="adminConfirmationInputWrap" hidden>
+                <label for="adminConfirmationInput">Type <strong id="adminConfirmationExpected"></strong> to continue</label>
+                <input type="text" id="adminConfirmationInput" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="admin-modal-actions">
+                <button type="button" class="btn btn-outline" id="cancelAdminConfirmation">Cancel</button>
+                <button type="button" class="btn btn-primary" id="acceptAdminConfirmation">Confirm</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Admin password recovery uses the same Supabase account recovery
          flow as the normal customer login. -->
@@ -324,7 +502,7 @@
                             <div class="admin-image-inputs">
                                 <label class="admin-upload-btn" for="pImageFile">
                                     <i class="fas fa-upload"></i> Upload original
-                                    <input type="file" id="pImageFile" accept="image/*" hidden>
+                                    <input type="file" id="pImageFile" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" hidden>
                                 </label>
 
                                 <span class="admin-form-hint" id="pImageUploadStatus"></span>
@@ -332,7 +510,7 @@
                             </div>
                         </div>
 
-                        <p class="admin-form-hint">LUXE uploads the selected file directly. No resizing, recompression or format conversion is performed.</p>
+                        <p class="admin-form-hint">JPG, PNG, WebP, GIF or AVIF · maximum 8 MB. Files are cached with immutable URLs for faster loading.</p>
                     </div>
 
                     <div class="form-group full-width">
@@ -347,7 +525,7 @@
                             <div class="admin-image-inputs">
                                 <label class="admin-upload-btn" for="pHoverImageFile">
                                     <i class="fas fa-upload"></i> Upload original
-                                    <input type="file" id="pHoverImageFile" accept="image/*" hidden>
+                                    <input type="file" id="pHoverImageFile" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" hidden>
                                 </label>
 
                                 <span class="admin-form-hint" id="pHoverImageUploadStatus"></span>
@@ -382,6 +560,22 @@
                     </div>
                 </div>
 
+                <section class="admin-product-live-preview" aria-live="polite">
+                    <div class="admin-preview-label"><i class="fas fa-eye"></i> Storefront preview</div>
+                    <div class="product-card admin-preview-card">
+                        <div class="product-image">
+                            <img id="livePreviewImage" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='500'%3E%3Crect width='100%25' height='100%25' fill='%23f2f2f2'/%3E%3C/svg%3E" alt="Product preview">
+                            <span class="brand-badge" id="livePreviewBrand">LUXE</span>
+                            <span class="discount-badge" id="livePreviewDiscount" hidden></span>
+                        </div>
+                        <div class="product-info">
+                            <h4 class="product-name" id="livePreviewName">New product</h4>
+                            <p class="product-category" id="livePreviewCategory">Men / General</p>
+                            <div class="product-price" id="livePreviewPrice">$0.00</div>
+                        </div>
+                    </div>
+                </section>
+
                 <div class="admin-modal-actions">
                     <button type="button" class="btn btn-outline" style="background:#eee;color:#111;border-color:#eee;" id="cancelProductBtn">Cancel</button>
                     <button type="submit" class="btn btn-primary" id="saveProductBtn">Save Product</button>
@@ -392,6 +586,7 @@
 
     <div class="admin-toast" id="adminToast"></div>
 
+    <script src="js/icons.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-client.js"></script>
     <script src="js/products.js"></script>

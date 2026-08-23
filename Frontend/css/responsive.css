@@ -43,7 +43,7 @@
         grid-template-columns: 1fr;
         text-align: center;
     }
-    .nav-icons a:not(.user-icon):not(.hamburger) {
+    .nav-icons a:not(.user-icon):not(.notification-icon):not(.hamburger) {
         display: none;
     }
     .section {
@@ -87,7 +87,7 @@
     .product-info .product-name {
         font-size: 0.8rem;
     }
-    .nav-icons a:not(.user-icon):not(.hamburger) {
+    .nav-icons a:not(.user-icon):not(.notification-icon):not(.hamburger) {
         display: none;
     }
     .section {
