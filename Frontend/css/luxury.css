@@ -18,6 +18,10 @@
     --alk-serif: "Playfair Display", Georgia, serif;
     --alk-sans: "Poppins", "Helvetica Neue", Arial, sans-serif;
     --alk-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --alk-radius-xs: 4px;
+    --alk-radius-sm: 7px;
+    --alk-radius-md: 11px;
+    --alk-radius-lg: 16px;
     --alk-fast: 180ms;
     --alk-normal: 420ms;
     --alk-nav-height: 88px;
@@ -36,7 +40,9 @@ html.alkebulan-site ::selection {
 }
 
 html.alkebulan-site body {
+    width: 100%;
     min-height: 100svh;
+    height: auto;
     padding-top: var(--alk-nav-height);
     background: var(--alk-paper);
     color: var(--alk-ink);
@@ -44,6 +50,11 @@ html.alkebulan-site body {
     font-size: 15px;
     letter-spacing: -0.012em;
     line-height: 1.65;
+    overflow-y: auto;
+}
+
+html.alkebulan-site body:not(.search-is-open):not(.filters-open):not(.mobile-nav-open) {
+    overflow-y: auto !important;
 }
 
 html.alkebulan-site *,
@@ -161,13 +172,13 @@ html.alkebulan-site .nav-links a::after {
     background: var(--alk-ink);
 }
 
-html.alkebulan-site .nav-icons { justify-content: flex-end; gap: 17px; }
-html.alkebulan-site .nav-icons a { display: grid; width: 32px; height: 40px; place-items: center; color: var(--alk-ink); font-size: 1rem; }
-html.alkebulan-site .nav-icons a:hover { color: var(--alk-bronze); }
+html.alkebulan-site .nav-icons { justify-content: flex-end; gap: 9px; }
+html.alkebulan-site .nav-icons a { display: grid; width: 36px; height: 40px; place-items: center; color: var(--alk-ink); border-radius: var(--alk-radius-sm); font-size: 1rem; transition: color var(--alk-fast) ease, background var(--alk-fast) ease, transform var(--alk-fast) var(--alk-ease); }
+html.alkebulan-site .nav-icons a:hover { background: rgba(139,112,79,.09); color: var(--alk-bronze); transform: translateY(-1px); }
 html.alkebulan-site .nav-svg-icon { width: 19px; height: 19px; }
 html.alkebulan-site .user-icon,
 html.alkebulan-site .nav-user-avatar,
-html.alkebulan-site .nav-user-initial { width: 30px; height: 30px; border-radius: 0; }
+html.alkebulan-site .nav-user-initial { width: 30px; height: 30px; border-radius: 50%; }
 html.alkebulan-site .nav-user-avatar { border-color: var(--alk-line); }
 html.alkebulan-site .nav-user-initial { background: var(--alk-ink); color: var(--alk-white); box-shadow: none; }
 
@@ -189,15 +200,6 @@ html.alkebulan-site .navbar-notification-badge {
     font-weight: 600;
 }
 
-.nav-service-note {
-    margin-right: 7px;
-    color: var(--alk-muted);
-    font-size: 0.55rem;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-}
-
 .nav-scroll-progress {
     position: absolute;
     right: 0;
@@ -209,23 +211,50 @@ html.alkebulan-site .navbar-notification-badge {
     transform-origin: left;
 }
 
-html.alkebulan-site .hamburger { width: 27px; height: 21px; justify-content: space-between; }
-html.alkebulan-site .hamburger span { width: 100%; height: 1px; background: currentColor; }
+html.alkebulan-site .hamburger { width: 42px; height: 42px; padding: 10px 9px; justify-content: space-between; border: 1px solid var(--alk-line); border-radius: var(--alk-radius-sm); transition: background var(--alk-fast) ease, transform var(--alk-fast) var(--alk-ease); }
+html.alkebulan-site .hamburger span { width: 100%; height: 1px; background: currentColor; transform-origin: center; transition: transform .3s var(--alk-ease), opacity var(--alk-fast) ease; }
+html.alkebulan-site .hamburger:active { transform: scale(.96); }
+html.alkebulan-site .hamburger.is-active span:nth-child(1) { transform: translateY(10px) rotate(45deg); }
+html.alkebulan-site .hamburger.is-active span:nth-child(2) { opacity: 0; transform: scaleX(.4); }
+html.alkebulan-site .hamburger.is-active span:nth-child(3) { transform: translateY(-10px) rotate(-45deg); }
 
 html.alkebulan-site .mobile-menu {
     width: min(100%, 520px);
     padding: max(84px, env(safe-area-inset-top)) 36px max(36px, env(safe-area-inset-bottom));
     background: var(--alk-ink);
     color: var(--alk-white);
+    border-radius: var(--alk-radius-lg) 0 0 var(--alk-radius-lg);
+    box-shadow: -28px 0 70px rgba(0,0,0,.32);
+    opacity: 0;
+    transform: translateX(28px);
+    visibility: hidden;
+    transition: right .46s var(--alk-ease), opacity .28s ease, transform .46s var(--alk-ease), visibility 0s .46s;
 }
 
-html.alkebulan-site .mobile-close { top: 25px; right: 30px; color: var(--alk-white); }
+html.alkebulan-site .mobile-menu.active { right: 0; opacity: 1; transform: translateX(0); visibility: visible; transition-delay: 0s; }
+html.alkebulan-site .mobile-close { display: grid; top: 21px; right: 26px; width: 42px; height: 42px; place-items: center; color: var(--alk-white); border: 1px solid rgba(255,255,255,.22); border-radius: var(--alk-radius-sm); transition: background var(--alk-fast) ease, transform var(--alk-fast) var(--alk-ease); }
+html.alkebulan-site .mobile-close:hover { background: rgba(255,255,255,.08); }
+html.alkebulan-site .mobile-close:active { transform: scale(.96); }
 html.alkebulan-site .mobile-brand-lockup { position: absolute; top: 25px; left: 30px; }
 html.alkebulan-site .mobile-menu ul { margin-top: 44px; }
-html.alkebulan-site .mobile-menu li { border-bottom: 1px solid var(--alk-line-dark); }
-html.alkebulan-site .mobile-menu a { display: grid; padding: 19px 0; grid-template-columns: 38px 1fr; align-items: baseline; color: var(--alk-white); font-family: var(--alk-serif); font-size: clamp(1.75rem, 7vw, 3rem); text-decoration: none; }
+html.alkebulan-site .mobile-menu li { margin: 0; border-bottom: 1px solid var(--alk-line-dark); opacity: 0; transform: translateY(9px); transition: opacity .28s ease, transform .38s var(--alk-ease); }
+html.alkebulan-site .mobile-menu.active li { opacity: 1; transform: translateY(0); }
+html.alkebulan-site .mobile-menu.active li:nth-child(1) { transition-delay: .08s; }
+html.alkebulan-site .mobile-menu.active li:nth-child(2) { transition-delay: .11s; }
+html.alkebulan-site .mobile-menu.active li:nth-child(3) { transition-delay: .14s; }
+html.alkebulan-site .mobile-menu.active li:nth-child(4) { transition-delay: .17s; }
+html.alkebulan-site .mobile-menu.active li:nth-child(5) { transition-delay: .2s; }
+html.alkebulan-site .mobile-menu.active li:nth-child(6) { transition-delay: .23s; }
+html.alkebulan-site .mobile-menu.active li:nth-child(7) { transition-delay: .26s; }
+html.alkebulan-site .mobile-menu.active li:nth-child(8) { transition-delay: .29s; }
+html.alkebulan-site .mobile-menu a { display: grid; padding: 17px 10px; grid-template-columns: 38px 1fr; align-items: baseline; color: var(--alk-white); border-radius: var(--alk-radius-sm); font-family: var(--alk-serif); font-size: clamp(1.75rem, 7vw, 3rem); text-decoration: none; transition: background var(--alk-fast) ease, padding var(--alk-normal) var(--alk-ease); }
+html.alkebulan-site .mobile-menu a:hover { padding-left: 16px; background: rgba(255,255,255,.07); color: var(--alk-white); }
 html.alkebulan-site .mobile-menu a small { color: rgba(255,255,255,.48); font-family: var(--alk-sans); font-size: 0.48rem; letter-spacing: .12em; }
 html.alkebulan-site .mobile-menu-meta { display: flex; margin-top: 34px; justify-content: space-between; color: rgba(255,255,255,.56); font-size: 0.55rem; letter-spacing: .1em; text-transform: uppercase; }
+html.alkebulan-site .mobile-menu-meta a { display: inline; padding: 0 0 4px; border-bottom: 1px solid rgba(255,255,255,.35); border-radius: 0; font-family: var(--alk-sans); font-size: inherit; }
+html.alkebulan-site .mobile-menu-meta a:hover { padding-left: 0; background: transparent; color: var(--alk-white); }
+body.mobile-nav-open { overflow: hidden !important; }
+body.mobile-nav-open::before { position: fixed; z-index: 1000; inset: 0; background: rgba(17,17,15,.42); content: ""; backdrop-filter: blur(3px); }
 
 /* Typography and controls */
 html.alkebulan-site .section { padding: clamp(78px, 9vw, 136px) 0; }
@@ -276,7 +305,7 @@ html.alkebulan-site .section-title::after {
 html.alkebulan-site .btn,
 html.alkebulan-site button:not(.qty-btn):not(.quantity-control button):not(.dashboard-nav-btn):not(.close-modal):not(.mobile-close),
 html.alkebulan-site input[type="submit"] {
-    border-radius: 0;
+    border-radius: var(--alk-radius-sm);
 }
 
 html.alkebulan-site .btn {
@@ -288,14 +317,16 @@ html.alkebulan-site .btn {
     letter-spacing: .14em;
     text-align: center;
     text-transform: uppercase;
-    transition: color var(--alk-fast) ease, background var(--alk-fast) ease, transform var(--alk-fast) ease;
+    box-shadow: 0 0 0 rgba(17,17,15,0);
+    transition: color .24s ease, background .24s ease, border-color .24s ease, box-shadow .32s ease, transform .24s var(--alk-ease);
 }
 
 html.alkebulan-site .btn-primary { background: var(--alk-ink); color: var(--alk-white); }
-html.alkebulan-site .btn-primary:hover { background: var(--alk-bronze); border-color: var(--alk-bronze); box-shadow: none; transform: translateY(-2px); }
-html.alkebulan-site .btn-primary:active { transform: translateY(0); }
+html.alkebulan-site .btn-primary:hover { background: var(--alk-bronze); border-color: var(--alk-bronze); box-shadow: 0 12px 26px rgba(17,17,15,.14); transform: translateY(-2px); }
+html.alkebulan-site .btn-primary:active { box-shadow: 0 4px 12px rgba(17,17,15,.1); transform: translateY(0) scale(.985); }
 html.alkebulan-site .btn-outline { background: transparent; color: var(--alk-ink); border: 1px solid var(--alk-ink); }
-html.alkebulan-site .btn-outline:hover { background: var(--alk-ink); color: var(--alk-white); transform: translateY(-2px); }
+html.alkebulan-site .btn-outline:hover { background: var(--alk-ink); color: var(--alk-white); box-shadow: 0 12px 26px rgba(17,17,15,.11); transform: translateY(-2px); }
+html.alkebulan-site .btn-outline:active { box-shadow: none; transform: translateY(0) scale(.985); }
 html.alkebulan-site .btn-small { min-height: 44px; padding: 11px 22px; }
 
 /* Homepage */
@@ -311,6 +342,7 @@ html.alkebulan-site .hero.luxury-home-hero {
 
 .luxury-home-hero .hero-layout {
     display: grid;
+    width: 100%;
     min-height: min(820px, calc(100svh - var(--alk-nav-height)));
     grid-template-columns: minmax(390px, .82fr) minmax(0, 1.18fr);
 }
@@ -437,19 +469,19 @@ html.alkebulan-site .product-card:hover .luxury-secondary-image { opacity: 1; }
 html.alkebulan-site .brand-badge { display: none; }
 html.alkebulan-site .discount-badge,
 html.alkebulan-site .trending-badge,
-html.alkebulan-site .luxury-card-status { position: absolute; z-index: 7; top: 12px; left: 12px; bottom: auto; padding: 7px 9px; background: rgba(251,250,247,.92); color: var(--alk-ink); border: 0; border-radius: 0; box-shadow: none; font-size: .45rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
+html.alkebulan-site .luxury-card-status { position: absolute; z-index: 7; top: 12px; left: 12px; bottom: auto; padding: 7px 9px; background: rgba(251,250,247,.92); color: var(--alk-ink); border: 0; border-radius: var(--alk-radius-xs); box-shadow: none; font-size: .45rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
 html.alkebulan-site .discount-badge { right: 12px; left: auto; background: var(--alk-ink); color: var(--alk-white); }
 html.alkebulan-site .trending-badge { display: none; }
 html.alkebulan-site .luxury-card-status.is-sold { background: var(--alk-ink); color: var(--alk-white); }
-html.alkebulan-site .product-actions { z-index: 8; right: 0; bottom: 0; left: 0; padding: 0; gap: 1px; background: var(--alk-line); backdrop-filter: none; opacity: 0; transform: translateY(12px); transition: opacity var(--alk-fast) ease, transform var(--alk-fast) ease; }
-html.alkebulan-site .product-card:hover .product-actions { bottom: 0; opacity: 1; transform: translateY(0); }
-html.alkebulan-site .product-actions button { min-height: 48px; padding: 10px 13px; background: var(--alk-white); color: var(--alk-ink); border: 0; border-radius: 0; box-shadow: none; font-size: .52rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+html.alkebulan-site .product-actions { z-index: 8; right: 9px; bottom: 9px; left: 9px; padding: 4px; gap: 4px; overflow: hidden; background: rgba(251,250,247,.9); border: 1px solid rgba(255,255,255,.62); border-radius: var(--alk-radius-md); box-shadow: 0 15px 35px rgba(17,17,15,.16); backdrop-filter: blur(12px); opacity: 0; transform: translateY(12px); transition: opacity var(--alk-fast) ease, transform .28s var(--alk-ease); }
+html.alkebulan-site .product-card:hover .product-actions { bottom: 9px; opacity: 1; transform: translateY(0); }
+html.alkebulan-site .product-actions button { min-height: 46px; padding: 10px 13px; background: transparent; color: var(--alk-ink); border: 0; border-radius: var(--alk-radius-sm); box-shadow: none; font-size: .52rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; transition: color .22s ease, background .22s ease, transform .22s var(--alk-ease); }
 html.alkebulan-site .product-actions .add-cart { background: var(--alk-ink); color: var(--alk-white); }
-html.alkebulan-site .product-actions .add-cart:hover { background: var(--alk-bronze); box-shadow: none; transform: none; }
+html.alkebulan-site .product-actions .add-cart:hover { background: var(--alk-bronze); box-shadow: none; transform: translateY(-1px); }
 html.alkebulan-site .product-actions .wishlist-btn,
 html.alkebulan-site .product-actions .quick-view { width: 48px; height: 48px; background: var(--alk-white); color: var(--alk-ink); }
 html.alkebulan-site .product-actions .wishlist-btn:hover,
-html.alkebulan-site .product-actions .quick-view:hover { background: var(--alk-paper-deep); color: var(--alk-ink); box-shadow: none; transform: none; }
+html.alkebulan-site .product-actions .quick-view:hover { background: var(--alk-paper-deep); color: var(--alk-ink); box-shadow: none; transform: translateY(-1px); }
 html.alkebulan-site .product-info { gap: 0; padding: 15px 1px 0; }
 html.alkebulan-site .product-info .product-brand { margin: 0 0 5px; color: var(--alk-muted); font-size: .48rem; font-weight: 600; letter-spacing: .12em; }
 html.alkebulan-site .product-info .product-name { min-height: 0; margin: 0 0 5px; color: var(--alk-ink); font-family: var(--alk-sans); font-size: .72rem; font-weight: 500; line-height: 1.45; }
@@ -473,7 +505,6 @@ html.alkebulan-site footer.luxury-footer { position: relative; overflow: hidden;
 .luxury-footer-grid strong { margin-bottom: 9px; color: rgba(255,255,255,.75); font-size: .7rem; font-weight: 400; text-decoration: none; }
 .luxury-footer-grid a:hover { color: var(--alk-white); }
 .luxury-footer-grid .footer-location strong { color: var(--alk-white); font-family: var(--alk-serif); font-size: 1.3rem; }
-.luxury-footer-wordmark { overflow: hidden; color: var(--alk-white); font-family: var(--alk-sans); font-size: clamp(4rem, 12.7vw, 12.1rem); font-weight: 600; letter-spacing: -.075em; line-height: .78; white-space: nowrap; }
 .luxury-footer-bottom { display: flex; min-height: 76px; padding-block: 22px; align-items: center; justify-content: space-between; color: rgba(255,255,255,.46); border-top: 1px solid var(--alk-line-dark); font-size: .47rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
 .luxury-footer-bottom a { color: inherit; text-decoration: none; }
 
@@ -874,10 +905,89 @@ body.search-is-open { overflow: hidden !important; }
 .search-keyboard-note { color: var(--alk-muted); font-size: .62rem; }
 .search-keyboard-note { margin-top: 26px; letter-spacing: .07em; text-transform: uppercase; }
 
+/* Refined control finish — soft geometry without rounding the editorial layout. */
+html.alkebulan-site .filter-toggle,
+html.alkebulan-site .filter-select,
+html.alkebulan-site .filter-option-btn,
+html.alkebulan-site .pagination button,
+html.alkebulan-site .sidebar-close,
+html.alkebulan-site .size-btn-product,
+html.alkebulan-site .quantity-control,
+html.alkebulan-site .qty-btn,
+html.alkebulan-site .product-actions-detail > button,
+html.alkebulan-site .cart-summary .whatsapp-btn,
+html.alkebulan-site .checkout-provider-option,
+html.alkebulan-site .checkout-provider-option .provider-icon,
+html.alkebulan-site .promo-entry-row input,
+html.alkebulan-site .promo-entry-row button,
+html.alkebulan-site .auth-btn,
+html.alkebulan-site .otp-digit,
+html.alkebulan-site .dashboard-nav-btn,
+html.alkebulan-site .contact-submit-btn,
+html.alkebulan-site #closeSearchModal,
+html.alkebulan-site .back-to-top {
+    border-radius: var(--alk-radius-sm) !important;
+}
+
+html.alkebulan-site .cart-summary,
+html.alkebulan-site .checkout-success,
+html.alkebulan-site .otp-modal-content,
+html.alkebulan-site .notification-toast {
+    border-radius: var(--alk-radius-md);
+}
+
+html.alkebulan-site .notification-toast-icon,
+html.alkebulan-site .checkout-error,
+html.alkebulan-site .wishlist-badge,
+html.alkebulan-site .discount-badge-large,
+html.alkebulan-site .trending-badge-large {
+    border-radius: var(--alk-radius-xs);
+}
+
+html.alkebulan-site .filter-toggle,
+html.alkebulan-site .filter-option-btn,
+html.alkebulan-site .pagination button,
+html.alkebulan-site .sidebar-close,
+html.alkebulan-site .size-btn-product,
+html.alkebulan-site .qty-btn,
+html.alkebulan-site .product-actions-detail > button,
+html.alkebulan-site .promo-entry-row button,
+html.alkebulan-site .auth-btn,
+html.alkebulan-site .dashboard-nav-btn,
+html.alkebulan-site .contact-submit-btn,
+html.alkebulan-site #closeSearchModal,
+html.alkebulan-site .back-to-top {
+    transition: color .22s ease, background .22s ease, border-color .22s ease, box-shadow .3s ease, transform .22s var(--alk-ease);
+}
+
+@media (hover: hover) {
+    html.alkebulan-site .filter-toggle:hover,
+    html.alkebulan-site .pagination button:hover,
+    html.alkebulan-site .size-btn-product:hover,
+    html.alkebulan-site .product-actions-detail > button:hover,
+    html.alkebulan-site .promo-entry-row button:hover,
+    html.alkebulan-site .auth-btn:hover,
+    html.alkebulan-site .contact-submit-btn:hover {
+        box-shadow: 0 11px 24px rgba(17,17,15,.12);
+        transform: translateY(-2px);
+    }
+}
+
+html.alkebulan-site .filter-toggle:active,
+html.alkebulan-site .pagination button:active,
+html.alkebulan-site .size-btn-product:active,
+html.alkebulan-site .product-actions-detail > button:active,
+html.alkebulan-site .promo-entry-row button:active,
+html.alkebulan-site .auth-btn:active,
+html.alkebulan-site .contact-submit-btn:active,
+html.alkebulan-site .back-to-top:active {
+    box-shadow: none;
+    transform: translateY(0) scale(.975);
+}
+
 @media (max-width: 1180px) {
-    html.alkebulan-site .nav-container { grid-template-columns: minmax(200px, 1fr) auto minmax(190px, 1fr); gap: 22px; }
-    html.alkebulan-site .nav-links ul { gap: 20px; }
-    .nav-service-note { display: none; }
+    html.alkebulan-site .nav-container { grid-template-columns: minmax(185px, 1fr) auto minmax(170px, 1fr); gap: 20px; }
+    html.alkebulan-site .nav-links ul { gap: 18px; }
     html.alkebulan-site .product-grid,
     html.alkebulan-site .wishlist-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     html.alkebulan-site .search-results-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -888,12 +998,18 @@ body.search-is-open { overflow: hidden !important; }
     html.alkebulan-site body { padding-top: var(--alk-nav-height); }
     html.alkebulan-site #navbar.luxury-navbar,
     html.alkebulan-site #navbar.luxury-navbar.scrolled { height: var(--alk-nav-height); }
-    html.alkebulan-site .nav-container { grid-template-columns: 1fr auto; }
-    html.alkebulan-site .nav-links { display: none; }
-    html.alkebulan-site .hamburger { display: flex; }
-    html.alkebulan-site .nav-icons { grid-column: 2; }
+    html.alkebulan-site .nav-container { grid-template-columns: auto minmax(0, 1fr) auto; gap: clamp(10px, 1.8vw, 18px); }
+    html.alkebulan-site .nav-links { display: block !important; min-width: 0; justify-self: center; }
+    html.alkebulan-site .nav-links ul { gap: clamp(9px, 1.7vw, 17px); white-space: nowrap; }
+    html.alkebulan-site .nav-links a { padding-block: 26px; font-size: .54rem; letter-spacing: .065em; }
+    html.alkebulan-site .nav-links a::after { bottom: 18px; }
+    html.alkebulan-site .hamburger { display: none !important; }
+    html.alkebulan-site .nav-icons { grid-column: auto; gap: 4px; }
+    html.alkebulan-site .nav-icons a { width: 32px; }
     html.alkebulan-site .filter-toggle { display: inline-flex; }
     html.alkebulan-site .shop-toolbar { grid-template-columns: auto 1fr auto; }
+    html.alkebulan-site .section,
+    html.alkebulan-site .section:first-of-type { padding: clamp(72px, 8vw, 96px) 0 !important; }
 
     .luxury-home-hero .hero-layout { grid-template-columns: 1fr; }
     .luxury-home-hero .hero-copy { min-height: 680px; border-right: 0; border-bottom: 1px solid var(--alk-line); }
@@ -957,23 +1073,25 @@ body.search-is-open { overflow: hidden !important; }
     html.alkebulan-site .nav-container { width: min(100% - 36px, 1440px); }
     html.alkebulan-site .logo a { font-size: .8rem; letter-spacing: .14em; }
     html.alkebulan-site .logo .brand-mark { width: 26px; height: 26px; }
+    html.alkebulan-site .nav-links ul { gap: clamp(7px, 1.35vw, 11px); }
+    html.alkebulan-site .nav-links a { font-size: .49rem; letter-spacing: .045em; }
     html.alkebulan-site .nav-icons { gap: 8px; }
     html.alkebulan-site .nav-icons .wishlist-icon { display: none; }
 
     html.alkebulan-site .section,
-    html.alkebulan-site .section:first-of-type { padding-block: 78px; }
-    html.alkebulan-site .section-title { font-size: clamp(3rem, 12vw, 5.3rem); }
+    html.alkebulan-site .section:first-of-type { padding: 68px 0 !important; }
+    html.alkebulan-site .section-title { font-size: clamp(3rem, 12vw, 5.3rem) !important; }
     .section-heading-row { grid-template-columns: 1fr; }
     .section-heading-row .text-link { justify-self: start; }
 
-    .luxury-home-hero .hero-copy { min-height: 620px; padding: 64px 24px 38px; }
-    .luxury-home-hero .hero-kicker { margin-bottom: 64px; }
-    .luxury-home-hero .hero-title { font-size: clamp(4.5rem, 21vw, 7.8rem); }
-    .luxury-home-hero .hero-sub { margin-top: 42px; }
+    .luxury-home-hero .hero-copy { min-height: 0; padding: 56px 24px 34px; }
+    .luxury-home-hero .hero-kicker { margin-bottom: 46px; }
+    .luxury-home-hero .hero-title { font-size: clamp(4.5rem, 21vw, 7.8rem) !important; }
+    .luxury-home-hero .hero-sub { margin-top: 34px; }
     .luxury-home-hero .hero-buttons { display: grid; grid-template-columns: 1fr; }
     .luxury-home-hero .hero-buttons .btn { width: 100%; max-width: none; }
-    .luxury-home-hero .hero-meta { padding-top: 48px; }
-    .luxury-home-hero .hero-visual { min-height: 124vw; }
+    .luxury-home-hero .hero-meta { padding-top: 38px; }
+    .luxury-home-hero .hero-visual { min-height: 112vw; }
     .luxury-home-hero .hero-visual-label { right: 18px; bottom: 18px; left: 18px; }
     .luxury-home-hero .hero-monogram { top: 18px; right: 18px; width: 52px; height: 52px; }
 
@@ -989,10 +1107,10 @@ body.search-is-open { overflow: hidden !important; }
 
     html.alkebulan-site .product-grid,
     html.alkebulan-site .wishlist-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px 8px; }
-    html.alkebulan-site .product-actions { opacity: 1; transform: none; background: transparent; }
+    html.alkebulan-site .product-actions { right: 0; bottom: 0; left: 0; padding: 0; overflow: visible; background: transparent; border: 0; border-radius: 0; box-shadow: none; backdrop-filter: none; opacity: 1; transform: none; }
     html.alkebulan-site .product-actions .add-cart,
     html.alkebulan-site .product-actions .quick-view { display: none; }
-    html.alkebulan-site .product-actions .wishlist-btn { position: absolute; right: 8px; bottom: 8px; display: grid; width: 38px !important; height: 38px !important; place-items: center; background: rgba(251,250,247,.94); }
+    html.alkebulan-site .product-actions .wishlist-btn { position: absolute; right: 8px; bottom: 8px; display: grid; width: 38px !important; height: 38px !important; place-items: center; background: rgba(251,250,247,.94); border-radius: 50% !important; box-shadow: 0 7px 18px rgba(17,17,15,.1); }
     html.alkebulan-site .product-image .luxury-secondary-image { display: none; }
     html.alkebulan-site .product-info .product-name { font-size: .65rem; }
     .luxury-card-meta span:last-child { display: none; }
@@ -1085,8 +1203,15 @@ body.search-is-open { overflow: hidden !important; }
     .luxury-footer-top { min-height: 0; grid-template-columns: 1fr; gap: 34px; }
     .luxury-footer .footer-contact-link { grid-column: auto; }
     .luxury-footer-grid { grid-template-columns: 1fr 1fr; gap: 42px 24px; }
-    .luxury-footer-wordmark { font-size: 17vw; }
     .luxury-footer-bottom { align-items: flex-start; flex-direction: column; gap: 10px; }
+}
+
+@media (max-width: 720px) {
+    html.alkebulan-site .nav-container { grid-template-columns: 1fr auto; }
+    html.alkebulan-site .nav-links { display: none !important; }
+    html.alkebulan-site .hamburger { display: flex !important; }
+    html.alkebulan-site .nav-icons { grid-column: 2; }
+    html.alkebulan-site .mobile-menu { width: 100%; border-radius: 0; }
 }
 
 @media (max-width: 420px) {
@@ -1094,9 +1219,10 @@ body.search-is-open { overflow: hidden !important; }
     html.alkebulan-site .mobile-menu { padding-inline: 22px; }
     html.alkebulan-site .mobile-brand-lockup { left: 22px; }
     html.alkebulan-site .mobile-close { right: 22px; }
-    .luxury-home-hero .hero-title { font-size: clamp(4rem, 20vw, 5.4rem); }
-    .luxury-home-hero .hero-meta { grid-template-columns: 1fr; }
-    .luxury-home-hero .hero-meta span:last-child { text-align: left; }
+    .luxury-home-hero .hero-title { font-size: clamp(4rem, 20vw, 5.4rem) !important; }
+    .luxury-home-hero .hero-meta { grid-template-columns: 1fr 1fr; }
+    .luxury-home-hero .hero-meta span { text-align: left; }
+    .luxury-home-hero .hero-meta span:last-child { text-align: right; }
     html.alkebulan-site .product-grid,
     html.alkebulan-site .wishlist-grid { gap-inline: 6px; }
     html.alkebulan-site .product-info { padding-top: 10px; }
@@ -1116,6 +1242,11 @@ body.search-is-open { overflow: hidden !important; }
     html.alkebulan-site .dashboard-nav { grid-template-columns: 1fr; }
     html.alkebulan-site .search-result-copy strong { font-size: .72rem; }
     .luxury-footer-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 330px) {
+    .luxury-home-hero .hero-meta { grid-template-columns: 1fr; }
+    .luxury-home-hero .hero-meta span:last-child { text-align: left; }
 }
 
 @media (hover: none) {

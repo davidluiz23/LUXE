@@ -1434,7 +1434,15 @@ function addAdminLinkToList(listElement) {
 
   const link = document.createElement("a");
   link.href = "admin.html";
-  link.textContent = "Admin";
+  if (listElement.closest(".mobile-menu") && document.documentElement.classList.contains("alkebulan-site")) {
+    const number = document.createElement("small");
+    number.textContent = String(listElement.children.length + 1).padStart(2, "0");
+    const label = document.createElement("span");
+    label.textContent = "Admin";
+    link.append(number, label);
+  } else {
+    link.textContent = "Admin";
+  }
   link.setAttribute("aria-label", "Open LUXE Admin Console");
 
   item.appendChild(link);

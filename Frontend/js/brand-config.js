@@ -81,14 +81,14 @@
       const stylesheet = document.createElement("link");
       stylesheet.id = "alkebulanLuxuryStyles";
       stylesheet.rel = "stylesheet";
-      stylesheet.href = "css/luxury.css?v=20260825-1";
+      stylesheet.href = "css/luxury.css?v=20260825-2";
       document.head.appendChild(stylesheet);
     }
 
     if (!document.getElementById("alkebulanLuxuryUi")) {
       const script = document.createElement("script");
       script.id = "alkebulanLuxuryUi";
-      script.src = "js/luxury-ui.js?v=20260825-1";
+      script.src = "js/luxury-ui.js?v=20260825-2";
       script.async = false;
       document.body.appendChild(script);
     }

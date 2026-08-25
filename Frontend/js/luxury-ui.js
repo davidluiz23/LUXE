@@ -80,11 +80,6 @@
       return `<li><a href="${href}"${active ? ' class="active"' : ""}>${label}</a></li>`;
     }).join("");
 
-    const serviceNote = document.createElement("span");
-    serviceNote.className = "nav-service-note";
-    serviceNote.textContent = "Worldwide delivery";
-    navIcons.insertAdjacentElement("afterbegin", serviceNote);
-
     const iconLabels = [
       [".search-icon", "Search"],
       [".wishlist-icon", "Saved pieces"],
@@ -97,6 +92,7 @@
     });
 
     const hamburger = $("#hamburger", navIcons);
+    const mobileViewport = window.matchMedia("(max-width: 720px)");
     if (hamburger) {
       hamburger.setAttribute("role", "button");
       hamburger.setAttribute("tabindex", "0");
@@ -108,17 +104,48 @@
         hamburger.click();
       };
       hamburger.addEventListener("keydown", openWithKeyboard);
-      hamburger.addEventListener("click", () => hamburger.setAttribute("aria-expanded", "true"));
     }
 
     if (mobileMenu) {
       const mobileList = $("ul", mobileMenu);
       const mobileClose = $("#mobileClose", mobileMenu);
+      mobileMenu.setAttribute("role", "dialog");
+      mobileMenu.setAttribute("aria-modal", "true");
+      mobileMenu.setAttribute("aria-label", "Site navigation");
+
+      const closeMobileMenu = ({ restoreFocus = false } = {}) => {
+        mobileMenu.classList.remove("active");
+        document.body.classList.remove("mobile-nav-open");
+        hamburger?.classList.remove("is-active");
+        hamburger?.setAttribute("aria-expanded", "false");
+        mobileMenu.setAttribute("aria-hidden", "true");
+        if (restoreFocus && mobileViewport.matches) hamburger?.focus();
+      };
+
+      const syncMobileMenu = () => {
+        const isOpen = mobileMenu.classList.contains("active") && mobileViewport.matches;
+        if (!mobileViewport.matches && mobileMenu.classList.contains("active")) {
+          closeMobileMenu();
+          return;
+        }
+        document.body.classList.toggle("mobile-nav-open", isOpen);
+        hamburger?.classList.toggle("is-active", isOpen);
+        hamburger?.setAttribute("aria-expanded", String(isOpen));
+        mobileMenu.setAttribute("aria-hidden", String(!isOpen));
+      };
+
+      const menuObserver = new MutationObserver(syncMobileMenu);
+      menuObserver.observe(mobileMenu, { attributes: true, attributeFilter: ["class"] });
+      hamburger?.addEventListener("click", () => requestAnimationFrame(() => {
+        syncMobileMenu();
+        if (mobileMenu.classList.contains("active")) mobileClose?.focus();
+      }));
+
       if (mobileClose) {
         mobileClose.setAttribute("role", "button");
         mobileClose.setAttribute("tabindex", "0");
         mobileClose.setAttribute("aria-label", "Close menu");
-        mobileClose.addEventListener("click", () => hamburger?.setAttribute("aria-expanded", "false"));
+        mobileClose.addEventListener("click", () => requestAnimationFrame(() => closeMobileMenu({ restoreFocus: true })));
         mobileClose.addEventListener("keydown", (event) => {
           if (event.key === "Enter" || event.key === " ") mobileClose.click();
         });
@@ -134,8 +161,24 @@
           ["07", "Account", "dashboard.html"],
         ].map(([number, label, href]) => `<li><a href="${href}"><small>${number}</small><span>${label}</span></a></li>`).join("");
         mobileList.insertAdjacentHTML("beforebegin", `<div class="mobile-brand-lockup">${brandMark()}<span>ALKEBULAN</span></div>`);
-        mobileList.insertAdjacentHTML("afterend", `<div class="mobile-menu-meta"><span>Lagos / NG</span><span>Worldwide delivery</span></div>`);
+        mobileList.insertAdjacentHTML("afterend", `<div class="mobile-menu-meta"><span>Lagos / NG</span><a href="contact.html">Client services</a></div>`);
+        mobileList.addEventListener("click", (event) => {
+          if (event.target.closest("a")) closeMobileMenu();
+        });
       }
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && mobileMenu.classList.contains("active")) {
+          closeMobileMenu({ restoreFocus: true });
+        }
+      });
+      document.addEventListener("click", (event) => {
+        if (!mobileMenu.classList.contains("active")) return;
+        if (mobileMenu.contains(event.target) || hamburger?.contains(event.target)) return;
+        closeMobileMenu();
+      });
+      mobileViewport.addEventListener("change", syncMobileMenu);
+      syncMobileMenu();
     }
 
     const progress = document.createElement("span");
@@ -240,8 +283,29 @@
         <div><span class="footer-label">Client services</span><a href="shipping.html">Shipping</a><a href="returns.html">Returns</a><a href="faq.html">FAQ</a><a href="privacy.html">Privacy</a></div>
         <div class="footer-location"><span class="footer-label">Location</span><strong>Lagos, Nigeria</strong><a href="tel:+2348103463852">+234 810 346 3852</a><a href="mailto:hello@luxe.com">hello@luxe.com</a></div>
       </div>
-      <div class="container luxury-footer-wordmark" aria-hidden="true">ALKEBULAN</div>
       <div class="container luxury-footer-bottom"><span>© 2026 ALKEBULAN</span><span>Secure commerce / Worldwide delivery</span><a href="#top" class="no-page-transition">Back to top ↑</a></div>`;
+  }
+
+  function releaseStaleScrollLocks({ resetPanels = false } = {}) {
+    const searchModal = $(".header-search-modal");
+    const filterDrawer = $(".shop-sidebar");
+    const mobileMenu = $("#mobileMenu");
+
+    if (!searchModal || searchModal.hidden) document.body.classList.remove("search-is-open");
+    if (!filterDrawer?.classList.contains("active")) document.body.classList.remove("filters-open");
+    if (!mobileMenu?.classList.contains("active")) document.body.classList.remove("mobile-nav-open");
+
+    if (resetPanels) {
+      if (searchModal) searchModal.hidden = true;
+      filterDrawer?.classList.remove("active");
+      mobileMenu?.classList.remove("active");
+      document.body.classList.remove("search-is-open", "filters-open", "mobile-nav-open");
+      $("#filterToggle")?.setAttribute("aria-expanded", "false");
+      $("#hamburger")?.setAttribute("aria-expanded", "false");
+    }
+
+    document.documentElement.style.removeProperty("overflow");
+    document.body.style.removeProperty("overflow");
   }
 
   function addImageFallbacks() {
@@ -263,6 +327,7 @@
   async function init() {
     document.body.classList.add(`page-${page}`, "luxury-ready");
     document.body.id ||= "top";
+    releaseStaleScrollLocks();
     enhanceLoader();
     enhanceNavigation();
     enhanceHeadings();
@@ -282,6 +347,15 @@
     observer.observe(document.body, { childList: true, subtree: true });
 
     if (!reducedMotion) requestAnimationFrame(() => document.body.classList.add("luxury-entered"));
+
+    const desktopFilters = window.matchMedia("(min-width: 1021px)");
+    desktopFilters.addEventListener("change", (event) => {
+      if (event.matches) releaseStaleScrollLocks({ resetPanels: true });
+    });
+    window.addEventListener("pageshow", (event) => {
+      if (event.persisted) releaseStaleScrollLocks({ resetPanels: true });
+      else releaseStaleScrollLocks();
+    });
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true });
