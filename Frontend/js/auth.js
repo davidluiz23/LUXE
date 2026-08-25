@@ -112,6 +112,32 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const magicLinkButton = document.getElementById("sendMagicLinkBtn");
+  const googleSignInButton = document.getElementById("googleSignInBtn");
+
+  if (googleSignInButton) {
+    googleSignInButton.addEventListener("click", async () => {
+      if (!window.LuxeAuth || !window.LuxeAuth.isReady()) {
+        showAuthError("Account service is unavailable right now.");
+        return;
+      }
+
+      const label = googleSignInButton.querySelector("span");
+      googleSignInButton.disabled = true;
+      googleSignInButton.classList.add("is-loading");
+      if (label) label.textContent = "Connecting to Google...";
+
+      const { error } = await window.LuxeAuth.signInWithGoogle();
+
+      if (error) {
+        googleSignInButton.disabled = false;
+        googleSignInButton.classList.remove("is-loading");
+        if (label) label.textContent = "Continue with Google";
+        showAuthError(
+          error.message || "Google sign-in could not be started. Please try again.",
+        );
+      }
+    });
+  }
 
   if (magicLinkButton) {
     magicLinkButton.addEventListener("click", async (event) => {
@@ -293,9 +319,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (input.type === "password") {
         input.type = "text";
         icon.className = "fas fa-eye-slash";
+        button.setAttribute("aria-label", "Hide password");
       } else {
         input.type = "password";
         icon.className = "fas fa-eye";
+        button.setAttribute("aria-label", "Show password");
       }
     });
   });

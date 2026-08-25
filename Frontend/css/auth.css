@@ -116,6 +116,135 @@
     font-weight: 500;
 }
 
+/* Welcoming login entry points */
+.login-eyebrow,
+.login-image-kicker {
+    color: var(--accent);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.google-signin-btn {
+    width: 100%;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: #ffffff;
+    color: #171717;
+    border: 1px solid #d9d5cd;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.google-signin-btn:hover {
+    border-color: #171717;
+    box-shadow: 0 8px 22px rgba(17, 17, 15, 0.09);
+    transform: translateY(-1px);
+}
+
+.google-signin-btn:disabled {
+    cursor: wait;
+    opacity: 0.7;
+}
+
+.google-signin-btn svg {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+}
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 24px 0;
+    color: var(--gray-text);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: "";
+    height: 1px;
+    flex: 1;
+    background: var(--border-color);
+}
+
+.login-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.login-actions .auth-btn {
+    margin-top: 0;
+}
+
+.login-privacy-note {
+    margin-top: 18px;
+    color: var(--gray-text);
+    font-size: 0.75rem;
+    text-align: center;
+}
+
+.login-privacy-note i {
+    margin-right: 6px;
+}
+
+.login-image {
+    position: relative;
+    overflow: hidden;
+}
+
+.login-image-topline {
+    position: absolute;
+    top: 38px;
+    right: 40px;
+    left: 40px;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+}
+
+.login-image-status i {
+    width: 6px;
+    height: 6px;
+    display: inline-block;
+    margin-right: 7px;
+    background: #8fc7a6;
+    border-radius: 50%;
+}
+
+.login-benefits {
+    margin-top: 34px;
+    padding: 0;
+    list-style: none;
+}
+
+.login-benefits li {
+    padding: 13px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+    font-size: 0.82rem;
+}
+
+.login-benefits li span {
+    margin-right: 18px;
+    opacity: 0.55;
+    font-size: 0.68rem;
+}
+
 .remember-forgot {
     display: flex;
     justify-content: space-between;
@@ -301,6 +430,10 @@
     }
     .auth-form-wrapper h1 {
         font-size: 2rem;
+    }
+
+    .login-actions {
+        grid-template-columns: 1fr;
     }
 }
 

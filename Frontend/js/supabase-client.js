@@ -29,6 +29,30 @@ function pageUrl(relativePath) {
   return new URL(relativePath, window.location.href).toString();
 }
 
+function syncStorefrontSessionCache(user, profile = null) {
+  if (typeof window === "undefined") return;
+
+  if (!user) {
+    localStorage.removeItem("luxe_user");
+    localStorage.removeItem("luxe_logged_in");
+    return;
+  }
+
+  localStorage.setItem(
+    "luxe_user",
+    JSON.stringify({
+      id: user.id,
+      email: user.email || "",
+      fullName:
+        profile?.full_name ||
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        "",
+    }),
+  );
+  localStorage.setItem("luxe_logged_in", "true");
+}
+
 let supabaseClient = null;
 
 if (typeof window !== "undefined") {
@@ -161,6 +185,34 @@ const LuxeAuth = {
       return {
         data: null,
         error: { message: error?.message || "Unable to sign in." },
+      };
+    }
+  },
+
+  async signInWithGoogle() {
+    if (!supabaseClient) {
+      return {
+        data: null,
+        error: { message: "Account service is not configured." },
+      };
+    }
+
+    try {
+      return await supabaseClient.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: pageUrl("index.html"),
+          queryParams: {
+            access_type: "offline",
+            prompt: "select_account",
+          },
+        },
+      });
+    } catch (error) {
+      console.error("[ALKEBULAN] Google sign-in error:", error);
+      return {
+        data: null,
+        error: { message: error?.message || "Unable to start Google sign-in." },
       };
     }
   },
@@ -1708,6 +1760,7 @@ async function syncStorefrontNavigation() {
     const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
     const user = session?.user || null;
     if (sessionError || !user) {
+      syncStorefrontSessionCache(null);
       renderAccountControls(null, null);
       updateNavbarNotificationBadge(0, false);
       return;
@@ -1719,6 +1772,7 @@ async function syncStorefrontNavigation() {
       supabaseClient.rpc("current_admin_role"),
     ]);
 
+    syncStorefrontSessionCache(user, profileResult.data || null);
     renderAccountControls(user, profileResult.data || null);
     updateNavbarNotificationBadge(notificationResult.data, true);
     if (!roleResult.error && ["owner", "admin"].includes(roleResult.data)) {
