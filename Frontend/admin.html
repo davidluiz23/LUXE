@@ -12,7 +12,7 @@
 
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/admin.css?v=20260825-3">
+    <link rel="stylesheet" href="css/admin.css?v=20260825-5">
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -102,6 +102,11 @@
                     <button type="button" class="admin-nav-btn" data-panel="ordersPanel" id="ordersNavBtn">
                         <i class="fas fa-receipt"></i> Orders
                         <span class="admin-nav-badge" id="adminOrderBadge" hidden>0</span>
+                    </button>
+
+                    <button type="button" class="admin-nav-btn" data-panel="presencePanel" id="presenceNavBtn">
+                        <i class="fas fa-signal"></i> Live Visitors
+                        <span class="admin-nav-badge admin-live-badge" id="onlineVisitorBadge" hidden>0</span>
                     </button>
 
                     <button class="admin-nav-btn" data-panel="updatesPanel">
@@ -208,6 +213,42 @@
                         </div>
                     </div>
 
+                    <div class="admin-panel" id="presencePanel">
+                        <div class="admin-panel-card">
+                            <div class="admin-panel-header">
+                                <div>
+                                    <p class="admin-live-kicker"><span class="admin-live-dot" aria-hidden="true"></span> Storefront activity</p>
+                                    <h2>Live Visitors</h2>
+                                    <p>See who is active now without collecting IP addresses or device fingerprints.</p>
+                                </div>
+                                <button type="button" class="btn btn-outline admin-presence-refresh" id="refreshPresenceBtn">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                            </div>
+
+                            <div class="admin-presence-stats" aria-label="Live visitor totals">
+                                <article class="admin-live-stat">
+                                    <span>Online now</span>
+                                    <strong id="onlineVisitorCount">0</strong>
+                                </article>
+                                <article class="admin-live-stat">
+                                    <span>Signed in</span>
+                                    <strong id="onlineCustomerCount">0</strong>
+                                </article>
+                                <article class="admin-live-stat">
+                                    <span>Guests</span>
+                                    <strong id="onlineGuestCount">0</strong>
+                                </article>
+                            </div>
+
+                            <div class="admin-live-list" id="onlineVisitorsList" aria-live="polite"></div>
+                            <div class="admin-empty-state admin-live-empty" id="onlineVisitorsEmpty" style="display:none;">
+                                <i class="fas fa-store"></i>
+                                <p>No one is browsing the storefront right now.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="admin-panel" id="updatesPanel">
                         <div class="admin-panel-card">
                             <div class="admin-panel-header">
@@ -306,8 +347,8 @@
 
                             <div class="admin-table-wrap">
                                 <table class="admin-table" id="customersTable">
-                                    <thead><tr><th scope="col">Customer</th><th scope="col">Status</th><th scope="col">WhatsApp</th><th scope="col">Orders</th><th scope="col">Spent</th><th scope="col">Updates</th><th scope="col">Actions</th></tr></thead>
-                                    <tbody id="customersTableBody"><tr><td colspan="7">Open this section to load customers.</td></tr></tbody>
+                                    <thead><tr><th scope="col">Customer</th><th scope="col">Account</th><th scope="col">Online status</th><th scope="col">WhatsApp</th><th scope="col">Orders</th><th scope="col">Spent</th><th scope="col">Updates</th><th scope="col">Actions</th></tr></thead>
+                                    <tbody id="customersTableBody"><tr><td colspan="8">Open this section to load customers.</td></tr></tbody>
                                 </table>
                             </div>
 
@@ -618,10 +659,10 @@
     <script src="js/brand-config.js"></script>
     <script src="js/icons.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
-    <script src="js/supabase-client.js?v=20260825-2"></script>
+    <script src="js/supabase-client.js?v=20260825-3"></script>
     <script src="js/products.js?v=20260825-2"></script>
     <script src="js/animation.js"></script>
     <script src="js/app.js?v=20260825-3"></script>
-    <script src="js/admin.js?v=20260825-2"></script>
+    <script src="js/admin.js?v=20260825-4"></script>
 </body>
 </html>

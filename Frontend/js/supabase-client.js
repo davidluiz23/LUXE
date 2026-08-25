@@ -1014,6 +1014,81 @@ const LuxeAdmins = {
   },
 };
 
+const LuxePresence = {
+  _storageKey: "alkebulan_presence_session_id",
+  _heartbeatTimer: null,
+  _listenersBound: false,
+
+  getSessionId() {
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    try {
+      const stored = window.localStorage.getItem(this._storageKey);
+      if (stored && uuidPattern.test(stored)) return stored;
+
+      const sessionId = window.crypto?.randomUUID
+        ? window.crypto.randomUUID()
+        : "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (character) =>
+            (Number(character) ^ (window.crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (Number(character) / 4)))).toString(16),
+          );
+      window.localStorage.setItem(this._storageKey, sessionId);
+      return sessionId;
+    } catch (_error) {
+      return null;
+    }
+  },
+
+  currentPath() {
+    const path = String(window.location?.pathname || "/").slice(0, 160);
+    return path || "/";
+  },
+
+  async touch() {
+    if (!supabaseClient) return { data: null, error: { message: "Backend not configured." } };
+    const sessionId = this.getSessionId();
+    if (!sessionId) return { data: null, error: { message: "Browser storage is unavailable." } };
+
+    try {
+      const { data, error } = await supabaseClient.rpc("touch_visitor_presence", {
+        p_session_id: sessionId,
+        p_current_path: this.currentPath(),
+      });
+      return { data, error };
+    } catch (error) {
+      return { data: null, error: { message: error?.message || "Unable to update visitor presence." } };
+    }
+  },
+
+  async getOnline(limit = 100) {
+    if (!supabaseClient) return { data: [], error: { message: "Backend not configured." } };
+    try {
+      const { data, error } = await supabaseClient.rpc("admin_list_online_visitors", {
+        p_limit: Math.min(Math.max(Number(limit) || 100, 1), 200),
+      });
+      return { data: data || [], error };
+    } catch (error) {
+      return { data: [], error: { message: error?.message || "Unable to load live visitors." } };
+    }
+  },
+
+  start() {
+    if (!supabaseClient || this._heartbeatTimer) return;
+    if (/\/admin(?:\.html)?\/?$/i.test(window.location?.pathname || "")) return;
+
+    const heartbeat = () => {
+      if (document.visibilityState !== "hidden") this.touch().catch(() => null);
+    };
+
+    heartbeat();
+    this._heartbeatTimer = window.setInterval(heartbeat, 45000);
+
+    if (!this._listenersBound) {
+      document.addEventListener("visibilitychange", heartbeat);
+      window.addEventListener("pageshow", heartbeat);
+      this._listenersBound = true;
+    }
+  },
+};
+
 const LuxeCustomers = {
   async getAll(search = "", limit = 100) {
     if (!supabaseClient) return { data: [], error: { message: "Backend not configured." } };
@@ -1814,6 +1889,7 @@ if (typeof window !== "undefined") {
   window.LuxePush = LuxePush;
   window.LuxePayments = LuxePayments;
   window.LuxeAdmins = LuxeAdmins;
+  window.LuxePresence = LuxePresence;
   window.LuxeCustomers = LuxeCustomers;
   window.LuxePromotions = LuxePromotions;
   window.LuxeStorage = LuxeStorage;
@@ -1827,4 +1903,5 @@ if (typeof window !== "undefined") {
   window.updateNavbarNotificationBadge = updateNavbarNotificationBadge;
 
   initializeStorefrontUiIntegration();
+  LuxePresence.start();
 }

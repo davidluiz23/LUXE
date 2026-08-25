@@ -79,6 +79,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       window.LuxeOrders.markAllAdminSeen().then(() => updateAdminOrderBadge(0));
       loadOrders();
     }
+    if (panelId === "presencePanel") {
+      loadOnlineVisitors({ render: true });
+    }
     if (panelId === "customersPanel") {
       loadCustomers();
       loadAdminActivity();
@@ -371,7 +374,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   const adminOrderSearchStatus = document.getElementById("adminOrderSearchStatus");
   const clearAdminOrderSearch = document.getElementById("clearAdminOrderSearch");
   const adminPushToggle = document.getElementById("adminPushToggle");
+  const onlineVisitorBadge = document.getElementById("onlineVisitorBadge");
+  const onlineVisitorsList = document.getElementById("onlineVisitorsList");
+  const onlineVisitorsEmpty = document.getElementById("onlineVisitorsEmpty");
+  const refreshPresenceBtn = document.getElementById("refreshPresenceBtn");
   let activeOrderSearch = "";
+  let presenceLoading = false;
+  let onlineCustomerIds = new Set();
+  let customerPresenceAvailable = true;
 
   function updateAdminOrderBadge(count) {
     const badge = document.getElementById("adminOrderBadge");
@@ -593,6 +603,133 @@ document.addEventListener("DOMContentLoaded", async () => {
   adminOrderSearchInput?.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && adminOrderSearchInput.value) clearAdminOrderSearch?.click();
   });
+
+  function visitorPageLabel(pathValue) {
+    const pathname = String(pathValue || "/").split(/[?#]/)[0];
+    const filename = pathname.split("/").filter(Boolean).pop() || "index.html";
+    const page = filename.replace(/\.html$/i, "").toLowerCase();
+    const labels = {
+      index: "Home",
+      shop: "Shop",
+      men: "Menswear",
+      women: "Womenswear",
+      product: "Product details",
+      wishlist: "Wishlist",
+      cart: "Shopping bag",
+      checkout: "Checkout",
+      dashboard: "Customer account",
+      login: "Sign in",
+      signup: "Create account",
+      about: "Our story",
+      contact: "Contact",
+      shipping: "Shipping",
+      returns: "Returns",
+      faq: "FAQ",
+    };
+    return labels[page] || page.replace(/[-_]+/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+  }
+
+  function visitorRecency(timestamp) {
+    const seconds = Math.max(0, Math.floor((Date.now() - new Date(timestamp).getTime()) / 1000));
+    if (!Number.isFinite(seconds) || seconds < 15) return "Active now";
+    if (seconds < 60) return `${seconds}s ago`;
+    return `${Math.max(1, Math.floor(seconds / 60))}m ago`;
+  }
+
+  function visitorSessionLength(startedAt) {
+    const minutes = Math.max(0, Math.floor((Date.now() - new Date(startedAt).getTime()) / 60000));
+    if (!Number.isFinite(minutes) || minutes < 1) return "Just arrived";
+    if (minutes < 60) return `${minutes} min session`;
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours}h${remainingMinutes ? ` ${remainingMinutes}m` : ""} session`;
+  }
+
+  function renderOnlineVisitors(visitors) {
+    const signedIn = visitors.filter((visitor) => visitor.is_authenticated).length;
+    setText("onlineVisitorCount", visitors.length);
+    setText("onlineCustomerCount", signedIn);
+    setText("onlineGuestCount", visitors.length - signedIn);
+
+    if (onlineVisitorBadge) {
+      onlineVisitorBadge.textContent = visitors.length > 99 ? "99+" : String(visitors.length);
+      onlineVisitorBadge.hidden = visitors.length < 1;
+    }
+
+    if (!onlineVisitorsList || !onlineVisitorsEmpty) return;
+    onlineVisitorsEmpty.style.display = visitors.length ? "none" : "block";
+    if (!visitors.length) {
+      onlineVisitorsList.innerHTML = "";
+      return;
+    }
+
+    onlineVisitorsList.innerHTML = visitors.map((visitor) => {
+      const isCustomer = !!visitor.is_authenticated;
+      const displayName = isCustomer
+        ? (visitor.full_name || visitor.email?.split("@")[0] || "Signed-in customer")
+        : "Guest visitor";
+      const identity = isCustomer ? (visitor.email || "Customer account") : "Browsing anonymously";
+      const initials = String(displayName).split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "G";
+      return `<article class="admin-live-visitor">
+        <div class="admin-live-avatar ${isCustomer ? "is-customer" : ""}" aria-hidden="true">${escapeAdminHtml(initials)}<span class="admin-live-dot"></span></div>
+        <div class="admin-live-identity">
+          <strong>${escapeAdminHtml(displayName)}</strong>
+          <span>${escapeAdminHtml(identity)}</span>
+        </div>
+        <div class="admin-live-page">
+          <span>Viewing</span>
+          <strong>${escapeAdminHtml(visitorPageLabel(visitor.current_path))}</strong>
+        </div>
+        <div class="admin-live-time">
+          <strong>${escapeAdminHtml(visitorRecency(visitor.last_seen_at))}</strong>
+          <span>${escapeAdminHtml(visitorSessionLength(visitor.started_at))}</span>
+        </div>
+      </article>`;
+    }).join("");
+  }
+
+  async function loadOnlineVisitors({ render = true, notifyOnError = false } = {}) {
+    if (presenceLoading || !window.LuxePresence) return;
+    presenceLoading = true;
+    refreshPresenceBtn?.classList.add("is-loading");
+    if (refreshPresenceBtn) refreshPresenceBtn.disabled = true;
+
+    const { data: visitors, error } = await window.LuxePresence.getOnline(200);
+    presenceLoading = false;
+    refreshPresenceBtn?.classList.remove("is-loading");
+    if (refreshPresenceBtn) refreshPresenceBtn.disabled = false;
+    const shouldRender = render || document.getElementById("presencePanel")?.classList.contains("active");
+
+    if (error) {
+      customerPresenceAvailable = false;
+      if (document.getElementById("customersPanel")?.classList.contains("active") && customerRows.length) {
+        renderCustomers();
+      }
+      if (onlineVisitorBadge) onlineVisitorBadge.hidden = true;
+      if (shouldRender && onlineVisitorsList && onlineVisitorsEmpty) {
+        setText("onlineVisitorCount", "\u2014");
+        setText("onlineCustomerCount", "\u2014");
+        setText("onlineGuestCount", "\u2014");
+        onlineVisitorsEmpty.style.display = "none";
+        onlineVisitorsList.innerHTML = `<div class="admin-live-error"><i class="fas fa-plug"></i><div><strong>Live presence is not connected yet.</strong><span>Apply the latest Supabase migration, then refresh this panel.</span></div></div>`;
+      }
+      if (notifyOnError) showToast(error.message || "Could not load live visitors", true);
+      return;
+    }
+
+    onlineCustomerIds = new Set((visitors || []).filter((visitor) => visitor.is_authenticated && visitor.user_id).map((visitor) => visitor.user_id));
+    customerPresenceAvailable = true;
+    if (document.getElementById("customersPanel")?.classList.contains("active") && customerRows.length) {
+      renderCustomers();
+    }
+    if (shouldRender) renderOnlineVisitors(visitors || []);
+    else if (onlineVisitorBadge) {
+      onlineVisitorBadge.textContent = visitors.length > 99 ? "99+" : String(visitors.length);
+      onlineVisitorBadge.hidden = visitors.length < 1;
+    }
+  }
+
+  refreshPresenceBtn?.addEventListener("click", () => loadOnlineVisitors({ render: true, notifyOnError: true }));
 
   async function refreshAdminPushControl() {
     if (!adminPushToggle || !window.LuxePush) return;
@@ -1138,12 +1275,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function loadCustomers() {
     if (!customersTableBody || !window.LuxeCustomers) return;
     const generation = ++customerLoadGeneration;
-    customersTableBody.innerHTML = '<tr><td colspan="7">Loading customers...</td></tr>';
+    customersTableBody.innerHTML = '<tr><td colspan="8">Loading customers...</td></tr>';
     const search = getValue("customerSearch");
-    const { data, error } = await window.LuxeCustomers.getAll(search, 100);
+    const [customerResult, presenceResult] = await Promise.all([
+      window.LuxeCustomers.getAll(search, 100),
+      window.LuxePresence?.getOnline(200) || Promise.resolve({ data: [], error: { message: "Presence unavailable" } }),
+    ]);
     if (generation !== customerLoadGeneration) return;
+    const { data, error } = customerResult;
+    if (!presenceResult.error) {
+      onlineCustomerIds = new Set((presenceResult.data || []).filter((visitor) => visitor.is_authenticated && visitor.user_id).map((visitor) => visitor.user_id));
+      customerPresenceAvailable = true;
+    } else {
+      customerPresenceAvailable = false;
+    }
     if (error) {
-      customersTableBody.innerHTML = '<tr><td colspan="7">Customers could not be loaded.</td></tr>';
+      customersTableBody.innerHTML = '<tr><td colspan="8">Customers could not be loaded.</td></tr>';
       showToast(error.message || "Failed to load customers", true);
       return;
     }
@@ -1154,7 +1301,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   function renderCustomers() {
     if (!customersTableBody) return;
     if (!customerRows.length) {
-      customersTableBody.innerHTML = '<tr><td colspan="7">No matching customer accounts.</td></tr>';
+      customersTableBody.innerHTML = '<tr><td colspan="8">No matching customer accounts.</td></tr>';
       return;
     }
     customersTableBody.innerHTML = customerRows.map((customer) => {
@@ -1163,10 +1310,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         ? new Date(customer.last_order_at).toLocaleDateString()
         : "No orders";
       const accountStatus = customer.account_status === "suspended" ? "suspended" : "active";
+      const isOnline = onlineCustomerIds.has(customer.user_id);
+      const presenceStatus = customerPresenceAvailable ? (isOnline ? "online" : "offline") : "unknown";
+      const presenceLabel = customerPresenceAvailable ? (isOnline ? "Online now" : "Offline") : "Unavailable";
       const paymentMethods = (customer.payment_methods || []).filter(Boolean).join(", ") || "No payment method";
       return `<tr>
         <td><strong>${escapeAdminHtml(name)}</strong><br><span>${escapeAdminHtml(customer.email || "No email")}</span></td>
         <td><span class="admin-account-status ${accountStatus}">${accountStatus}</span></td>
+        <td><span class="admin-customer-presence ${presenceStatus}"><span aria-hidden="true"></span>${presenceLabel}</span></td>
         <td>${escapeAdminHtml(customer.whatsapp_phone || "Not verified")}</td>
         <td>${Number(customer.order_count || 0)}<br><span>${escapeAdminHtml(lastOrder)} · ${escapeAdminHtml(paymentMethods)}</span></td>
         <td>$${Number(customer.total_spent || 0).toFixed(2)}</td>
@@ -1270,6 +1421,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const logins = detail.loginHistory || [];
     const actions = detail.adminActivity || [];
     const suspended = customer.accountStatus === "suspended";
+    const isOnline = onlineCustomerIds.has(customer.userId || customer.user_id || customer.id);
+    const presenceStatus = customerPresenceAvailable ? (isOnline ? "online" : "offline") : "unknown";
+    const presenceLabel = customerPresenceAvailable ? (isOnline ? "Online now" : "Offline") : "Unavailable";
     setText("customerDetailTitle", customer.fullName || "Unnamed customer");
     setText("customerDetailSubtitle", `${customer.email || "No email"} · Joined ${new Date(customer.joinedAt).toLocaleDateString()}`);
 
@@ -1326,6 +1480,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     customerDetailContent.innerHTML = `
       <div class="admin-detail-stats">
         <div class="admin-detail-stat"><span>Account</span><strong><span class="admin-account-status ${suspended ? "suspended" : "active"}">${suspended ? "suspended" : "active"}</span></strong></div>
+        <div class="admin-detail-stat"><span>Presence</span><strong><span class="admin-customer-presence ${presenceStatus}"><span aria-hidden="true"></span>${presenceLabel}</span></strong></div>
         <div class="admin-detail-stat"><span>Orders</span><strong>${Number(customer.orderCount || 0)}</strong></div>
         <div class="admin-detail-stat"><span>Recorded spend</span><strong>$${Number(customer.totalSpent || 0).toFixed(2)}</strong></div>
         <div class="admin-detail-stat"><span>Last sign-in</span><strong>${customer.lastSignInAt ? new Date(customer.lastSignInAt).toLocaleString() : "Never"}</strong></div>
@@ -1767,6 +1922,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (adminOrderSearchInput) adminOrderSearchInput.value = initialOrder;
     }
     if (initialPanel === "orders" || initialOrder) activatePanel("ordersPanel");
+    else if (initialPanel === "presence") activatePanel("presencePanel");
+    else loadOnlineVisitors({ render: false });
   }
 
   // Lightweight polling keeps the red order indicator useful without
@@ -1774,6 +1931,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   window.setInterval(() => {
     if (currentAdminRole && document.visibilityState === "visible") refreshOrderBadge();
   }, 30000);
+
+  window.setInterval(() => {
+    if (!currentAdminRole || document.visibilityState !== "visible") return;
+    const shouldRender = document.getElementById("presencePanel")?.classList.contains("active");
+    loadOnlineVisitors({ render: shouldRender });
+  }, 20000);
 
   window.setInterval(async () => {
     if (!currentAdminRole || document.visibilityState !== "visible") return;
@@ -1785,6 +1948,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!currentAdminRole || document.visibilityState !== "visible") return;
     await window.LuxeAdmins.touchPresence();
     if (currentAdminRole === "owner") await loadTeam();
+    const shouldRender = document.getElementById("presencePanel")?.classList.contains("active");
+    loadOnlineVisitors({ render: shouldRender });
   });
 });
 
