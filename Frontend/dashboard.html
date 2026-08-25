@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Account | LUXE Premium Clothing</title>
+    <title>My Account | ALKEBULAN Premium Clothing</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -12,7 +12,7 @@
     />
     <link rel="stylesheet" href="css/variables.css" />
     <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/dashboard.css" />
+    <link rel="stylesheet" href="css/dashboard.css?v=20260825-1" />
     <link rel="stylesheet" href="css/responsive.css" />
     <link
       rel="stylesheet"
@@ -25,7 +25,7 @@
     <header id="navbar">
       <div class="container nav-container">
         <div class="logo">
-          <a href="index.html"><span>LUXE</span></a>
+          <a href="index.html"><span>ALKEBULAN</span></a>
         </div>
         <nav class="nav-links" id="navLinks">
           <ul>
@@ -171,6 +171,14 @@
                   <input type="checkbox" id="whatsappUpdatesPreference">
                   <span><strong>WhatsApp updates</strong><small>A verified WhatsApp number is required.</small></span>
                 </label>
+                <div class="communication-option browser-push-option">
+                  <i class="fas fa-bell" aria-hidden="true"></i>
+                  <span>
+                    <strong>Browser push alerts</strong>
+                    <small id="browserPushStatus">Checking this browser…</small>
+                  </span>
+                  <button type="button" class="dashboard-push-btn" id="browserPushToggle">Enable</button>
+                </div>
                 <button type="submit" class="btn btn-outline">Save Preferences</button>
                 <p class="communication-preferences-status" id="communicationPreferencesStatus" role="status"></p>
               </form>
@@ -205,7 +213,7 @@
     <footer>
       <div class="container footer-grid">
         <div class="footer-col">
-          <h3>LUXE</h3>
+          <h3>ALKEBULAN</h3>
           <p>Premium clothing for the discerning.</p>
           <div class="social-icons">
             <a href="#"><i class="fab fa-instagram"></i></a>
@@ -233,11 +241,11 @@
           <h4>Contact</h4>
           <p><i class="fas fa-map-marker-alt"></i> Lagos, Nigeria</p>
           <p><i class="fas fa-phone"></i> +234 810 346 3852</p>
-          <p><i class="fas fa-envelope"></i> hello@luxe.com</p>
+          <p><i class="fas fa-envelope"></i> hello@alkebulan.com</p>
         </div>
       </div>
       <div class="footer-bottom">
-        <p>&copy; 2026 LUXE. All rights reserved.</p>
+        <p>&copy; 2026 ALKEBULAN. All rights reserved.</p>
       </div>
     </footer>
 
@@ -248,13 +256,13 @@
     <script src="js/brand-config.js"></script>
     <script src="js/icons.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
-    <script src="js/supabase-client.js?v=20260823-4"></script>
+    <script src="js/supabase-client.js?v=20260825-1"></script>
     <script src="js/updates-banner.js"></script>
     <script src="js/cart.js"></script>
     <script src="js/wishlist.js"></script>
     <script src="js/search.js"></script>
     <script src="js/animation.js"></script>
     <script src="js/app.js"></script>
-    <script src="js/dashboard.js"></script>
+    <script src="js/dashboard.js?v=20260825-1"></script>
   </body>
 </html>

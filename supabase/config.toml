@@ -393,6 +393,9 @@ verify_jwt = true
 [functions.admin-messaging]
 verify_jwt = true
 
+[functions.push-notifications]
+verify_jwt = true
+
 [functions.account-administration]
 verify_jwt = true
 

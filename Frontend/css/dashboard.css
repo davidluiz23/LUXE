@@ -326,6 +326,12 @@
 .communication-option strong { font-size: .82rem; }
 .communication-option small { margin-top: 3px; color: var(--gray-text); font-size: .72rem; line-height: 1.4; }
 .communication-option:has(input:disabled) { opacity: .55; cursor: not-allowed; }
+.browser-push-option { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; cursor: default; }
+.browser-push-option > i { color: var(--gray-text); font-size: .85rem; }
+.dashboard-push-btn { min-height: 36px; padding: 8px 13px; border: 1px solid var(--primary); border-radius: 8px; background: var(--primary); color: var(--secondary); font: inherit; font-size: .7rem; font-weight: 600; cursor: pointer; transition: transform .2s ease, background .2s ease, color .2s ease, border-color .2s ease; }
+.dashboard-push-btn:hover:not(:disabled) { transform: translateY(-1px); }
+.dashboard-push-btn.is-enabled { border-color: #1E7D49; background: rgba(30, 125, 73, .08); color: #1E7D49; }
+.dashboard-push-btn:disabled { opacity: .55; cursor: not-allowed; }
 .communication-preferences-status { min-height: 20px; margin-top: 9px; color: #1E7D49; font-size: .76rem; }
 .communication-preferences-status.is-error { color: #C0392B; }
 
@@ -503,6 +509,7 @@
 }
 .order-card-footer span { color: var(--gray-text); font-size: .8rem; font-weight: 400; }
 .order-card-footer a { color: #8B6C12; }
+.order-card.is-focused-order { border-color: #B58B16; box-shadow: 0 12px 34px rgba(181, 139, 22, .18); }
 
 .notification-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 25px; }
 .notification-panel-heading h1 { margin-bottom: 0; }
@@ -557,4 +564,6 @@
     .order-card-header, .order-card-body, .order-card-footer { padding-left: 13px; padding-right: 13px; }
     .notification-panel-heading { align-items: flex-start; }
     .notification-mark-all { white-space: nowrap; }
+    .browser-push-option { grid-template-columns: auto minmax(0, 1fr); }
+    .browser-push-option .dashboard-push-btn { grid-column: 2; justify-self: start; }
 }

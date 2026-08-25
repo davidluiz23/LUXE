@@ -19,7 +19,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Initialize event listeners
   setupFilterListeners();
 
-  const requestedCategory = new URLSearchParams(window.location.search).get("category");
+  const pageParams = new URLSearchParams(window.location.search);
+  const requestedCategory = pageParams.get("category");
   if (requestedCategory) {
     const requestedFilter = Array.from(document.querySelectorAll(".category-filter"))
       .find((filter) => filter.dataset.category === requestedCategory.toLowerCase());
@@ -87,8 +88,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Reset price
         if (priceRange) {
-          priceRange.value = 1000;
-          if (priceValue) priceValue.textContent = "$1000";
+          priceRange.value = 6000;
+          if (priceValue) priceValue.textContent = "$6000";
         }
 
         // Reset color
@@ -107,17 +108,44 @@ document.addEventListener("DOMContentLoaded", async () => {
     const shopSidebar = document.getElementById("shopSidebar");
     const sidebarClose = document.getElementById("sidebarClose");
 
+    const closeFilterDrawer = () => {
+      if (!shopSidebar) return;
+      shopSidebar.classList.remove("active");
+      document.body.classList.remove("filters-open");
+      if (filterToggle) filterToggle.setAttribute("aria-expanded", "false");
+    };
+
     if (filterToggle && shopSidebar) {
       filterToggle.addEventListener("click", () => {
         shopSidebar.classList.add("active");
+        document.body.classList.add("filters-open");
+        filterToggle.setAttribute("aria-expanded", "true");
+        sidebarClose?.focus();
       });
     }
 
     if (sidebarClose && shopSidebar) {
-      sidebarClose.addEventListener("click", () => {
-        shopSidebar.classList.remove("active");
-      });
+      sidebarClose.addEventListener("click", closeFilterDrawer);
     }
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && shopSidebar?.classList.contains("active")) {
+        closeFilterDrawer();
+        filterToggle?.focus();
+      }
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!shopSidebar?.classList.contains("active")) return;
+      if (shopSidebar.contains(event.target) || filterToggle?.contains(event.target)) return;
+      closeFilterDrawer();
+    });
+  }
+
+  const requestedSort = pageParams.get("sort");
+  const sortSelect = document.getElementById("sortBy");
+  if (sortSelect && Array.from(sortSelect.options).some((option) => option.value === requestedSort)) {
+    sortSelect.value = requestedSort;
   }
 
   // Apply all filters
@@ -139,7 +167,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Price filter
     const priceInput = document.getElementById("priceRange");
-    const maxPrice = priceInput ? parseInt(priceInput.value) : 1000;
+    const maxPrice = priceInput ? parseInt(priceInput.value) : 6000;
     results = results.filter((p) => p.price <= maxPrice);
 
     // Color filter

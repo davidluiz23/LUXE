@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>Admin | LUXE</title>
+    <title>Admin | ALKEBULAN</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,7 +12,7 @@
 
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/admin.css?v=20260823-3">
+    <link rel="stylesheet" href="css/admin.css?v=20260825-1">
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -22,7 +22,7 @@
 
     <header id="navbar">
         <div class="container nav-container">
-            <div class="logo"><a href="index.html"><span>LUXE</span></a></div>
+            <div class="logo"><a href="index.html"><span>ALKEBULAN</span></a></div>
 
             <nav class="nav-links" id="navLinks">
                 <ul>
@@ -53,7 +53,7 @@
             <div class="admin-gate" id="adminLoginGate">
                 <i class="fas fa-lock"></i>
                 <h2>Admin Sign In</h2>
-                <p>Sign in with an account authorized for the LUXE management console.</p>
+                <p>Sign in with an account authorized for the ALKEBULAN management console.</p>
 
                 <div class="admin-error" id="adminLoginError"></div>
 
@@ -79,7 +79,7 @@
             <div class="admin-gate" id="adminDeniedGate" style="display:none;">
                 <i class="fas fa-ban" style="color:#C0392B;"></i>
                 <h2>Not Authorized</h2>
-                <p>This account is signed in but does not have permission to use the LUXE management console.</p>
+                <p>This account is signed in but does not have permission to use the ALKEBULAN management console.</p>
                 <button class="btn btn-outline" style="background:#111;color:#fff;" id="adminDeniedSignOut">Sign Out</button>
             </div>
 
@@ -181,14 +181,29 @@
                                     <h2>Orders</h2>
                                     <p id="adminOrderCount">Loading customer orders…</p>
                                 </div>
-                                <button type="button" class="btn btn-outline" id="refreshOrdersBtn" style="background:#111;color:#fff;padding:10px 18px;font-size:.82rem;">
-                                    <i class="fas fa-sync-alt"></i> Refresh
-                                </button>
+                                <div class="admin-order-header-actions">
+                                    <button type="button" class="btn btn-outline admin-push-toggle" id="adminPushToggle">
+                                        <i class="fas fa-bell"></i> <span>Push alerts</span>
+                                    </button>
+                                    <button type="button" class="btn btn-outline" id="refreshOrdersBtn" style="background:#111;color:#fff;padding:10px 18px;font-size:.82rem;">
+                                        <i class="fas fa-sync-alt"></i> Refresh
+                                    </button>
+                                </div>
                             </div>
+                            <form class="admin-order-search" id="adminOrderSearchForm" role="search">
+                                <label class="sr-only" for="adminOrderSearchInput">Search customer orders</label>
+                                <div class="admin-order-search-field">
+                                    <i class="fas fa-search" aria-hidden="true"></i>
+                                    <input type="search" id="adminOrderSearchInput" maxlength="120" autocomplete="off" placeholder="Order ref, payment ref, ALK-0001, product or customer">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Find order</button>
+                                <button type="button" class="btn btn-outline" id="clearAdminOrderSearch" hidden>Clear</button>
+                                <p class="admin-order-search-status" id="adminOrderSearchStatus" role="status" aria-live="polite"></p>
+                            </form>
                             <div class="admin-orders-list" id="adminOrdersList"></div>
                             <div class="admin-empty-state" id="adminOrdersEmpty" style="display:none;">
                                 <i class="fas fa-receipt"></i>
-                                <p>No customer orders yet.</p>
+                                <p id="adminOrdersEmptyMessage">No customer orders yet.</p>
                             </div>
                         </div>
                     </div>
@@ -232,7 +247,7 @@
                             <div class="admin-panel-header">
                                 <div>
                                     <h2>Team Management</h2>
-                                    <p>Master-owner only. Add existing LUXE accounts as admins or remove admins from the console. The master owner is permanently protected.</p>
+                                    <p>Master-owner only. Add existing ALKEBULAN accounts as admins or remove admins from the console. The master owner is permanently protected.</p>
                                 </div>
                             </div>
 
@@ -246,9 +261,9 @@
 
                             <form id="addAdminForm" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;align-items:flex-end;">
                                 <div class="form-group" style="flex:1;min-width:200px;margin-bottom:0;">
-                                    <label for="newAdminEmail" style="display:block;font-size:0.82rem;font-weight:500;margin-bottom:6px;">Existing LUXE account email</label>
+                                    <label for="newAdminEmail" style="display:block;font-size:0.82rem;font-weight:500;margin-bottom:6px;">Existing ALKEBULAN account email</label>
                                     <input type="email" id="newAdminEmail" required placeholder="teammate@example.com" style="width:100%;padding:11px 14px;border:1px solid var(--border-color);border-radius:var(--radius);font-family:var(--font-body);">
-                                    <p class="admin-form-hint">They must sign up for LUXE first.</p>
+                                    <p class="admin-form-hint">They must sign up for ALKEBULAN first.</p>
                                 </div>
 
                                 <button type="submit" class="btn btn-primary" style="padding:11px 22px;font-size:0.85rem;">
@@ -315,6 +330,7 @@
                                 <fieldset class="admin-channel-options">
                                     <legend>Delivery channels</legend>
                                     <label><input type="checkbox" checked disabled> In-app notification</label>
+                                    <label><input type="checkbox" checked disabled> Browser push, when enabled</label>
                                     <label><input type="checkbox" id="messageViaEmail"> Email, when opted in</label>
                                     <label><input type="checkbox" id="messageViaWhatsApp"> WhatsApp, when opted in</label>
                                 </fieldset>
@@ -341,7 +357,7 @@
                             <form id="promotionForm" class="admin-promotion-form">
                                 <input type="hidden" id="promotionId">
                                 <div class="admin-form-grid">
-                                    <div class="form-group"><label for="promotionCode">Code</label><input type="text" id="promotionCode" minlength="3" maxlength="32" pattern="[A-Za-z0-9_-]{3,32}" required placeholder="LUXE15"></div>
+                                    <div class="form-group"><label for="promotionCode">Code</label><input type="text" id="promotionCode" minlength="3" maxlength="32" pattern="[A-Za-z0-9_-]{3,32}" required placeholder="ALKEBULAN15"></div>
                                     <div class="form-group"><label for="promotionPercent">Percent off</label><input type="number" id="promotionPercent" min="1" max="95" step="0.01" required placeholder="15"></div>
                                     <div class="form-group"><label for="promotionMinimum">Minimum subtotal ($)</label><input type="number" id="promotionMinimum" min="0" step="0.01" value="0"></div>
                                     <div class="form-group"><label for="promotionMaxUses">Maximum uses</label><input type="number" id="promotionMaxUses" min="1" step="1" placeholder="Unlimited"></div>
@@ -428,7 +444,7 @@
 
             <div class="admin-reset-icon"><i class="fas fa-key"></i></div>
             <h3 id="adminResetTitle">Reset Admin Password</h3>
-            <p class="admin-reset-copy">Enter the email used for your LUXE account. We’ll send a secure link to set a new password.</p>
+            <p class="admin-reset-copy">Enter the email used for your ALKEBULAN account. We’ll send a secure link to set a new password.</p>
 
             <form id="adminResetForm">
                 <div class="form-group">
@@ -578,7 +594,7 @@
                     <div class="product-card admin-preview-card">
                         <div class="product-image">
                             <img id="livePreviewImage" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='500'%3E%3Crect width='100%25' height='100%25' fill='%23f2f2f2'/%3E%3C/svg%3E" alt="Product preview">
-                            <span class="brand-badge" id="livePreviewBrand">LUXE</span>
+                            <span class="brand-badge" id="livePreviewBrand">ALKEBULAN</span>
                             <span class="discount-badge" id="livePreviewDiscount" hidden></span>
                         </div>
                         <div class="product-info">
@@ -602,10 +618,10 @@
     <script src="js/brand-config.js"></script>
     <script src="js/icons.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
-    <script src="js/supabase-client.js?v=20260823-4"></script>
+    <script src="js/supabase-client.js?v=20260825-1"></script>
     <script src="js/products.js"></script>
     <script src="js/animation.js"></script>
     <script src="js/app.js"></script>
-    <script src="js/admin.js?v=20260823-3"></script>
+    <script src="js/admin.js?v=20260825-1"></script>
 </body>
 </html>

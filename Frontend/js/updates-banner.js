@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     } catch (e) {
         // Silent — a broken banner should never break the storefront.
-        console.warn('LUXE: could not load site update banner', e);
+        console.warn('ALKEBULAN: could not load site update banner', e);
     }
 });
 

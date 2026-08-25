@@ -71,7 +71,7 @@ function renderProductDetails(product) {
     const specsHtml = `
         <div class="spec-item"><span class="spec-label">Category</span><span class="spec-value">${product.category}</span></div>
         <div class="spec-item"><span class="spec-label">Subcategory</span><span class="spec-value">${product.subcategory || 'Collection'}</span></div>
-        <div class="spec-item"><span class="spec-label">Brand</span><span class="spec-value">${product.brand || window.LuxeBrand?.name || 'LUXE'}</span></div>
+        <div class="spec-item"><span class="spec-label">Brand</span><span class="spec-value">${product.brand || window.LuxeBrand?.name || 'ALKEBULAN'}</span></div>
         <div class="spec-item"><span class="spec-label">Rating</span><span class="spec-value">${product.rating || 4.5} / 5</span></div>
     `;
 
@@ -161,7 +161,7 @@ function renderProductDetails(product) {
 
                 <!-- Meta -->
                 <div class="product-meta">
-                    <div class="meta-item"><i class="fas fa-tag"></i> SKU: ${window.LuxeBrand?.skuPrefix || 'LUXE'}-${String(product.id).padStart(4, '0')}</div>
+                    <div class="meta-item"><i class="fas fa-tag"></i> SKU: ${window.LuxeBrand?.skuPrefix || 'ALK'}-${String(product.id).padStart(4, '0')}</div>
                     <div class="meta-item"><i class="fas fa-box"></i> Free shipping on orders $200+</div>
                     <div class="meta-item"><i class="fas fa-undo"></i> 30-day returns</div>
                 </div>

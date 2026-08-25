@@ -144,6 +144,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const whatsappUpdatesPreference = document.getElementById('whatsappUpdatesPreference');
     const communicationPreferencesForm = document.getElementById('communicationPreferencesForm');
     const communicationPreferencesStatus = document.getElementById('communicationPreferencesStatus');
+    const browserPushToggle = document.getElementById('browserPushToggle');
+    const browserPushStatus = document.getElementById('browserPushStatus');
     let currentProfile = null;
     let verifiedWhatsAppPhone = null;
 
@@ -169,6 +171,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     refreshCommunicationPreferences();
+
+    async function refreshBrowserPushState() {
+        if (!browserPushToggle || !browserPushStatus || !window.LuxePush) return;
+        const state = await window.LuxePush.getState();
+        browserPushToggle.classList.toggle('is-enabled', !!state.subscribed);
+        browserPushToggle.disabled = !state.supported || state.permission === 'denied';
+        browserPushToggle.textContent = state.subscribed ? 'Turn off' : 'Enable';
+
+        if (!state.supported) {
+            browserPushStatus.textContent = 'Open the site over HTTPS or localhost; push cannot run from a file:// page.';
+        } else if (state.permission === 'denied') {
+            browserPushStatus.textContent = 'Blocked in browser settings. Allow notifications for this site to continue.';
+        } else if (state.subscribed) {
+            browserPushStatus.textContent = 'On for this browser—even when the site tab is closed.';
+        } else {
+            browserPushStatus.textContent = 'Get order and account alerts when the site is closed.';
+        }
+    }
+
+    browserPushToggle?.addEventListener('click', async () => {
+        browserPushToggle.disabled = true;
+        if (communicationPreferencesStatus) {
+            communicationPreferencesStatus.textContent = '';
+            communicationPreferencesStatus.classList.remove('is-error');
+        }
+        const state = await window.LuxePush.getState();
+        const result = state.subscribed
+            ? await window.LuxePush.unsubscribe()
+            : await window.LuxePush.subscribe();
+        if (communicationPreferencesStatus) {
+            communicationPreferencesStatus.textContent = result.error
+                ? result.error.message || 'Could not update browser push.'
+                : state.subscribed ? 'Browser push alerts disabled.' : 'Browser push alerts enabled.';
+            communicationPreferencesStatus.classList.toggle('is-error', !!result.error);
+        }
+        await refreshBrowserPushState();
+    });
+
+    window.LuxePush?.syncExisting().finally(refreshBrowserPushState);
 
     function setWhatsAppStatus(message, state = '') {
         if (verificationText) verificationText.textContent = message;
@@ -324,6 +365,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             `;
         } else {
             ordersList.innerHTML = orders.map(order => renderOrderCard(order)).join('');
+            const requestedOrder = String(returnParams.get('order') || '').trim().toLowerCase();
+            if (requestedOrder) {
+                const targetOrder = [...ordersList.querySelectorAll('.order-card')].find(
+                    card => card.dataset.orderNumber?.toLowerCase() === requestedOrder,
+                );
+                if (targetOrder) {
+                    targetOrder.classList.add('is-focused-order');
+                    requestAnimationFrame(() => targetOrder.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+                    window.setTimeout(() => targetOrder.classList.remove('is-focused-order'), 3600);
+                }
+            }
         }
     }
 
@@ -391,7 +443,7 @@ function renderOrderCard(order) {
     const safeStatus = allowedStatuses.includes(order.status) ? order.status : 'processing';
 
     return `
-        <div class="order-card">
+        <div class="order-card" data-order-number="${escapeDashboardHtml(order.order_number)}">
             <div class="order-card-header">
                 <div>
                     <div class="order-number">${escapeDashboardHtml(order.order_number)}</div>
@@ -433,7 +485,7 @@ function refreshWhatsAppButton(button, verifiedPhone) {
 
 function whatsappVerificationMessage(code, error) {
     const messages = {
-        verification_not_configured: `WhatsApp verification has not been enabled by ${window.LuxeBrand?.name || 'LUXE'} yet.`,
+        verification_not_configured: `WhatsApp verification has not been enabled by ${window.LuxeBrand?.name || 'ALKEBULAN'} yet.`,
         invalid_phone: 'Enter a valid WhatsApp number with its country code.',
         number_unavailable: 'That WhatsApp number is already linked to another account.',
         too_many_requests: 'Too many codes were requested. Please try again later.',

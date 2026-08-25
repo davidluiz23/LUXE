@@ -1,4 +1,4 @@
-// Lightweight, dependency-free LUXE SVG icon system.
+// Lightweight, dependency-free ALKEBULAN SVG icon system.
 // Icons inherit the surrounding text color and remain crisp at every size.
 (function initializeLuxeIcons() {
   const paths = {

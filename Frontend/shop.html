@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Shop | LUXE Premium Clothing</title>
+    <title>Shop | ALKEBULAN Premium Clothing</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -25,7 +25,7 @@
     <header id="navbar">
       <div class="container nav-container">
         <div class="logo">
-          <a href="index.html"><span>LUXE</span></a>
+          <a href="index.html"><span>ALKEBULAN</span></a>
         </div>
         <nav class="nav-links" id="navLinks">
           <ul>
@@ -88,9 +88,9 @@
       <div class="container">
         <!-- Toolbar -->
         <div class="shop-toolbar">
-          <div class="filter-toggle" id="filterToggle">
+          <button class="filter-toggle" id="filterToggle" type="button" aria-controls="shopSidebar" aria-expanded="false">
             <i class="fas fa-filter"></i> Filters
-          </div>
+          </button>
           <div class="shop-results-count">
             Showing <span id="showingCount">0</span> products
           </div>
@@ -109,9 +109,9 @@
         <div class="shop-layout">
           <!-- Sidebar Filters -->
           <aside class="shop-sidebar" id="shopSidebar">
-            <div class="sidebar-close" id="sidebarClose">
+            <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Close filters">
               <i class="fas fa-times"></i>
-            </div>
+            </button>
 
             <div class="filter-group">
               <h3>Categories</h3>
@@ -163,13 +163,13 @@
                   type="range"
                   id="priceRange"
                   min="0"
-                  max="1000"
+                  max="6000"
                   step="10"
-                  value="1000"
+                  value="6000"
                 />
                 <div class="price-values">
                   <span>$0 ></span>
-                  <span id="priceValue">$1000</span>
+                  <span id="priceValue">$6000</span>
                 </div>
               </div>
             </div>
@@ -242,7 +242,7 @@
     <footer>
       <div class="container footer-grid">
         <div class="footer-col">
-          <h3>LUXE</h3>
+          <h3>ALKEBULAN</h3>
           <p>Premium clothing for the discerning.</p>
           <div class="social-icons">
             <a href="#"><i class="fab fa-instagram"></i></a>
@@ -270,11 +270,11 @@
           <h4>Contact</h4>
           <p><i class="fas fa-map-marker-alt"></i> Lagos, Nigeria</p>
           <p><i class="fas fa-phone"></i> +234 810 346 3852</p>
-          <p><i class="fas fa-envelope"></i> hello@luxe.com</p>
+          <p><i class="fas fa-envelope"></i> hello@alkebulan.com</p>
         </div>
       </div>
       <div class="footer-bottom">
-        <p>&copy; 2026 LUXE. All rights reserved.</p>
+        <p>&copy; 2026 ALKEBULAN. All rights reserved.</p>
       </div>
     </footer>
 

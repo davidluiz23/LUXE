@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In | LUXE Premium Clothing</title>
+    <title>Sign In | ALKEBULAN Premium Clothing</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -18,7 +18,7 @@
 
     <header id="navbar">
         <div class="container nav-container">
-            <div class="logo"><a href="index.html"><span>LUXE</span></a></div>
+            <div class="logo"><a href="index.html"><span>ALKEBULAN</span></a></div>
             <nav class="nav-links" id="navLinks">
                 <ul>
                     <li><a href="index.html">Home</a></li>
@@ -57,18 +57,31 @@
         <div class="container">
             <div class="auth-container login-container">
                 <div class="auth-form-wrapper">
-                    <h1>Welcome Back</h1>
-                    <p class="auth-subtitle">Sign in to access your account</p>
+                    <p class="login-eyebrow">Your wardrobe is waiting</p>
+                    <h1>Welcome<br>back.</h1>
+                    <p class="auth-subtitle">Pick up where you left off with saved pieces, order updates, and a shopping experience shaped around you.</p>
                     <form id="loginForm" class="auth-form">
+                        <button type="button" id="googleSignInBtn" class="google-signin-btn">
+                            <svg aria-hidden="true" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.4-.18-2.07H12v3.91h5.38a4.6 4.6 0 0 1-2 3.02v2.54h3.24c1.9-1.75 2.98-4.33 2.98-7.4Z"/>
+                                <path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.62-2.42l-3.24-2.54c-.9.6-2.05.96-3.38.96-2.61 0-4.82-1.76-5.61-4.13H3.04v2.62A10 10 0 0 0 12 22Z"/>
+                                <path fill="#FBBC05" d="M6.39 13.87A6.01 6.01 0 0 1 6.08 12c0-.65.11-1.28.31-1.87V7.51H3.04A10 10 0 0 0 2 12c0 1.61.38 3.14 1.04 4.49l3.35-2.62Z"/>
+                                <path fill="#EA4335" d="M12 6c1.47 0 2.79.5 3.82 1.5l2.87-2.87A9.64 9.64 0 0 0 12 2a10 10 0 0 0-8.96 5.51l3.35 2.62C7.18 7.76 9.39 6 12 6Z"/>
+                            </svg>
+                            <span>Continue with Google</span>
+                        </button>
+
+                        <div class="auth-divider"><span>or use your email</span></div>
+
                         <div class="form-group">
                             <label for="loginEmail">Email Address</label>
-                            <input type="email" id="loginEmail" placeholder="john@example.com" required>
+                            <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email" required>
                         </div>
                         <div class="form-group" id="passwordGroup">
                             <label for="loginPassword">Password</label>
                             <div class="password-input-wrapper">
-                                <input type="password" id="loginPassword" placeholder="Enter your password">
-                                <button type="button" class="toggle-password"><i class="fas fa-eye"></i></button>
+                                <input type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password">
+                                <button type="button" class="toggle-password" aria-label="Show password"><i class="fas fa-eye" aria-hidden="true"></i></button>
                             </div>
                         </div>
                         <div class="form-group remember-forgot" id="rememberForgotRow">
@@ -78,18 +91,29 @@
                             <a href="#" class="forgot-link" id="forgotPasswordLink">Forgot Password?</a>
                         </div>
 
-                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                            <button type="submit" id="standardLoginBtn" class="btn btn-primary auth-btn" style="flex: 1;">Sign In</button>
-                            <button type="button" id="sendMagicLinkBtn" class="btn btn-outline auth-btn" style="flex: 1; font-size: 0.82rem;"><i class="fas fa-magic"></i> Magic Link / OTP</button>
+                        <div class="login-actions">
+                            <button type="submit" id="standardLoginBtn" class="btn btn-primary auth-btn">Sign In <i class="fas fa-arrow-right" aria-hidden="true"></i></button>
+                            <button type="button" id="sendMagicLinkBtn" class="btn btn-outline auth-btn magic-link-btn"><i class="far fa-envelope" aria-hidden="true"></i> Email me a sign-in link</button>
                         </div>
                         
-                        <p class="auth-switch">Don't have an account? <a href="signup.html">Sign Up</a></p>
+                        <p class="auth-switch">Don't have an account? <a href="signup.html">Create one</a></p>
+                        <p class="login-privacy-note"><i class="fas fa-lock" aria-hidden="true"></i> Your details stay private and protected.</p>
                     </form>
                 </div>
                 <div class="auth-image login-image">
+                    <div class="login-image-topline">
+                        <span>ALKEBULAN MEMBERS</span>
+                        <span class="login-image-status"><i></i> Private access</span>
+                    </div>
                     <div class="auth-image-content">
-                        <h2>Your Style Journey Continues</h2>
-                        <p>Sign in to access your wishlist, order history, and exclusive member benefits.</p>
+                        <p class="login-image-kicker">Made for your rhythm</p>
+                        <h2>More than a<br>sign-in.</h2>
+                        <p>Step back into a space that remembers what you love and keeps every order close.</p>
+                        <ul class="login-benefits" aria-label="Account benefits">
+                            <li><span>01</span> Save pieces for later</li>
+                            <li><span>02</span> Follow every order</li>
+                            <li><span>03</span> Check out with less effort</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -99,7 +123,7 @@
     <footer>
         <div class="container footer-grid">
             <div class="footer-col">
-                <h3>LUXE</h3>
+                <h3>ALKEBULAN</h3>
                 <p>Premium clothing for the discerning.</p>
                 <div class="social-icons">
                     <a href="#"><i class="fab fa-instagram"></i></a>
@@ -127,10 +151,10 @@
                 <h4>Contact</h4>
                 <p><i class="fas fa-map-marker-alt"></i> Lagos, Nigeria</p>
                 <p><i class="fas fa-phone"></i> +234 810 346 3852</p>
-                <p><i class="fas fa-envelope"></i> hello@luxe.com</p>
+                <p><i class="fas fa-envelope"></i> hello@alkebulan.com</p>
             </div>
         </div>
-        <div class="footer-bottom"><p>&copy; 2026 LUXE. All rights reserved.</p></div>
+        <div class="footer-bottom"><p>&copy; 2026 ALKEBULAN. All rights reserved.</p></div>
     </footer>
 
     <button id="backToTop" class="back-to-top"><i class="fas fa-arrow-up"></i></button>

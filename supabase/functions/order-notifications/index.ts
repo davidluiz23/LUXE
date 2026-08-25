@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { sendPushToAdmins, sendPushToUsers } from "../_shared/web-push.ts";
 
 type NotificationAction = "order_created" | "order_updated";
 
@@ -62,7 +63,7 @@ function money(value: unknown, currency: unknown): string {
 }
 
 function brandName(): string {
-  return (Deno.env.get("BRAND_NAME") || "LUXE").trim().slice(0, 80) || "LUXE";
+  return (Deno.env.get("BRAND_NAME") || "ALKEBULAN").trim().slice(0, 80) || "ALKEBULAN";
 }
 
 async function sendWhatsApp(
@@ -188,7 +189,9 @@ Deno.serve(async (request) => {
     const promoText = order.promotion_code ? ` Promo ${order.promotion_code} saved ${money(order.discount_amount, order.currency)}.` : "";
     const customerText = `Hi ${order.contact_name}, ${brand} received order ${order.order_number} for ${itemSummary}.${promoText} Total: ${total}. We will confirm it and share delivery updates here.`;
 
-    const [adminResult, customerResult] = await Promise.all([
+    const pushAlreadySent = order.customer_push_notified_at && order.created_at &&
+      new Date(order.customer_push_notified_at).getTime() >= new Date(order.created_at).getTime();
+    const [adminResult, customerResult, adminPushResult, customerPushResult] = await Promise.all([
       order.admin_notified_at ? Promise.resolve({ sent: true, skipped: true }) : sendWhatsApp(
         normalizePhone(Deno.env.get("WHATSAPP_ADMIN_NUMBER")),
         Deno.env.get("WHATSAPP_ADMIN_ORDER_TEMPLATE") || null,
@@ -203,14 +206,40 @@ Deno.serve(async (request) => {
         [order.contact_name, order.order_number, itemSummary, total],
         customerText,
       ),
+      order.admin_push_notified_at
+        ? Promise.resolve({ status: "sent", configured: true, attempted: 0, sent: 0, failed: 0, expired: 0 })
+        : sendPushToAdmins(service, {
+          title: `New order ${order.order_number}`,
+          body: `${order.contact_name} · ${total} · ${itemSummary}`,
+          url: `admin.html?panel=orders&order=${encodeURIComponent(order.order_number)}`,
+          tag: `admin-order-${order.id}`,
+          data: { orderId: order.id, orderNumber: order.order_number, audience: "admin" },
+        }),
+      pushAlreadySent
+        ? Promise.resolve({ status: "sent", configured: true, attempted: 0, sent: 0, failed: 0, expired: 0 })
+        : sendPushToUsers(service, [order.user_id], {
+          title: `Order ${order.order_number} received`,
+          body: `${brand} received your order for ${total}. Tap to view its status.`,
+          url: `dashboard.html?tab=orders&order=${encodeURIComponent(order.order_number)}`,
+          tag: `customer-order-${order.id}`,
+          data: { orderId: order.id, orderNumber: order.order_number, audience: "customer" },
+        }),
     ]);
 
     const stamps: Record<string, string> = {};
     const now = new Date().toISOString();
     if (adminResult.sent) stamps.admin_notified_at = now;
     if (customerResult.sent) stamps.customer_notified_at = now;
+    if (adminPushResult.sent > 0) stamps.admin_push_notified_at = now;
+    if (customerPushResult.sent > 0) stamps.customer_push_notified_at = now;
     if (Object.keys(stamps).length) await service.from("orders").update(stamps).eq("id", order.id);
-    return json({ ok: true, admin: adminResult, customer: customerResult }, 200, origin);
+    return json({
+      ok: true,
+      admin: adminResult,
+      customer: customerResult,
+      adminPush: adminPushResult,
+      customerPush: customerPushResult,
+    }, 200, origin);
   }
 
   const alreadySent = order.customer_notified_at && order.updated_at &&
@@ -226,8 +255,21 @@ Deno.serve(async (request) => {
       [order.contact_name, order.order_number, String(order.status).replaceAll("_", " "), eta, order.waybill_url || "Not available"],
       updateText,
     );
-  if (customerResult.sent) {
-    await service.from("orders").update({ customer_notified_at: new Date().toISOString() }).eq("id", order.id);
-  }
-  return json({ ok: true, customer: customerResult }, 200, origin);
+  const pushAlreadySent = order.customer_push_notified_at && order.updated_at &&
+    new Date(order.customer_push_notified_at).getTime() >= new Date(order.updated_at).getTime();
+  const customerPushResult = pushAlreadySent
+    ? { status: "sent", configured: true, attempted: 0, sent: 0, failed: 0, expired: 0 }
+    : await sendPushToUsers(service, [order.user_id], {
+      title: `Order ${order.order_number} updated`,
+      body: `${brand} marked your order ${String(order.status).replaceAll("_", " ")}. Estimated arrival: ${eta}.`,
+      url: `dashboard.html?tab=orders&order=${encodeURIComponent(order.order_number)}`,
+      tag: `customer-order-${order.id}`,
+      data: { orderId: order.id, orderNumber: order.order_number, audience: "customer" },
+    });
+  const stamps: Record<string, string> = {};
+  const now = new Date().toISOString();
+  if (customerResult.sent) stamps.customer_notified_at = now;
+  if (customerPushResult.sent > 0) stamps.customer_push_notified_at = now;
+  if (Object.keys(stamps).length) await service.from("orders").update(stamps).eq("id", order.id);
+  return json({ ok: true, customer: customerResult, customerPush: customerPushResult }, 200, origin);
 });

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LUXE | Premium Clothing</title>
+    <title>ALKEBULAN | Premium Clothing</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
     <header id="navbar">
         <div class="container nav-container">
             <div class="logo">
-                <a href="index.html"><span>LUXE</span></a>
+                <a href="index.html"><span>ALKEBULAN</span></a>
             </div>
             <nav class="nav-links" id="navLinks">
                 <ul>
@@ -60,44 +60,62 @@
     </header>
 
     <!-- Hero Section -->
-    <section class="hero" id="hero">
-        <div class="hero-content">
-            <h1 class="hero-title">Elevate Your Style</h1>
-            <p class="hero-sub">Luxury essentials for the modern individual. Timeless elegance, crafted specially for you.</p>
-            <div class="hero-buttons">
-                <a href="shop.html" class="btn btn-primary">Shop Now</a>
-                <a href="#collections" class="btn btn-outline">Explore Collection</a>
+    <section class="hero luxury-home-hero" id="hero">
+        <div class="hero-layout">
+            <div class="hero-copy">
+                <p class="eyebrow hero-kicker">ALKEBULAN / THE CURRENT EDIT</p>
+                <h1 class="hero-title">Quiet <em>power.</em></h1>
+                <p class="hero-sub">A considered wardrobe for those who choose presence over noise. Modern silhouettes, enduring materials, and an uncompromising point of view.</p>
+                <div class="hero-buttons">
+                    <a href="shop.html" class="btn btn-primary">Discover the collection</a>
+                    <a href="#collections" class="btn btn-outline">Explore the edit</a>
+                </div>
+                <div class="hero-meta" aria-label="Collection details">
+                    <span>Lagos / Nigeria</span>
+                    <span>Edition 01 / 2026</span>
+                </div>
             </div>
+            <a class="hero-visual" href="shop.html?sort=newest" aria-label="Explore the latest ALKEBULAN edit">
+                <img src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1400&auto=format&fit=crop&q=88" alt="Woman in a tailored editorial look" fetchpriority="high">
+                <span class="hero-monogram" aria-hidden="true">
+                    <svg viewBox="0 0 72 72"><path d="M27 7h18l16 22-17 6c1.6-2.4 2.5-5.3 2.5-8.4C46.5 17.9 41.8 12 36 12s-10.5 5.9-10.5 14.6c0 3.1.9 6 2.5 8.4l-17-6L27 7Z"/><ellipse cx="36" cy="27" rx="9.2" ry="11.5"/><path d="m34 38-5 27H6l8-22 20-5Zm4 0 20 5 8 22H43l-5-27Z"/></svg>
+                </span>
+                <span class="hero-visual-label"><span>New season / Available now</span><span>View edit ↗</span></span>
+            </a>
         </div>
     </section>
+
+    <div class="house-rail" aria-label="Store services">
+        <span><i></i>Worldwide delivery</span>
+        <span><i></i>Complimentary shipping over $200</span>
+        <span><i></i>Secure checkout</span>
+        <span><i></i>30-day returns</span>
+    </div>
 
     <!-- Featured Categories -->
     <section class="section categories" id="collections">
         <div class="container">
-            <h2 class="section-title">Featured Categories</h2>
+            <div class="section-heading-row">
+                <div><p class="section-kicker">The wardrobe / Curated</p><h2 class="section-title">Shop the edit</h2></div>
+                <a href="shop.html" class="text-link">View all pieces <span>↗</span></a>
+            </div>
             <div class="category-grid">
-                <div class="category-card" style="background-image: url('https://images.unsplash.com/photo-1617137968427-85924c800a22?w=600&auto=format&fit=crop');">
+                <div class="category-card" data-edit="01 / Menswear" style="background-image: url('https://images.unsplash.com/photo-1617137968427-85924c800a22?w=1100&auto=format&fit=crop&q=85');">
                     <div class="category-overlay">
                         <h3>Men</h3>
-                        <a href="men.html" class="btn btn-small">Shop</a>
+                        <a href="men.html" class="btn btn-small">Explore menswear</a>
                     </div>
                 </div>
-                <div class="category-card" style="background-image: url('https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=600&auto=format&fit=crop');">
+                <div class="category-card" data-edit="02 / Womenswear" style="background-image: url('https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=900&auto=format&fit=crop&q=85');">
                     <div class="category-overlay">
                         <h3>Women</h3>
-                        <a href="women.html" class="btn btn-small">Shop</a>
+                        <a href="women.html" class="btn btn-small">Explore womenswear</a>
                     </div>
                 </div>
-                <div class="category-card" style="background-image: url('https://images.unsplash.com/photo-1523381294911-8d3cead13475?w=600&auto=format&fit=crop');">
+                <div class="category-card" data-edit="03 / Objects" style="background-image: url('https://images.unsplash.com/photo-1523381294911-8d3cead13475?w=900&auto=format&fit=crop&q=85');">
                     <div class="category-overlay">
                         <h3>Accessories</h3>
-                        <a href="shop.html?category=accessories" class="btn btn-small">Shop</a>
-                    </div>
-                </div>
-                <div class="category-card" style="background-image: url('https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop');">
-                    <div class="category-overlay">
-                        <h3>Footwear</h3>
-                        <a href="shop.html?category=footwear" class="btn btn-small">Shop</a>
+                        <a href="shop.html?category=accessories" class="btn btn-small">Explore objects</a>
                     </div>
                 </div>
             </div>
@@ -107,44 +125,53 @@
     <!-- New Arrivals -->
     <section class="section featured">
         <div class="container">
-            <h2 class="section-title">New Arrivals</h2>
+            <div class="section-heading-row">
+                <div><p class="section-kicker">Freshly selected / Available now</p><h2 class="section-title">New arrivals</h2></div>
+                <a href="shop.html?sort=newest" class="text-link">See the new edit <span>↗</span></a>
+            </div>
             <div class="product-grid" id="productGrid"></div>
         </div>
     </section>
 
-    <!-- Luxury Banner -->
-    <section class="luxury-banner">
-        <div class="luxury-content">
-            <h2>Luxury Collection</h2>
-            <p>Discover timeless pieces crafted with precision.</p>
-            <a href="shop.html" class="btn btn-primary">View Collection</a>
+    <!-- House Story -->
+    <section class="house-story">
+        <div class="house-story-image">
+            <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1200&auto=format&fit=crop&q=84" alt="Curated fashion rail in the ALKEBULAN studio" loading="lazy">
+        </div>
+        <div class="house-story-copy">
+            <p class="section-kicker">The house / Lagos</p>
+            <h2>Made for a lasting impression.</h2>
+            <p>ALKEBULAN brings together expressive design and considered craftsmanship. Every selection is chosen to live beyond a single season.</p>
+            <a href="about.html" class="text-link">Discover our story <span>↗</span></a>
         </div>
     </section>
 
     <!-- Why Choose Us -->
     <section class="section why-choose">
         <div class="container">
-            <h2 class="section-title">Why Choose Us</h2>
+            <div class="section-heading-row">
+                <div><p class="section-kicker">The standard / Always</p><h2 class="section-title">Considered service</h2></div>
+            </div>
             <div class="features-grid">
                 <div class="feature">
                     <i class="fas fa-truck"></i>
-                    <h4>Free Shipping</h4>
+                    <h4>Complimentary delivery</h4>
                     <p>On orders over $200</p>
                 </div>
                 <div class="feature">
                     <i class="fas fa-undo"></i>
-                    <h4>Easy Returns</h4>
-                    <p>30-day return policy</p>
+                    <h4>Considered returns</h4>
+                    <p>A clear 30-day return window</p>
                 </div>
                 <div class="feature">
                     <i class="fas fa-lock"></i>
-                    <h4>Secure Payment</h4>
-                    <p>100% secure checkout</p>
+                    <h4>Protected checkout</h4>
+                    <p>Secure, validated order handling</p>
                 </div>
                 <div class="feature">
                     <i class="fas fa-headset"></i>
-                    <h4>24/7 Support</h4>
-                    <p>Dedicated assistance</p>
+                    <h4>Client services</h4>
+                    <p>Thoughtful help when you need it</p>
                 </div>
             </div>
         </div>
@@ -153,7 +180,9 @@
     <!-- Customer Reviews -->
     <section class="section reviews">
         <div class="container">
-            <h2 class="section-title">Customer Reviews</h2>
+            <div class="section-heading-row">
+                <div><p class="section-kicker">Client notes / Verified orders</p><h2 class="section-title">In their words</h2></div>
+            </div>
             <div class="review-grid">
                 <div class="review-card">
                     <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
@@ -177,7 +206,10 @@
     <!-- Instagram Gallery -->
     <section class="section instagram">
         <div class="container">
-            <h2 class="section-title">Follow Us @LUXE</h2>
+            <div class="section-heading-row">
+                <div><p class="section-kicker">House journal / In focus</p><h2 class="section-title">The visual diary</h2></div>
+                <a href="#" class="text-link">Follow @ALKEBULAN <span>↗</span></a>
+            </div>
             <div class="insta-grid">
                 <img src="https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=300&auto=format&fit=crop" alt="Instagram 1">
                 <img src="https://images.unsplash.com/photo-1554568218-0f1715e72254?w=300&auto=format&fit=crop" alt="Instagram 2">
@@ -191,12 +223,13 @@
     <section class="section newsletter">
         <div class="container">
             <div class="newsletter-box">
-                <h2>Subscribe to Our Newsletter</h2>
-                <p>Get the latest updates on new arrivals and exclusive offers.</p>
+                <div><p class="section-kicker">Private list / Occasional notes</p><h2>Enter the world of ALKEBULAN.</h2></div>
+                <div><p>New arrivals, house stories, and private releases—sent with restraint.</p>
                 <form id="newsletterForm">
-                    <input type="email" placeholder="Enter your email" required>
-                    <button type="submit" class="btn btn-primary">Subscribe</button>
+                    <input type="email" placeholder="Email address" aria-label="Email address" required>
+                    <button type="submit" class="btn btn-primary">Join the list</button>
                 </form>
+                </div>
             </div>
         </div>
     </section>
@@ -205,7 +238,7 @@
     <footer>
         <div class="container footer-grid">
             <div class="footer-col">
-                <h3>LUXE</h3>
+                <h3>ALKEBULAN</h3>
                 <p>Premium clothing for the discerning.</p>
                 <div class="social-icons">
                     <a href="#"><i class="fab fa-instagram"></i></a>
@@ -233,11 +266,11 @@
                 <h4>Contact</h4>
                 <p><i class="fas fa-map-marker-alt"></i> Lagos, Nigeria</p>
                 <p><i class="fas fa-phone"></i> +234 810 346 3852</p>
-                <p><i class="fas fa-envelope"></i> hello@luxe.com</p>
+                <p><i class="fas fa-envelope"></i> hello@alkebulan.com</p>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2026 LUXE. All rights reserved.</p>
+            <p>&copy; 2026 ALKEBULAN. All rights reserved.</p>
         </div>
     </footer>
 

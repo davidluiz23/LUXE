@@ -1,14 +1,14 @@
-# LUXE commerce setup
+# ALKEBULAN commerce setup
 
-## Temporary brand name
+## Brand identity
 
-`LUXE` is currently a working name, not a final client decision. When the final
-name is approved, update `name` and `skuPrefix` in
-`Frontend/js/brand-config.js`, then configure the same server-side name and
-redeploy the customer-message functions:
+The approved customer-facing brand is `ALKEBULAN`, with the `ALK` product
+reference prefix. Brand presentation is centralized in
+`Frontend/js/brand-config.js`. If it changes later, update that file, configure
+the same server-side name, and redeploy the customer-message functions:
 
 ```sh
-supabase secrets set BRAND_NAME="Approved Brand Name"
+supabase secrets set BRAND_NAME="ALKEBULAN"
 supabase functions deploy order-notifications admin-messaging signup-flow
 ```
 
@@ -80,7 +80,7 @@ order number. Its protected detail view includes recent transactions, payment
 providers/channels, safe card descriptors such as card brand and last four
 digits, successful sign-ins, IP addresses, device/user-agent information and
 admin actions affecting that customer. Full card numbers, CVVs, Paystack
-authorization codes and reusable payment tokens are never copied into LUXE.
+authorization codes and reusable payment tokens are never copied into ALKEBULAN.
 
 For sign-in IP and device history, enable **Write audit logs to the database**
 under Supabase Dashboard -> Authentication -> Audit Logs. When this optional
@@ -165,13 +165,40 @@ are migrated together and tested end to end.
 
 # Production URLs
 
-For the GitHub Pages deployment, enable Pages in the repository under
-**Settings > Pages > Build and deployment > GitHub Actions**.
+The production storefront is deployed on Vercel at
+`https://luxe-nine-rust.vercel.app/`. Keep this stable production origin in
+Supabase Edge Function secrets; do not substitute a per-commit preview URL.
 
 In Supabase, open **Authentication > URL Configuration** and set:
 
-- Site URL: `https://davidluiz23.github.io/LUXE/`
-- Redirect URL: `https://davidluiz23.github.io/LUXE/**`
+- Site URL: `https://luxe-nine-rust.vercel.app/`
+- Redirect URL: `https://luxe-nine-rust.vercel.app/**`
 
 Keep the local development redirect URLs as additional entries if local sign-in,
 email confirmation, or password-reset testing is still required.
+
+## Browser push notifications
+
+Web Push uses `Frontend/sw.js`, authenticated Supabase subscriptions and VAPID.
+Customers opt in from **My Profile → Communication Preferences**; administrators
+opt in from the **Orders** panel. Permission must be requested from a user click,
+and the site must run on HTTPS (or localhost)—`file://` pages cannot register a
+service worker.
+
+Required Edge Function secrets:
+
+- `WEB_PUSH_VAPID_PUBLIC_KEY`
+- `WEB_PUSH_VAPID_PRIVATE_KEY` (never expose this in frontend code)
+- `WEB_PUSH_VAPID_SUBJECT` (an HTTPS or `mailto:` contact URI)
+- `LUXE_SITE_URL` and `LUXE_ALLOWED_ORIGINS`
+
+Generate one keypair for the site with `npx web-push generate-vapid-keys`. Do not
+regenerate it during normal deploys: replacing the VAPID keys invalidates existing
+browser subscriptions and users must opt in again.
+
+Deploy the push stack with:
+
+```sh
+supabase db push
+supabase functions deploy push-notifications order-notifications admin-messaging
+```
