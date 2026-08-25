@@ -17,6 +17,9 @@ const productId = parseInt(urlParams.get('id'));
 
 // Render product details when DOM is ready
 document.addEventListener('DOMContentLoaded', async () => {
+    const relatedGrid = document.getElementById('relatedProducts');
+    if (relatedGrid) window.showProductGridLoading?.(relatedGrid, 4);
+
     // Wait for the live product catalog (Supabase) to finish loading
     // before looking up this product — it used to be looked up
     // synchronously at script load, before the catalog had a chance
@@ -148,10 +151,10 @@ function renderProductDetails(product) {
 
                 <!-- ADD TO CART & WHATSAPP -->
                 <div class="product-actions-detail" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
-                    <button class="add-to-cart" onclick="window.addToCartHandler(${product.id})">
-                        <i class="fas fa-shopping-bag"></i> Add to Cart
+                    <button class="add-to-cart" onclick="window.addToCartHandler(${product.id})" ${product.inStock === false ? 'disabled aria-disabled="true"' : ''}>
+                        <i class="fas ${product.inStock === false ? 'fa-ban' : 'fa-shopping-bag'}"></i> ${product.inStock === false ? 'Out of Stock' : 'Add to Cart'}
                     </button>
-                    <button class="whatsapp-btn-product" onclick="window.sendProductToWhatsApp(${product.id}, parseInt(document.getElementById('quantityDisplay').textContent || 1))" style="background: #25D366; color: white; border: none; padding: 14px 22px; border-radius: 30px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; transition: background 0.3s ease;">
+                    <button class="whatsapp-btn-product" onclick="window.sendProductToWhatsApp(${product.id}, parseInt(document.getElementById('quantityDisplay').textContent || 1))" ${product.inStock === false ? 'disabled aria-disabled="true"' : ''} style="background: #25D366; color: white; border: none; padding: 14px 22px; border-radius: 30px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; transition: background 0.3s ease;">
                         <i class="fab fa-whatsapp" style="font-size: 1.2rem;"></i> Order via WhatsApp
                     </button>
                     <button class="wishlist-btn-product" onclick="window.addToWishlistHandler(${product.id})">
@@ -215,6 +218,7 @@ function generateStars(rating) {
 function renderRelatedProducts(product) {
     const container = document.getElementById('relatedProducts');
     if (!container) return;
+    window.finishProductGridLoading?.(container);
 
     const allProducts = (typeof getProducts === 'function') ? getProducts() : (window.products || []);
     let related = allProducts.filter(p => 

@@ -1,14 +1,12 @@
 // js/app.js - Main Application Script
 
 document.addEventListener('DOMContentLoaded', async function() {
-    // Wait for the live product catalog (Supabase) to finish loading
-    // before rendering, so we don't flash the offline fallback list.
-    if (window.productsReady) await window.productsReady;
-    // Hide loader
+    // Make the page interactive immediately. Catalog requests can be slow on
+    // mobile networks and must never leave the fixed loader blocking touches.
     const loader = document.getElementById('loader');
     if (loader) {
         setTimeout(function() {
-            loader.style.display = 'none';
+            loader.classList.add('hidden');
         }, 300);
     }
 
@@ -28,6 +26,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
+    const currentPage = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
+    const productGrid = currentPage === 'index.html' ? document.getElementById('productGrid') : null;
+    if (productGrid) window.showProductGridLoading?.(productGrid, 8);
+
+    // Wait only before catalog-dependent rendering. Navigation and scrolling
+    // above remain usable even if the backend request is delayed.
+    if (window.productsReady) await window.productsReady;
+
     // Back to top
     const backBtn = document.getElementById('backToTop');
     if (backBtn) {
@@ -44,12 +50,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Load home page featured products if grid exists
-    const productGrid = document.getElementById('productGrid');
     if (productGrid) {
         const getFeatured = (typeof getFeaturedProducts === 'function') ? getFeaturedProducts : (window.getFeaturedProducts || function() { return (window.products || []).slice(0, 8); });
         const products = getFeatured();
         if (products && products.length > 0) {
             renderProducts(products, productGrid);
+        } else {
+            window.finishProductGridLoading?.(productGrid);
+            productGrid.innerHTML = '';
         }
     }
 
@@ -69,6 +77,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 // ========== RENDER PRODUCTS (Home / Featured) ==========
 function renderProducts(products, grid) {
+    window.finishProductGridLoading?.(grid);
     let html = '';
     
     products.forEach(function(product) {

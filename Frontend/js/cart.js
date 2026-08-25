@@ -39,6 +39,18 @@ function saveCart(cart) {
 }
 
 function addToCart(productId, quantity = 1) {
+    const product = typeof window.getProductById === 'function'
+        ? window.getProductById(productId)
+        : null;
+    if (product?.inStock === false) {
+        if (typeof showNotification === 'function') {
+            showNotification('This product is currently out of stock.', 'box');
+        } else {
+            alert('This product is currently out of stock.');
+        }
+        return false;
+    }
+
     const isLoggedIn = localStorage.getItem('luxe_logged_in') === 'true';
     if (!isLoggedIn) {
         if (typeof showNotification === 'function') {

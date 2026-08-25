@@ -318,6 +318,42 @@
 .admin-badge.in-stock { background: #E8F8EF; color: #1E8E4F; }
 .admin-badge.out-stock { background: #FDECEA; color: #C0392B; }
 
+.admin-stock-control {
+    display: grid;
+    justify-items: start;
+    gap: 7px;
+}
+
+.admin-stock-toggle {
+    display: inline-flex;
+    min-height: 32px;
+    padding: 6px 9px;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    color: var(--primary);
+    font: 600 .68rem var(--font-body);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.admin-stock-toggle.mark-out:hover {
+    background: #FDECEA;
+    border-color: rgba(192, 57, 43, .35);
+    color: #A82F24;
+}
+
+.admin-stock-toggle.mark-in {
+    border-color: rgba(30, 142, 79, .3);
+    color: #1E7D49;
+}
+
+.admin-stock-toggle.mark-in:hover { background: #E8F8EF; }
+.admin-stock-toggle:disabled { opacity: .62; cursor: wait; }
+
 .admin-row-actions {
     display: flex;
     gap: 8px;
@@ -1311,4 +1347,103 @@
     display: block;
     background: #FDECEA;
     color: #C0392B;
+}
+
+/* Admin mobile shell: compact fixed header and reliable document scrolling. */
+@media (max-width: 600px) {
+    body.admin-page {
+        min-height: 100dvh;
+        height: auto;
+        padding-top: 52px;
+        overflow-y: auto !important;
+        overscroll-behavior-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    body.admin-page #navbar,
+    body.admin-page #navbar.scrolled {
+        height: 52px;
+        padding: 6px 0;
+        box-shadow: 0 1px 14px rgba(0, 0, 0, 0.22);
+    }
+
+    body.admin-page #navbar .nav-container {
+        padding-inline: 14px;
+    }
+
+    body.admin-page #navbar .logo a {
+        font-size: 1.35rem;
+        letter-spacing: 0.5px;
+    }
+
+    body.admin-page #navbar .nav-icons {
+        gap: 10px;
+    }
+
+    body.admin-page #navbar .user-icon,
+    body.admin-page #navbar .hamburger {
+        width: 34px;
+        height: 34px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    body.admin-page #navbar .nav-icons a {
+        font-size: 1rem;
+    }
+
+    body.admin-page #navbar .hamburger {
+        gap: 4px;
+    }
+
+    body.admin-page #navbar .hamburger span {
+        width: 21px;
+    }
+
+    body.admin-page .mobile-menu {
+        height: 100vh;
+        height: 100dvh;
+        padding: 62px 24px 24px;
+        overflow-y: auto;
+        overscroll-behavior-y: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    body.admin-page .mobile-close {
+        top: 12px;
+        right: 16px;
+    }
+
+    body.admin-page .admin-section {
+        padding-top: 16px;
+        overflow: visible;
+    }
+
+    body.admin-page .admin-layout.visible {
+        gap: 12px;
+    }
+
+    body.admin-page .admin-table-wrap {
+        touch-action: auto;
+    }
+}
+
+@media (max-width: 400px) {
+    body.admin-page {
+        padding-top: 48px;
+    }
+
+    body.admin-page #navbar,
+    body.admin-page #navbar.scrolled {
+        height: 48px;
+        padding: 5px 0;
+    }
+
+    body.admin-page #navbar .logo a {
+        font-size: 1.2rem;
+    }
+
+    body.admin-page .admin-section {
+        padding-top: 12px;
+    }
 }

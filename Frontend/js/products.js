@@ -1696,10 +1696,50 @@ const products = [
 
 let activeProductsList = products; // synchronous fallback until fetch resolves
 
+function showProductGridLoading(grid, requestedCount = 8) {
+    if (!grid) return;
+
+    const count = window.matchMedia('(max-width: 768px)').matches
+        ? Math.min(4, requestedCount)
+        : requestedCount;
+
+    grid.classList.add('product-grid-loading');
+    grid.setAttribute('aria-busy', 'true');
+    grid.innerHTML = Array.from({ length: count }, (_, index) => `
+        <article class="product-card product-card-skeleton" aria-hidden="true" style="--skeleton-order:${index}">
+            <div class="product-image product-skeleton-image">
+                <span class="product-loading-indicator"><i aria-hidden="true"></i> Refreshing</span>
+            </div>
+            <div class="product-info">
+                <span class="product-skeleton-line short"></span>
+                <span class="product-skeleton-line"></span>
+                <span class="product-skeleton-line medium"></span>
+            </div>
+        </article>
+    `).join('');
+}
+
+function finishProductGridLoading(grid) {
+    if (!grid) return;
+    grid.classList.remove('product-grid-loading');
+    grid.setAttribute('aria-busy', 'false');
+}
+
 window.productsReady = (async function loadCatalog() {
     try {
         if (window.LuxeProducts && window.isSupabaseConfigured && window.isSupabaseConfigured()) {
-            const { data, error } = await window.LuxeProducts.getAll();
+            let timeoutId;
+            const timeoutResult = new Promise((resolve) => {
+                timeoutId = setTimeout(() => resolve({
+                    data: null,
+                    error: { message: 'Catalog refresh timed out. Showing the offline catalog.' },
+                }), 12000);
+            });
+            const { data, error } = await Promise.race([
+                window.LuxeProducts.getAll(),
+                timeoutResult,
+            ]);
+            clearTimeout(timeoutId);
             if (!error && data && data.length) {
                 activeProductsList = data;
             } else if (!error && data && data.length === 0) {
@@ -1831,6 +1871,8 @@ if (typeof window !== 'undefined') {
     window.getFeaturedProducts = getFeaturedProducts;
     window.getNewArrivals = getNewArrivals;
     window.searchProducts = searchProducts;
+    window.showProductGridLoading = showProductGridLoading;
+    window.finishProductGridLoading = finishProductGridLoading;
     window.addProduct = addProduct;
     window.updateProduct = updateProduct;
     window.deleteProduct = deleteProduct;

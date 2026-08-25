@@ -152,14 +152,14 @@
       }
       if (mobileList) {
         mobileList.innerHTML = [
-          ["01", "New arrivals", "shop.html?sort=newest"],
-          ["02", "Shop all", "shop.html"],
-          ["03", "Men", "men.html"],
-          ["04", "Women", "women.html"],
-          ["05", "Our story", "about.html"],
-          ["06", "Client services", "contact.html"],
-          ["07", "Account", "dashboard.html"],
-        ].map(([number, label, href]) => `<li><a href="${href}"><small>${number}</small><span>${label}</span></a></li>`).join("");
+          ["New arrivals", "shop.html?sort=newest"],
+          ["Shop all", "shop.html"],
+          ["Men", "men.html"],
+          ["Women", "women.html"],
+          ["Our story", "about.html"],
+          ["Client services", "contact.html"],
+          ["Account", "dashboard.html"],
+        ].map(([label, href]) => `<li><a href="${href}"><span>${label}</span></a></li>`).join("");
         mobileList.insertAdjacentHTML("beforebegin", `<div class="mobile-brand-lockup">${brandMark()}<span>ALKEBULAN</span></div>`);
         mobileList.insertAdjacentHTML("afterend", `<div class="mobile-menu-meta"><span>Lagos / NG</span><a href="contact.html">Client services</a></div>`);
         mobileList.addEventListener("click", (event) => {
@@ -203,10 +203,10 @@
       else intro.insertAdjacentElement("afterbegin", kicker);
     }
 
-    $$(".section-title").forEach((title, index) => {
+    $$(".section-title").forEach((title) => {
+      title.removeAttribute("data-index");
       if (title.dataset.luxuryTitle) return;
       title.dataset.luxuryTitle = "true";
-      title.dataset.index = String(index + 1).padStart(2, "0");
     });
   }
 
@@ -218,13 +218,25 @@
   function enhanceProductCards() {
     const products = catalog();
     $$(".product-card").forEach((card, index) => {
-      if (card.dataset.luxuryCard) return;
+      if (card.classList.contains("product-card-skeleton")) return;
+      if (card.dataset.luxuryCard) {
+        $(".luxury-card-meta", card)?.remove();
+        return;
+      }
       card.dataset.luxuryCard = "true";
       card.style.setProperty("--card-order", index);
+      card.style.setProperty("--card-delay", `${Math.min(index, 8) * 45}ms`);
       const id = Number(card.dataset.id);
       const product = products.find((item) => Number(item.id) === id);
       const imageWrap = $(".product-image", card);
       const info = $(".product-info", card);
+      const primaryImage = $(".product-image > img", card);
+      if (primaryImage && !primaryImage.complete) {
+        card.classList.add("is-image-loading");
+        const finishImageLoading = () => card.classList.remove("is-image-loading");
+        primaryImage.addEventListener("load", finishImageLoading, { once: true });
+        primaryImage.addEventListener("error", finishImageLoading, { once: true });
+      }
       if (imageWrap && product?.hoverImage && !$(".luxury-secondary-image", imageWrap)) {
         const secondary = document.createElement("img");
         secondary.className = "luxury-secondary-image";
@@ -240,17 +252,17 @@
         status.textContent = product?.inStock === false ? "Sold out" : "Available";
         imageWrap.appendChild(status);
       }
-      if (info && !$(".luxury-card-meta", info)) {
-        const meta = document.createElement("div");
-        meta.className = "luxury-card-meta";
-        meta.innerHTML = `<span>ALK-${String(id || index + 1).padStart(4, "0")}</span><span>View piece</span>`;
-        info.appendChild(meta);
-      }
+      $(".luxury-card-meta", info || card)?.remove();
       $$("button", card).forEach((button) => {
         if (!button.type) button.type = "button";
         if (!button.getAttribute("aria-label")) {
           if (button.classList.contains("wishlist-btn")) button.setAttribute("aria-label", "Save piece");
           if (button.classList.contains("quick-view")) button.setAttribute("aria-label", "View piece");
+        }
+        if (button.classList.contains("add-cart") && product?.inStock === false) {
+          button.disabled = true;
+          button.setAttribute("aria-disabled", "true");
+          button.innerHTML = '<i class="fas fa-ban" aria-hidden="true"></i> Sold out';
         }
       });
     });

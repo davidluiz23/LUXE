@@ -176,6 +176,12 @@
     color: #E74C3C;
 }
 
+.product-actions-detail button:disabled {
+    opacity: .55;
+    cursor: not-allowed !important;
+    filter: grayscale(.35);
+}
+
 /* ========== PRODUCT SPECS ========== */
 .product-specs {
     display: grid;

@@ -1,8 +1,9 @@
 // js/category.js - Category Pages (Men / Women)
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Wait for the live product catalog (Supabase) to finish loading.
-    if (window.productsReady) await window.productsReady;
+    const grid = document.getElementById('menProductGrid') || document.getElementById('womenProductGrid');
+    if (grid) window.showProductGridLoading?.(grid, 8);
+
     // Hide loader
     const loader = document.getElementById('loader');
     if (loader) {
@@ -12,7 +13,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, 300);
     }
 
-    const grid = document.getElementById('menProductGrid') || document.getElementById('womenProductGrid');
+    // Wait for the live product catalog only after the card loading state is visible.
+    if (window.productsReady) await window.productsReady;
+
     if (!grid) return;
 
     // Determine category from page structure
@@ -110,6 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function renderCategoryProducts(productsList, grid) {
     if (!grid) return;
+    window.finishProductGridLoading?.(grid);
 
     if (productsList.length === 0) {
         grid.innerHTML = `

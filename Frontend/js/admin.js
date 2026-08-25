@@ -361,6 +361,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const productModalOverlay = document.getElementById("productModalOverlay");
   const productForm = document.getElementById("productForm");
   const productModalTitle = document.getElementById("productModalTitle");
+  let adminProductCache = new Map();
   const adminOrdersList = document.getElementById("adminOrdersList");
   const adminOrdersEmpty = document.getElementById("adminOrdersEmpty");
   const adminOrderCount = document.getElementById("adminOrderCount");
@@ -643,6 +644,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function renderProductsTable(list) {
     if (!productsTableBody || !productsEmptyState) return;
+    adminProductCache = new Map(list.map((product) => [Number(product.id), product]));
 
     if (!list.length) {
       productsTableBody.innerHTML = "";
@@ -660,9 +662,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         <td>${escapeAdminHtml(product.category || "")}</td>
         <td><div class="admin-price-stack"><strong>$${Number(product.price).toFixed(2)} USD</strong><span>${product.priceNGN !== null && Number.isFinite(Number(product.priceNGN)) ? `₦${Number(product.priceNGN).toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NGN` : "NGN price not set"}</span></div></td>
         <td>
-          <span class="admin-badge ${product.inStock ? "in-stock" : "out-stock"}">
-            ${product.inStock ? "In Stock" : "Out"}
-          </span>
+          <div class="admin-stock-control">
+            <span class="admin-badge ${product.inStock ? "in-stock" : "out-stock"}">
+              ${product.inStock ? "In Stock" : "Out of Stock"}
+            </span>
+            <button type="button" class="admin-stock-toggle ${product.inStock ? "mark-out" : "mark-in"}" data-id="${product.id}" title="${product.inStock ? "Mark this product out of stock" : "Put this product back in stock"}">
+              <i class="fas ${product.inStock ? "fa-box" : "fa-rotate-left"}" aria-hidden="true"></i>
+              <span>${product.inStock ? "Mark out of stock" : "Restock"}</span>
+            </button>
+          </div>
         </td>
         <td>
           <div class="admin-row-actions">
@@ -681,9 +689,45 @@ document.addEventListener("DOMContentLoaded", async () => {
       button.addEventListener("click", () => openProductModal(Number(button.dataset.id)));
     });
 
+    productsTableBody.querySelectorAll(".admin-stock-toggle").forEach((button) => {
+      button.addEventListener("click", () => toggleProductStock(button));
+    });
+
     productsTableBody.querySelectorAll(".delete-product-btn").forEach((button) => {
       button.addEventListener("click", () => confirmDeleteProduct(Number(button.dataset.id)));
     });
+  }
+
+  async function toggleProductStock(button) {
+    const id = Number(button.dataset.id);
+    const product = adminProductCache.get(id);
+    if (!product) {
+      showToast("Product not found. Refresh the catalog and try again.", true);
+      return;
+    }
+
+    const nextInStock = !product.inStock;
+    const originalMarkup = button.innerHTML;
+    button.disabled = true;
+    button.classList.add("is-loading");
+    button.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i><span>Updating...</span>';
+
+    const { data, error } = await window.updateProduct(id, {
+      ...product,
+      inStock: nextInStock,
+    });
+
+    if (error) {
+      button.disabled = false;
+      button.classList.remove("is-loading");
+      button.innerHTML = originalMarkup;
+      showToast(error.message || "Could not update stock status.", true);
+      return;
+    }
+
+    if (data) adminProductCache.set(id, data);
+    showToast(nextInStock ? `${product.name} is back in stock.` : `${product.name} is now out of stock.`);
+    await loadProducts();
   }
 
   function setImagePreview(imageId, iconId, url) {
@@ -796,7 +840,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     setText("pHoverImageUploadStatus", "");
 
     if (id) {
-      const product = window.getProductById?.(id);
+      const product = adminProductCache.get(Number(id)) || window.getProductById?.(id);
 
       if (!product) {
         showToast("Product not found", true);
@@ -925,7 +969,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   async function confirmDeleteProduct(id) {
-    const product = window.getProductById?.(id);
+    const product = adminProductCache.get(Number(id)) || window.getProductById?.(id);
     const productName = product?.name || "this product";
     const confirmed = await requestAdminConfirmation({
       title: `Delete ${productName}?`,
