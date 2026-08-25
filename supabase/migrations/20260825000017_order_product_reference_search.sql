@@ -94,4 +94,3 @@ $$;
 
 revoke all on function public.admin_search_orders_v1(text) from public;
 grant execute on function public.admin_search_orders_v1(text) to authenticated;
-
