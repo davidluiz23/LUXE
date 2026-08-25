@@ -224,11 +224,18 @@ html.alkebulan-site .hamburger.is-active span:nth-child(3) { transform: translat
 
 html.alkebulan-site .mobile-menu {
     width: min(100%, 520px);
+    height: 100vh;
+    height: 100dvh;
     padding: max(84px, env(safe-area-inset-top)) 36px max(36px, env(safe-area-inset-bottom));
     background: var(--alk-ink);
     color: var(--alk-white);
     border-radius: var(--alk-radius-lg) 0 0 var(--alk-radius-lg);
     box-shadow: -28px 0 70px rgba(0,0,0,.32);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
     opacity: 0;
     transform: translateX(28px);
     visibility: hidden;
@@ -1706,7 +1713,14 @@ html.alkebulan-site .back-to-top:active {
     html.alkebulan-site .nav-links { display: none !important; }
     html.alkebulan-site .hamburger { display: flex !important; }
     html.alkebulan-site .nav-icons { grid-column: 2; }
-    html.alkebulan-site .mobile-menu { width: 100%; border-radius: 0; }
+    html.alkebulan-site .mobile-menu {
+        top: 0;
+        bottom: 0;
+        width: 100%;
+        height: auto;
+        max-height: none;
+        border-radius: 0;
+    }
 }
 
 @media (max-width: 420px) {

@@ -138,7 +138,10 @@
       menuObserver.observe(mobileMenu, { attributes: true, attributeFilter: ["class"] });
       hamburger?.addEventListener("click", () => requestAnimationFrame(() => {
         syncMobileMenu();
-        if (mobileMenu.classList.contains("active")) mobileClose?.focus();
+        if (mobileMenu.classList.contains("active")) {
+          mobileMenu.scrollTop = 0;
+          mobileClose?.focus({ preventScroll: true });
+        }
       }));
 
       if (mobileClose) {
