@@ -1,6 +1,6 @@
 // js/supabase-client.js
 //
-// Central Supabase client for LUXE.
+// Central Supabase client for ALKEBULAN.
 // All browser-side Supabase communication goes through the window.Luxe*
 // APIs exposed at the bottom of this file.
 //
@@ -34,10 +34,10 @@ let supabaseClient = null;
 if (typeof window !== "undefined") {
   if (!window.supabase) {
     console.error(
-      "[LUXE] Supabase SDK missing. Load @supabase/supabase-js before supabase-client.js.",
+      "[ALKEBULAN] Supabase SDK missing. Load @supabase/supabase-js before supabase-client.js.",
     );
   } else if (!isSupabaseConfigured()) {
-    console.error("[LUXE] Supabase credentials are not configured.");
+    console.error("[ALKEBULAN] Supabase credentials are not configured.");
   } else {
     try {
       supabaseClient = window.supabase.createClient(
@@ -51,9 +51,9 @@ if (typeof window !== "undefined") {
           },
         },
       );
-      console.log("[LUXE] Supabase client initialized.");
+      console.log("[ALKEBULAN] Supabase client initialized.");
     } catch (error) {
-      console.error("[LUXE] Supabase initialization failed:", error);
+      console.error("[ALKEBULAN] Supabase initialization failed:", error);
     }
   }
 }
@@ -80,7 +80,7 @@ const LuxeAuth = {
         },
       });
     } catch (error) {
-      console.error("[LUXE] Signup error:", error);
+      console.error("[ALKEBULAN] Signup error:", error);
       return {
         data: null,
         error: {
@@ -106,7 +106,7 @@ const LuxeAuth = {
         },
       });
     } catch (error) {
-      console.error("[LUXE] Signup token check error:", error);
+      console.error("[ALKEBULAN] Signup token check error:", error);
       return {
         data: null,
         error: {
@@ -133,7 +133,7 @@ const LuxeAuth = {
         },
       });
     } catch (error) {
-      console.error("[LUXE] Signup completion error:", error);
+      console.error("[ALKEBULAN] Signup completion error:", error);
       return {
         data: null,
         error: {
@@ -157,7 +157,7 @@ const LuxeAuth = {
         password,
       });
     } catch (error) {
-      console.error("[LUXE] Login error:", error);
+      console.error("[ALKEBULAN] Login error:", error);
       return {
         data: null,
         error: { message: error?.message || "Unable to sign in." },
@@ -182,7 +182,7 @@ const LuxeAuth = {
         },
       });
     } catch (error) {
-      console.error("[LUXE] Magic-link error:", error);
+      console.error("[ALKEBULAN] Magic-link error:", error);
       return {
         data: null,
         error: { message: error?.message || "Unable to send sign-in link." },
@@ -218,7 +218,7 @@ const LuxeAuth = {
       );
 
       if (error) {
-        console.error("[LUXE] Password reset gateway error:", error);
+        console.error("[ALKEBULAN] Password reset gateway error:", error);
         return { error };
       }
 
@@ -227,7 +227,7 @@ const LuxeAuth = {
         error: null,
       };
     } catch (error) {
-      console.error("[LUXE] Password reset request error:", error);
+      console.error("[ALKEBULAN] Password reset request error:", error);
       return {
         error: {
           message: error?.message || "Unable to request password reset.",
@@ -253,7 +253,7 @@ const LuxeAuth = {
         password: newPassword,
       });
     } catch (error) {
-      console.error("[LUXE] Password update error:", error);
+      console.error("[ALKEBULAN] Password update error:", error);
       return {
         error: { message: error?.message || "Unable to update password." },
       };
@@ -268,9 +268,15 @@ const LuxeAuth = {
     }
 
     try {
+      // A Web Push endpoint remains active after the tab closes. Revoke it
+      // before signing out so a shared browser cannot receive another
+      // customer's private order notifications.
+      if (window.LuxePush?.isSupported()) {
+        await window.LuxePush.unsubscribe().catch(() => null);
+      }
       return await supabaseClient.auth.signOut();
     } catch (error) {
-      console.error("[LUXE] Sign-out error:", error);
+      console.error("[ALKEBULAN] Sign-out error:", error);
       return {
         error: { message: error?.message || "Unable to sign out." },
       };
@@ -287,13 +293,13 @@ const LuxeAuth = {
       } = await supabaseClient.auth.getSession();
 
       if (error) {
-        console.error("[LUXE] Session error:", error);
+        console.error("[ALKEBULAN] Session error:", error);
         return null;
       }
 
       return session || null;
     } catch (error) {
-      console.error("[LUXE] Failed to retrieve session:", error);
+      console.error("[ALKEBULAN] Failed to retrieve session:", error);
       return null;
     }
   },
@@ -328,13 +334,13 @@ const LuxeProfile = {
         .single();
 
       if (error) {
-        console.error("[LUXE] Failed to fetch profile:", error);
+        console.error("[ALKEBULAN] Failed to fetch profile:", error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error("[LUXE] Profile fetch error:", error);
+      console.error("[ALKEBULAN] Profile fetch error:", error);
       return null;
     }
   },
@@ -365,7 +371,7 @@ const LuxeProfile = {
         .select()
         .single();
     } catch (error) {
-      console.error("[LUXE] Profile update error:", error);
+      console.error("[ALKEBULAN] Profile update error:", error);
       return {
         data: null,
         error: { message: error?.message || "Unable to update profile." },
@@ -396,12 +402,12 @@ const LuxeCommerce = {
     try {
       const { data, error } = await supabaseClient.rpc("commerce_public_settings");
       if (error) {
-        console.warn("[LUXE] Could not load commerce settings:", error.message);
+        console.warn("[ALKEBULAN] Could not load commerce settings:", error.message);
         return fallback;
       }
       return { ...fallback, ...(data || {}) };
     } catch (error) {
-      console.warn("[LUXE] Could not load commerce settings:", error);
+      console.warn("[ALKEBULAN] Could not load commerce settings:", error);
       return fallback;
     }
   },
@@ -493,13 +499,13 @@ const LuxeOrders = {
       });
 
       if (error) {
-        console.error("[LUXE] Order creation error:", error);
+        console.error("[ALKEBULAN] Order creation error:", error);
         return { data: null, error };
       }
 
       return { data, error: null };
     } catch (error) {
-      console.error("[LUXE] Unexpected order creation error:", error);
+      console.error("[ALKEBULAN] Unexpected order creation error:", error);
       return {
         data: null,
         error: { message: error?.message || "Unable to create order." },
@@ -534,13 +540,13 @@ const LuxeOrders = {
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("[LUXE] Failed to load orders:", error);
+        console.error("[ALKEBULAN] Failed to load orders:", error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error("[LUXE] Orders fetch error:", error);
+      console.error("[ALKEBULAN] Orders fetch error:", error);
       return [];
     }
   },
@@ -562,6 +568,47 @@ const LuxeOrders = {
       return { data: data || [], error };
     } catch (error) {
       return { data: [], error: { message: error?.message || "Unable to load orders." } };
+    }
+  },
+
+  async searchAdminOrders(query) {
+    if (!supabaseClient) return { data: [], error: { message: "Backend not configured." } };
+    const search = String(query || "").trim().slice(0, 120);
+    if (!search) return await this.getAdminOrders();
+
+    try {
+      const result = await supabaseClient.rpc("admin_search_orders_v1", { p_search: search });
+      if (!result.error) return { data: result.data || [], error: null };
+
+      const functionMissing = result.error.code === "PGRST202" ||
+        String(result.error.message || "").includes("admin_search_orders_v1");
+      if (!functionMissing) return { data: [], error: result.error };
+
+      // Safe deployment fallback while the migration reaches production.
+      const fallback = await this.getAdminOrders();
+      if (fallback.error) return fallback;
+      const needle = search.toLowerCase();
+      const digits = needle.replace(/\D/g, "").replace(/^0+/, "") || "0";
+      const matches = (fallback.data || []).filter((order) => {
+        const orderValues = [
+          order.id, order.order_number, order.payment_reference,
+          order.contact_name, order.contact_email, order.contact_phone,
+        ];
+        if (orderValues.some((value) => String(value || "").toLowerCase().includes(needle))) return true;
+        return (order.order_items || []).some((item) => {
+          const productId = String(item.product_id || "");
+          const productRef = /^\d+$/.test(productId)
+            ? `alk-${productId.padStart(4, "0")}`
+            : productId.toLowerCase();
+          return String(item.product_name || "").toLowerCase().includes(needle) ||
+            productId.toLowerCase().includes(needle) ||
+            productRef.includes(needle) ||
+            (/^(alk[ -]?)?\d+$/i.test(search) && (productId.replace(/^0+/, "") || "0") === digits);
+        });
+      });
+      return { data: matches, error: null };
+    } catch (error) {
+      return { data: [], error: { message: error?.message || "Unable to search orders." } };
     }
   },
 
@@ -651,6 +698,135 @@ const LuxeNotifications = {
   },
 };
 
+function decodeApplicationServerKey(value) {
+  const padding = "=".repeat((4 - (value.length % 4)) % 4);
+  const base64 = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = window.atob(base64);
+  return Uint8Array.from([...raw].map((character) => character.charCodeAt(0)));
+}
+
+function applicationServerKeysMatch(subscription, expected) {
+  const active = subscription?.options?.applicationServerKey;
+  if (!active) return false;
+  const current = new Uint8Array(active);
+  if (current.length !== expected.length) return false;
+  return current.every((value, index) => value === expected[index]);
+}
+
+const LuxePush = {
+  isSupported() {
+    return typeof window !== "undefined" && window.isSecureContext &&
+      "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+  },
+
+  async _registration() {
+    if (!this.isSupported()) throw new Error("Browser push requires HTTPS (or localhost) and a supported browser.");
+    const workerUrl = new URL("sw.js", window.location.href);
+    await navigator.serviceWorker.register(workerUrl.href);
+    return await navigator.serviceWorker.ready;
+  },
+
+  async _invoke(body) {
+    if (!supabaseClient) return { data: null, error: { message: "Backend not configured." } };
+    try {
+      return await supabaseClient.functions.invoke("push-notifications", { body });
+    } catch (error) {
+      return { data: null, error: { message: error?.message || "Push service is unavailable." } };
+    }
+  },
+
+  async getState() {
+    if (!this.isSupported()) {
+      return {
+        supported: false,
+        subscribed: false,
+        permission: typeof Notification === "undefined" ? "unsupported" : Notification.permission,
+      };
+    }
+    try {
+      const registration = await this._registration();
+      const subscription = await registration.pushManager.getSubscription();
+      return { supported: true, subscribed: !!subscription, permission: Notification.permission };
+    } catch (error) {
+      return { supported: true, subscribed: false, permission: Notification.permission, error };
+    }
+  },
+
+  async subscribe() {
+    if (!this.isSupported()) {
+      return { data: null, error: { message: "Open the site over HTTPS (or localhost) to enable browser push." } };
+    }
+
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") {
+      return {
+        data: null,
+        error: { message: permission === "denied" ? "Notifications are blocked in your browser settings." : "Notification permission was not granted." },
+      };
+    }
+
+    const config = await this._invoke({ action: "config" });
+    if (config.error || !config.data?.publicKey) {
+      return { data: null, error: config.error || { message: "Push keys are not configured." } };
+    }
+
+    try {
+      const registration = await this._registration();
+      const applicationServerKey = decodeApplicationServerKey(config.data.publicKey);
+      let subscription = await registration.pushManager.getSubscription();
+      if (subscription && !applicationServerKeysMatch(subscription, applicationServerKey)) {
+        await subscription.unsubscribe();
+        subscription = null;
+      }
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey,
+        });
+      }
+
+      const saved = await this._invoke({ action: "subscribe", subscription: subscription.toJSON() });
+      if (saved.error) return { data: null, error: saved.error };
+      return { data: { subscribed: true }, error: null };
+    } catch (error) {
+      return { data: null, error: { message: error?.message || "Could not enable browser push." } };
+    }
+  },
+
+  async syncExisting() {
+    if (!this.isSupported() || Notification.permission !== "granted") return { data: null, error: null };
+    try {
+      const registration = await this._registration();
+      const subscription = await registration.pushManager.getSubscription();
+      if (!subscription) return { data: null, error: null };
+      return await this._invoke({ action: "subscribe", subscription: subscription.toJSON() });
+    } catch (error) {
+      return { data: null, error: { message: error?.message || "Could not refresh push subscription." } };
+    }
+  },
+
+  async unsubscribe() {
+    if (!this.isSupported()) return { data: { subscribed: false }, error: null };
+    try {
+      const registration = await this._registration();
+      const subscription = await registration.pushManager.getSubscription();
+      if (!subscription) return { data: { subscribed: false }, error: null };
+      const endpoint = subscription.endpoint;
+      const serverResult = await this._invoke({ action: "unsubscribe", endpoint });
+      await subscription.unsubscribe();
+      return serverResult.error
+        ? { data: { subscribed: false }, error: serverResult.error }
+        : { data: { subscribed: false }, error: null };
+    } catch (error) {
+      return { data: null, error: { message: error?.message || "Could not disable browser push." } };
+    }
+  },
+
+  async broadcastUpdate(title, message) {
+    return await this._invoke({ action: "broadcast_update", title, message });
+  },
+};
+
 const LuxePayments = {
   async request(action, orderId) {
     if (!supabaseClient) return { data: null, error: { message: "Backend not configured." } };
@@ -670,13 +846,13 @@ const LuxeAdmins = {
       const { data, error } = await supabaseClient.rpc("current_admin_role");
 
       if (error) {
-        console.error("[LUXE] Admin role check error:", error);
+        console.error("[ALKEBULAN] Admin role check error:", error);
         return null;
       }
 
       return data || null;
     } catch (error) {
-      console.error("[LUXE] Admin role check error:", error);
+      console.error("[ALKEBULAN] Admin role check error:", error);
       return null;
     }
   },
@@ -689,7 +865,7 @@ const LuxeAdmins = {
       if (error) return false;
       return data === true;
     } catch (error) {
-      console.error("[LUXE] Admin check error:", error);
+      console.error("[ALKEBULAN] Admin check error:", error);
       return false;
     }
   },
@@ -702,7 +878,7 @@ const LuxeAdmins = {
       if (error) return false;
       return data === true;
     } catch (error) {
-      console.error("[LUXE] Owner check error:", error);
+      console.error("[ALKEBULAN] Owner check error:", error);
       return false;
     }
   },
@@ -719,7 +895,7 @@ const LuxeAdmins = {
       const { data, error } = await supabaseClient.rpc("list_admins");
       return { data: data || [], error };
     } catch (error) {
-      console.error("[LUXE] Team fetch error:", error);
+      console.error("[ALKEBULAN] Team fetch error:", error);
       return {
         data: [],
         error: { message: error?.message || "Unable to load team." },
@@ -753,7 +929,7 @@ const LuxeAdmins = {
 
       return { error };
     } catch (error) {
-      console.error("[LUXE] Add admin error:", error);
+      console.error("[ALKEBULAN] Add admin error:", error);
       return {
         error: {
           message: error?.message || "Unable to add team member.",
@@ -776,7 +952,7 @@ const LuxeAdmins = {
 
       return { error };
     } catch (error) {
-      console.error("[LUXE] Remove admin error:", error);
+      console.error("[ALKEBULAN] Remove admin error:", error);
       return {
         error: {
           message: error?.message || "Unable to remove team member.",
@@ -950,7 +1126,7 @@ const LuxeStorage = {
         });
 
       if (uploadError) {
-        console.error("[LUXE] Upload error:", uploadError);
+        console.error("[ALKEBULAN] Upload error:", uploadError);
         return { url: null, error: uploadError };
       }
 
@@ -963,7 +1139,7 @@ const LuxeStorage = {
         error: null,
       };
     } catch (error) {
-      console.error("[LUXE] Upload error:", error);
+      console.error("[ALKEBULAN] Upload error:", error);
       return {
         url: null,
         error: { message: error?.message || "Upload failed." },
@@ -1040,7 +1216,7 @@ const LuxeProducts = {
 
     return {
       name: String(product.name || "Untitled Product").trim(),
-      brand: String(product.brand || "Luxe").trim(),
+      brand: String(product.brand || window.LuxeBrand?.name || "ALKEBULAN").trim(),
       category: String(product.category || "Men").trim(),
       subcategory: String(product.subcategory || "General").trim(),
       price: Number.isFinite(price) ? price : 0,
@@ -1097,7 +1273,7 @@ const LuxeProducts = {
       const { data, error } = productResult;
 
       if (error) {
-        console.error("[LUXE] Failed to load products:", error);
+        console.error("[ALKEBULAN] Failed to load products:", error);
         return { data: null, error };
       }
 
@@ -1113,7 +1289,7 @@ const LuxeProducts = {
         error: null,
       };
     } catch (error) {
-      console.error("[LUXE] Products fetch error:", error);
+      console.error("[ALKEBULAN] Products fetch error:", error);
       return {
         data: null,
         error: { message: error?.message || "Unable to load products." },
@@ -1137,13 +1313,13 @@ const LuxeProducts = {
         .single();
 
       if (error) {
-        console.error("[LUXE] Failed to add product:", error);
+        console.error("[ALKEBULAN] Failed to add product:", error);
         return { data: null, error };
       }
 
       return { data: this._fromRow(data), error: null };
     } catch (error) {
-      console.error("[LUXE] Product create error:", error);
+      console.error("[ALKEBULAN] Product create error:", error);
       return {
         data: null,
         error: { message: error?.message || "Unable to add product." },
@@ -1168,13 +1344,13 @@ const LuxeProducts = {
         .single();
 
       if (error) {
-        console.error("[LUXE] Failed to update product:", error);
+        console.error("[ALKEBULAN] Failed to update product:", error);
         return { data: null, error };
       }
 
       return { data: this._fromRow(data), error: null };
     } catch (error) {
-      console.error("[LUXE] Product update error:", error);
+      console.error("[ALKEBULAN] Product update error:", error);
       return {
         data: null,
         error: {
@@ -1199,7 +1375,7 @@ const LuxeProducts = {
 
       return { error };
     } catch (error) {
-      console.error("[LUXE] Product delete error:", error);
+      console.error("[ALKEBULAN] Product delete error:", error);
       return {
         error: {
           message: error?.message || "Unable to delete product.",
@@ -1252,7 +1428,7 @@ const LuxeProducts = {
       );
 
       if (syncError) {
-        console.error("[LUXE] Product sequence sync failed:", syncError);
+        console.error("[ALKEBULAN] Product sequence sync failed:", syncError);
         return {
           error: syncError,
           imported: rows.length,
@@ -1261,7 +1437,7 @@ const LuxeProducts = {
 
       return { error: null, imported: rows.length };
     } catch (error) {
-      console.error("[LUXE] Catalog import error:", error);
+      console.error("[ALKEBULAN] Catalog import error:", error);
       return {
         error: {
           message: error?.message || "Unable to import starter catalog.",
@@ -1285,13 +1461,13 @@ const LuxeUpdates = {
         .limit(1);
 
       if (error) {
-        console.error("[LUXE] Failed to load site update:", error);
+        console.error("[ALKEBULAN] Failed to load site update:", error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error("[LUXE] Site update fetch error:", error);
+      console.error("[ALKEBULAN] Site update fetch error:", error);
       return [];
     }
   },
@@ -1312,7 +1488,7 @@ const LuxeUpdates = {
 
       return { data: data || [], error };
     } catch (error) {
-      console.error("[LUXE] Site updates fetch error:", error);
+      console.error("[ALKEBULAN] Site updates fetch error:", error);
       return {
         data: [],
         error: { message: error?.message || "Unable to load updates." },
@@ -1333,7 +1509,7 @@ const LuxeUpdates = {
         message: String(message || "").trim(),
       });
     } catch (error) {
-      console.error("[LUXE] Site update create error:", error);
+      console.error("[ALKEBULAN] Site update create error:", error);
       return {
         error: { message: error?.message || "Unable to post update." },
       };
@@ -1350,7 +1526,7 @@ const LuxeUpdates = {
     try {
       return await supabaseClient.from("site_updates").delete().eq("id", id);
     } catch (error) {
-      console.error("[LUXE] Site update delete error:", error);
+      console.error("[ALKEBULAN] Site update delete error:", error);
       return {
         error: {
           message: error?.message || "Unable to delete update.",
@@ -1367,14 +1543,14 @@ const testSupabaseConnection = async () => {
     const { error } = await supabaseClient.auth.getSession();
 
     if (error) {
-      console.error("[LUXE] Supabase connection test failed:", error);
+      console.error("[ALKEBULAN] Supabase connection test failed:", error);
       return false;
     }
 
-    console.log("[LUXE] Supabase connection looks healthy.");
+    console.log("[ALKEBULAN] Supabase connection looks healthy.");
     return true;
   } catch (error) {
-    console.error("[LUXE] Supabase connection test failed:", error);
+    console.error("[ALKEBULAN] Supabase connection test failed:", error);
     return false;
   }
 };
@@ -1443,7 +1619,7 @@ function addAdminLinkToList(listElement) {
   } else {
     link.textContent = "Admin";
   }
-  link.setAttribute("aria-label", "Open LUXE Admin Console");
+  link.setAttribute("aria-label", "Open ALKEBULAN Admin Console");
 
   item.appendChild(link);
   listElement.appendChild(item);
@@ -1466,7 +1642,7 @@ function renderAccountControls(user, profile) {
     if (!user) {
       anchor.href = "login.html";
       anchor.title = "Sign in";
-      anchor.setAttribute("aria-label", "Sign in to your LUXE account");
+      anchor.setAttribute("aria-label", "Sign in to your ALKEBULAN account");
       anchor.innerHTML = window.LuxeIcons?.svg("user", "nav-svg-icon") || "";
       return;
     }
@@ -1550,7 +1726,7 @@ async function syncStorefrontNavigation() {
       addAdminLinkToList(document.querySelector(".mobile-menu ul"));
     }
   } catch (error) {
-    console.warn("[LUXE] Could not refresh navigation:", error);
+    console.warn("[ALKEBULAN] Could not refresh navigation:", error);
   }
 }
 
@@ -1583,6 +1759,7 @@ if (typeof window !== "undefined") {
   window.LuxeWhatsApp = LuxeWhatsApp;
   window.LuxeOrders = LuxeOrders;
   window.LuxeNotifications = LuxeNotifications;
+  window.LuxePush = LuxePush;
   window.LuxePayments = LuxePayments;
   window.LuxeAdmins = LuxeAdmins;
   window.LuxeCustomers = LuxeCustomers;

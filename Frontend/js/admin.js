@@ -1,4 +1,4 @@
-// js/admin.js - LUXE management console
+// js/admin.js - ALKEBULAN management console
 //
 // Database-enforced roles:
 //   owner -> permanent master account; can manage admins + store
@@ -9,7 +9,7 @@
 
 let currentAdminUserId = null;
 let currentAdminRole = null;
-const adminBrandName = () => window.LuxeBrand?.name || "LUXE";
+const adminBrandName = () => window.LuxeBrand?.name || "ALKEBULAN";
 
 document.addEventListener("DOMContentLoaded", async () => {
   if (!window.LuxeAuth || !window.LuxeAuth.isReady()) {
@@ -158,6 +158,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       refreshOrderBadge(),
       role === "owner" ? presenceRequest.then(() => loadTeam()) : presenceRequest,
     ]);
+    window.LuxePush?.syncExisting().finally(refreshAdminPushControl);
 
     return true;
   }
@@ -282,10 +283,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Intentionally show the same response whether or not the address
     // exists. This prevents the admin login page from revealing which
-    // emails have LUXE accounts.
+    // emails have ALKEBULAN accounts.
     if (error) {
       console.warn(
-        "[LUXE] Admin password reset request:",
+        "[ALKEBULAN] Admin password reset request:",
         error.message
       );
     }
@@ -363,6 +364,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   const adminOrdersList = document.getElementById("adminOrdersList");
   const adminOrdersEmpty = document.getElementById("adminOrdersEmpty");
   const adminOrderCount = document.getElementById("adminOrderCount");
+  const adminOrdersEmptyMessage = document.getElementById("adminOrdersEmptyMessage");
+  const adminOrderSearchForm = document.getElementById("adminOrderSearchForm");
+  const adminOrderSearchInput = document.getElementById("adminOrderSearchInput");
+  const adminOrderSearchStatus = document.getElementById("adminOrderSearchStatus");
+  const clearAdminOrderSearch = document.getElementById("clearAdminOrderSearch");
+  const adminPushToggle = document.getElementById("adminPushToggle");
+  let activeOrderSearch = "";
 
   function updateAdminOrderBadge(count) {
     const badge = document.getElementById("adminOrderBadge");
@@ -402,17 +410,35 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function loadOrders() {
     if (!adminOrdersList) return;
-    if (adminOrderCount) adminOrderCount.textContent = "Loading customer orders…";
-    const { data: orders, error } = await window.LuxeOrders.getAdminOrders();
+    const search = activeOrderSearch.trim();
+    if (adminOrderCount) adminOrderCount.textContent = search ? "Finding matching orders…" : "Loading customer orders…";
+    if (adminOrderSearchStatus) adminOrderSearchStatus.textContent = search ? `Searching for “${search}”…` : "";
+    const { data: orders, error } = search
+      ? await window.LuxeOrders.searchAdminOrders(search)
+      : await window.LuxeOrders.getAdminOrders();
     if (error) {
       if (adminOrderCount) adminOrderCount.textContent = "Could not load orders.";
+      if (adminOrderSearchStatus) adminOrderSearchStatus.textContent = error.message || "Search failed.";
       showToast(error.message || "Failed to load orders", true);
       return;
     }
 
     const unseen = orders.filter((order) => !order.admin_seen_at).length;
-    updateAdminOrderBadge(unseen);
-    if (adminOrderCount) adminOrderCount.textContent = `${orders.length} order${orders.length === 1 ? "" : "s"} · ${unseen} new`;
+    if (!search) updateAdminOrderBadge(unseen);
+    if (adminOrderCount) {
+      adminOrderCount.textContent = search
+        ? `${orders.length} matching order${orders.length === 1 ? "" : "s"}`
+        : `${orders.length} order${orders.length === 1 ? "" : "s"} · ${unseen} new`;
+    }
+    if (adminOrderSearchStatus) {
+      adminOrderSearchStatus.textContent = search
+        ? `${orders.length ? "Showing" : "No"} order${orders.length === 1 ? "" : "s"} matching “${search}”.`
+        : "";
+    }
+    if (clearAdminOrderSearch) clearAdminOrderSearch.hidden = !search;
+    if (adminOrdersEmptyMessage) {
+      adminOrdersEmptyMessage.textContent = search ? `No order matches “${search}”.` : "No customer orders yet.";
+    }
     adminOrdersEmpty.style.display = orders.length ? "none" : "block";
     if (!orders.length) { adminOrdersList.innerHTML = ""; return; }
 
@@ -422,7 +448,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       const items = (order.order_items || []).map((item) => `
         <div class="admin-order-item">
           <img src="${escapeAttr(item.image_url || "")}" alt="">
-          <span>${escapeAdminHtml(item.product_name)} ×${Number(item.quantity)}</span>
+          <div class="admin-order-item-copy">
+            <span>${escapeAdminHtml(item.product_name)} ×${Number(item.quantity)}</span>
+            <small>${escapeAdminHtml(item.product_reference || formatProductReference(item.product_id))}</small>
+          </div>
           <strong>$${(Number(item.price) * Number(item.quantity)).toFixed(2)}</strong>
         </div>`).join("");
       const customerMessage = encodeURIComponent(`Hi ${order.contact_name || "there"}, here is an update for ${adminBrandName()} order ${order.order_number}.`);
@@ -442,7 +471,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             <p><strong>${escapeAdminHtml(order.contact_name || "—")}</strong></p>
             <p><a href="tel:${escapeAttr(order.contact_phone || "")}">${escapeAdminHtml(order.contact_phone || "—")}</a> · <a href="mailto:${escapeAttr(order.contact_email || "")}">${escapeAdminHtml(order.contact_email || "—")}</a></p>
             <p>${escapeAdminHtml(addressText || "No delivery address")}</p>
-            <p class="admin-payment-line">${escapeAdminHtml(order.payment_provider || "whatsapp")} ${order.payment_channel ? `· ${escapeAdminHtml(order.payment_channel)}` : ""} · ${escapeAdminHtml(order.payment_status || "pending")}${order.payment_method_label ? `<br>${escapeAdminHtml(order.payment_method_label)}` : ""}</p>
+            <p class="admin-payment-line">${escapeAdminHtml(order.payment_provider || "whatsapp")} ${order.payment_channel ? `· ${escapeAdminHtml(order.payment_channel)}` : ""} · ${escapeAdminHtml(order.payment_status || "pending")}${order.payment_method_label ? `<br>${escapeAdminHtml(order.payment_method_label)}` : ""}${order.payment_reference ? `<span class="admin-payment-reference">Payment ref: ${escapeAdminHtml(order.payment_reference)}</span>` : ""}</p>
             ${attribution}
             <a class="admin-whatsapp-link" href="https://wa.me/${customerPhone}?text=${customerMessage}" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> Message customer</a>
           </div>
@@ -457,6 +486,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         </form>
       </article>`;
     }).join("");
+
+    if (search && orders.length) {
+      const exactOrder = [...adminOrdersList.querySelectorAll(".admin-order-card")].find(
+        (card) => card.dataset.orderNumber?.toLowerCase() === search.toLowerCase(),
+      );
+      const match = exactOrder || (orders.length === 1 ? adminOrdersList.querySelector(".admin-order-card") : null);
+      if (match) {
+        match.classList.add("is-search-match");
+        requestAnimationFrame(() => match.scrollIntoView({ behavior: "smooth", block: "start" }));
+        window.setTimeout(() => match.classList.remove("is-search-match"), 3600);
+      }
+    }
 
     adminOrdersList.querySelectorAll(".admin-order-fulfilment").forEach((form) => {
       form.addEventListener("submit", async (event) => {
@@ -499,14 +540,24 @@ document.addEventListener("DOMContentLoaded", async () => {
           return;
         }
         showToast("Order updated. Customer account history and in-app notification are current.");
-        await Promise.all([loadOrders(), loadAdminActivity()]);
-        window.LuxeOrders.sendWhatsAppNotifications("order_updated", card.dataset.orderId)
-          .then((notification) => {
-            if (!notification.error && notification.data?.customer?.sent) {
-              showToast("WhatsApp order update sent.");
-            }
-          })
-          .catch((notifyError) => console.warn("[LUXE] WhatsApp update unavailable:", notifyError));
+        const notificationPromise = window.LuxeOrders
+          .sendWhatsAppNotifications("order_updated", card.dataset.orderId)
+          .catch((notifyError) => {
+            console.warn("[ALKEBULAN] Order notification delivery unavailable:", notifyError);
+            return { data: null, error: notifyError };
+          });
+        const [, , notification] = await Promise.all([
+          loadOrders(),
+          loadAdminActivity(),
+          notificationPromise,
+        ]);
+        if (!notification.error) {
+          const whatsappSent = !!notification.data?.customer?.sent;
+          const pushSent = Number(notification.data?.customerPush?.sent || 0) > 0;
+          if (whatsappSent && pushSent) showToast("WhatsApp and browser push updates sent.");
+          else if (pushSent) showToast("Browser push order update sent.");
+          else if (whatsappSent) showToast("WhatsApp order update sent.");
+        }
       });
     });
   }
@@ -515,6 +566,60 @@ document.addEventListener("DOMContentLoaded", async () => {
     await window.LuxeOrders.markAllAdminSeen();
     updateAdminOrderBadge(0);
     await loadOrders();
+  });
+
+  adminOrderSearchForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    activeOrderSearch = String(adminOrderSearchInput?.value || "").trim().slice(0, 120);
+    const url = new URL(window.location.href);
+    url.searchParams.set("panel", "orders");
+    if (activeOrderSearch) url.searchParams.set("order", activeOrderSearch);
+    else url.searchParams.delete("order");
+    window.history.replaceState({}, "", url);
+    await loadOrders();
+  });
+
+  clearAdminOrderSearch?.addEventListener("click", async () => {
+    activeOrderSearch = "";
+    if (adminOrderSearchInput) adminOrderSearchInput.value = "";
+    const url = new URL(window.location.href);
+    url.searchParams.delete("order");
+    window.history.replaceState({}, "", url);
+    await loadOrders();
+    adminOrderSearchInput?.focus();
+  });
+
+  adminOrderSearchInput?.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && adminOrderSearchInput.value) clearAdminOrderSearch?.click();
+  });
+
+  async function refreshAdminPushControl() {
+    if (!adminPushToggle || !window.LuxePush) return;
+    const label = adminPushToggle.querySelector("span");
+    const state = await window.LuxePush.getState();
+    adminPushToggle.classList.toggle("is-enabled", !!state.subscribed);
+    adminPushToggle.disabled = !state.supported || state.permission === "denied";
+    if (label) {
+      label.textContent = !state.supported
+        ? "HTTPS required"
+        : state.permission === "denied"
+          ? "Push blocked"
+          : state.subscribed ? "Push alerts on" : "Enable push alerts";
+    }
+    adminPushToggle.title = !state.supported
+      ? "Browser push works on HTTPS or localhost, not file:// pages."
+      : state.permission === "denied" ? "Allow notifications in your browser site settings." : "";
+  }
+
+  adminPushToggle?.addEventListener("click", async () => {
+    adminPushToggle.disabled = true;
+    const state = await window.LuxePush.getState();
+    const result = state.subscribed
+      ? await window.LuxePush.unsubscribe()
+      : await window.LuxePush.subscribe();
+    if (result.error) showToast(result.error.message || "Could not update push alerts.", true);
+    else showToast(state.subscribed ? "Admin push alerts disabled on this browser." : "Admin push alerts enabled on this browser.");
+    await refreshAdminPushControl();
   });
 
   async function loadProducts() {
@@ -948,7 +1053,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const confirmed = await requestAdminConfirmation({
       title: `Publish “${title}”?`,
-      message: "This update will appear on the storefront and create an in-app notification for customer accounts.",
+      message: "This update will appear on the storefront and notify customer accounts in-app and by browser push when enabled.",
     });
     if (!confirmed) return;
 
@@ -960,7 +1065,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     document.getElementById("postUpdateForm")?.reset();
-    showToast("Update posted");
+    const pushResult = await window.LuxePush?.broadcastUpdate(title, message);
+    const pushDelivery = pushResult?.data?.delivery;
+    showToast(
+      pushResult?.error || pushDelivery?.status === "not_configured"
+        ? "Update posted. Browser push is currently unavailable."
+        : pushDelivery?.status === "sent"
+          ? `Update posted and sent to ${pushDelivery.sent} subscribed device${pushDelivery.sent === 1 ? "" : "s"}.`
+          : "Update posted. No subscribed devices are active yet.",
+    );
     await loadUpdates();
   });
 
@@ -1275,7 +1388,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       return;
     }
-    const labels = [`In-app: ${data?.inApp || "sent"}`];
+    const labels = [`In-app: ${data?.inApp || "sent"}`, `Push: ${data?.push || "unavailable"}`];
     if (channels.includes("email")) labels.push(`Email: ${data?.email || "unavailable"}`);
     if (channels.includes("whatsapp")) labels.push(`WhatsApp: ${data?.whatsapp || "unavailable"}`);
     if (customerMessageResult) {
@@ -1600,7 +1713,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     await Promise.all([loadTeam(), loadAdminActivity()]);
   });
 
-  await checkAccess();
+  const hasAccess = await checkAccess();
+  if (hasAccess) {
+    const initialParams = new URLSearchParams(window.location.search);
+    const initialPanel = initialParams.get("panel");
+    const initialOrder = String(initialParams.get("order") || "").trim().slice(0, 120);
+    if (initialOrder) {
+      activeOrderSearch = initialOrder;
+      if (adminOrderSearchInput) adminOrderSearchInput.value = initialOrder;
+    }
+    if (initialPanel === "orders" || initialOrder) activatePanel("ordersPanel");
+  }
 
   // Lightweight polling keeps the red order indicator useful without
   // requiring a permanently open realtime socket.
@@ -1670,6 +1793,12 @@ function escapeAdminHtml(value) {
 
 function escapeAttr(value) {
   return escapeAdminHtml(value);
+}
+
+function formatProductReference(productId) {
+  const value = String(productId ?? "").trim();
+  if (!value) return "PRODUCT REF UNAVAILABLE";
+  return /^\d+$/.test(value) ? `ALK-${value.padStart(4, "0")}` : value.toUpperCase();
 }
 
 function formatAdminAction(value) {

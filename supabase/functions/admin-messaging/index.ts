@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { sendPushToUsers } from "../_shared/web-push.ts";
 
 type DeliveryResult = { status: string; reference?: string };
 
@@ -59,7 +60,7 @@ async function sendEmail(
   const from = Deno.env.get("EMAIL_FROM");
   if (!apiKey || !from) return { status: "not_configured" };
 
-  const brand = (Deno.env.get("BRAND_NAME") || "LUXE").trim().slice(0, 80) || "LUXE";
+  const brand = (Deno.env.get("BRAND_NAME") || "ALKEBULAN").trim().slice(0, 80) || "ALKEBULAN";
   const safeBrand = escapeHtml(brand);
   const safeName = escapeHtml(name);
   const safeTitle = escapeHtml(title);
@@ -228,7 +229,7 @@ Deno.serve(async (request) => {
     return json({ error: "notification_failed" }, 500, origin);
   }
 
-  const [emailResult, whatsappResult] = await Promise.all([
+  const [emailResult, whatsappResult, pushResult] = await Promise.all([
     channels.includes("email")
       ? sendEmail(delivery.id, customer.email || null, !!profile?.email_updates_opt_in_at, name, title, message)
       : Promise.resolve<DeliveryResult>({ status: "not_requested" }),
@@ -241,6 +242,13 @@ Deno.serve(async (request) => {
         message,
       )
       : Promise.resolve<DeliveryResult>({ status: "not_requested" }),
+    sendPushToUsers(service, [userId], {
+      title,
+      body: message,
+      url: "dashboard.html?tab=notifications",
+      tag: `admin-message-${delivery.id}`,
+      data: { notificationKind: "admin_message", deliveryId: delivery.id },
+    }),
   ]);
 
   const references: Record<string, string> = {};
@@ -251,6 +259,7 @@ Deno.serve(async (request) => {
       in_app_status: "sent",
       email_status: emailResult.status,
       whatsapp_status: whatsappResult.status,
+      push_status: pushResult.status,
       provider_references: references,
     }).eq("id", delivery.id),
     service.from("admin_action_log").insert({
@@ -258,7 +267,13 @@ Deno.serve(async (request) => {
       action: "customer_message_sent",
       target_type: "customer",
       target_id: userId,
-      details: { title, channels, emailStatus: emailResult.status, whatsappStatus: whatsappResult.status },
+      details: {
+        title,
+        channels,
+        emailStatus: emailResult.status,
+        whatsappStatus: whatsappResult.status,
+        pushStatus: pushResult.status,
+      },
     }),
   ]);
 
@@ -268,5 +283,6 @@ Deno.serve(async (request) => {
     inApp: "sent",
     email: emailResult.status,
     whatsapp: whatsappResult.status,
+    push: pushResult.status,
   }, 200, origin);
 });

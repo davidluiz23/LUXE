@@ -1,4 +1,4 @@
-// Contact Page Interactions - LUXE Store
+// Contact Page Interactions - ALKEBULAN Store
 
 document.addEventListener('DOMContentLoaded', () => {
     // Contact Form Handler

@@ -984,7 +984,7 @@ const products = [
     {
         id: 52,
         name: "18K Solid Yellow Gold Cuban Link Chain",
-        brand: "LUXE Fine Jewelry",
+        brand: "ALKEBULAN Fine Jewelry",
         category: "Accessories",
         subcategory: "Chains",
         price: 890.00,
@@ -1003,7 +1003,7 @@ const products = [
     {
         id: 53,
         name: "Diamond Solitaire Gold Pendant Necklace",
-        brand: "LUXE Fine Jewelry",
+        brand: "ALKEBULAN Fine Jewelry",
         category: "Accessories",
         subcategory: "Necklaces",
         price: 650.00,
@@ -1022,7 +1022,7 @@ const products = [
     {
         id: 54,
         name: "Freshwater Cultured Pearl Strand Necklace",
-        brand: "LUXE Fine Jewelry",
+        brand: "ALKEBULAN Fine Jewelry",
         category: "Accessories",
         subcategory: "Necklaces",
         price: 420.00,
@@ -1041,7 +1041,7 @@ const products = [
     {
         id: 55,
         name: "18K Gold Chunky Huggie Hoop Earrings",
-        brand: "LUXE Fine Jewelry",
+        brand: "ALKEBULAN Fine Jewelry",
         category: "Accessories",
         subcategory: "Earrings",
         price: 290.00,
@@ -1060,7 +1060,7 @@ const products = [
     {
         id: 56,
         name: "Brilliant Cut Diamond Stud Earrings",
-        brand: "LUXE Fine Jewelry",
+        brand: "ALKEBULAN Fine Jewelry",
         category: "Accessories",
         subcategory: "Earrings",
         price: 580.00,
@@ -1705,13 +1705,13 @@ window.productsReady = (async function loadCatalog() {
             } else if (!error && data && data.length === 0) {
                 // Table exists but is empty (fresh install) — keep the
                 // bundled fallback list so the storefront isn't blank.
-                console.warn('LUXE: products table is empty — showing bundled fallback catalog. Use the admin panel to import it.');
+                console.warn('ALKEBULAN: products table is empty — showing bundled fallback catalog. Use the admin panel to import it.');
             } else if (error) {
-                console.warn('LUXE: could not load products from Supabase, showing offline fallback catalog.', error.message || error);
+                console.warn('ALKEBULAN: could not load products from Supabase, showing offline fallback catalog.', error.message || error);
             }
         }
     } catch (e) {
-        console.warn('LUXE: product fetch failed, showing offline fallback catalog.', e);
+        console.warn('ALKEBULAN: product fetch failed, showing offline fallback catalog.', e);
     }
     return activeProductsList;
 })();

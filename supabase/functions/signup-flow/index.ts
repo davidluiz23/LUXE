@@ -118,7 +118,7 @@ function primarySiteUrl(): string | null {
 }
 
 function brandName(): string {
-  return (Deno.env.get("BRAND_NAME") || "LUXE").trim().slice(0, 80) || "LUXE";
+  return (Deno.env.get("BRAND_NAME") || "ALKEBULAN").trim().slice(0, 80) || "ALKEBULAN";
 }
 
 function genericRequestSuccess(origin: string) {

@@ -81,7 +81,7 @@
       const stylesheet = document.createElement("link");
       stylesheet.id = "alkebulanLuxuryStyles";
       stylesheet.rel = "stylesheet";
-      stylesheet.href = "css/luxury.css?v=20260825-2";
+      stylesheet.href = "css/luxury.css?v=20260825-3";
       document.head.appendChild(stylesheet);
     }
 

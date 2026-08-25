@@ -1,4 +1,4 @@
-// js/auth.js - LUXE authentication UI
+// js/auth.js - ALKEBULAN authentication UI
 //
 // Signup verification uses Supabase EMAIL CONFIRMATION LINKS.
 // No six-digit signup OTP is used.
@@ -217,7 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (error) {
-        console.warn("[LUXE] Password reset request:", error.message);
+        console.warn("[ALKEBULAN] Password reset request:", error.message);
       }
     });
   }
@@ -261,7 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (error) {
         showAuthError(
           error.code === "user_banned"
-            ? `This account is currently suspended. Contact ${window.LuxeBrand?.name || "LUXE"} customer care for assistance.`
+            ? `This account is currently suspended. Contact ${window.LuxeBrand?.name || "ALKEBULAN"} customer care for assistance.`
             : error.message || "Invalid email or password.",
         );
         return;

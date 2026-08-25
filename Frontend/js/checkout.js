@@ -8,7 +8,7 @@ let checkoutIdentity = {
   verifiedPhone: null,
 };
 let checkoutIdentityReady = Promise.resolve(checkoutIdentity);
-const checkoutBrandName = () => window.LuxeBrand?.name || "LUXE";
+const checkoutBrandName = () => window.LuxeBrand?.name || "ALKEBULAN";
 
 document.addEventListener("DOMContentLoaded", async () => {
   if (window.productsReady) await window.productsReady;
@@ -94,12 +94,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     const chatUrl = buildAdminWhatsAppUrl(order, cartItems, contact, shippingAddress);
     if (provider === "whatsapp" && whatsappWindow) whatsappWindow.location.href = chatUrl;
 
-    window.LuxeOrders.sendWhatsAppNotifications("order_created", order.id).catch((notifyError) => {
-      console.warn("[LUXE] WhatsApp API notification was not sent:", notifyError);
-    });
+    const notificationPromise = window.LuxeOrders
+      .sendWhatsAppNotifications("order_created", order.id)
+      .catch((notifyError) => {
+        console.warn("[ALKEBULAN] Order notifications were not sent:", notifyError);
+        return { data: null, error: notifyError };
+      });
 
     if (provider !== "whatsapp") {
-      const payment = await window.LuxePaymentProviders.begin(provider, order);
+      // Do not navigate away until the server has accepted the admin/customer
+      // notification job; otherwise the browser can abort it mid-request.
+      const [payment] = await Promise.all([
+        window.LuxePaymentProviders.begin(provider, order),
+        notificationPromise,
+      ]);
       if (!payment.ok) {
         setButtonState(button, false, "Try Payment Again");
         return showCheckoutError(payment.error);
@@ -109,6 +117,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
+    await notificationPromise;
     clearCheckoutAttempt();
     window.saveCart?.([]);
     localStorage.removeItem("luxe_cart");
