@@ -231,11 +231,19 @@
       const imageWrap = $(".product-image", card);
       const info = $(".product-info", card);
       const primaryImage = $(".product-image > img", card);
-      if (primaryImage && !primaryImage.complete) {
+      if (primaryImage) {
         card.classList.add("is-image-loading");
-        const finishImageLoading = () => card.classList.remove("is-image-loading");
-        primaryImage.addEventListener("load", finishImageLoading, { once: true });
-        primaryImage.addEventListener("error", finishImageLoading, { once: true });
+        const finishImageLoading = async () => {
+          if (primaryImage.naturalWidth > 0 && typeof primaryImage.decode === "function") {
+            try { await primaryImage.decode(); } catch (_) { /* The load event is still a safe fallback. */ }
+          }
+          card.classList.remove("is-image-loading");
+        };
+        if (primaryImage.complete) finishImageLoading();
+        else {
+          primaryImage.addEventListener("load", finishImageLoading, { once: true });
+          primaryImage.addEventListener("error", finishImageLoading, { once: true });
+        }
       }
       if (imageWrap && product?.hoverImage && !$(".luxury-secondary-image", imageWrap)) {
         const secondary = document.createElement("img");

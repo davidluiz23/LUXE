@@ -472,6 +472,7 @@ html.alkebulan-site .product-card[data-luxury-card="true"] {
 html.alkebulan-site .product-card:hover { background: #f7f4ee; border-color: rgba(17,17,15,.1); box-shadow: 0 18px 42px rgba(17,17,15,.1); transform: translateY(-5px); }
 html.alkebulan-site .product-image { height: auto; aspect-ratio: 4 / 5; overflow: hidden; background: #e8e5df; border-radius: 13px; }
 html.alkebulan-site .product-image > img { object-fit: cover; transition: opacity var(--alk-normal) var(--alk-ease), transform .7s var(--alk-ease); }
+html.alkebulan-site .product-card.is-image-loading .product-image > img:first-child { opacity: 0; }
 html.alkebulan-site .product-card.is-image-loading .product-image::before {
     position: absolute;
     z-index: 5;
@@ -871,7 +872,7 @@ html.alkebulan-site .checkout-error { padding: 13px 15px; background: #f2e6e2; c
 html.alkebulan-site .checkout-success { background: var(--alk-paper); border: 1px solid var(--alk-line); border-radius: 0; box-shadow: none; }
 
 /* Authentication */
-html.alkebulan-site .auth-section { min-height: calc(100svh - var(--alk-nav-height)); padding: 0; background: var(--alk-paper); }
+html.alkebulan-site .auth-section { min-height: calc(100svh - var(--alk-nav-height)); padding: 0; background: var(--alk-paper); padding: 20px;}
 html.alkebulan-site .auth-container,
 html.alkebulan-site .login-container { width: 100%; max-width: none; min-height: calc(100svh - var(--alk-nav-height)); margin: 0; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); background: var(--alk-white); border-radius: 0; box-shadow: none; }
 html.alkebulan-site .auth-form-wrapper { display: flex; padding: clamp(56px, 8vw, 120px); flex-direction: column; justify-content: center; }
@@ -882,7 +883,7 @@ html.alkebulan-site .auth-form { max-width: 540px; }
 html.alkebulan-site .auth-form .form-group { margin-bottom: 24px; }
 html.alkebulan-site .remember-forgot,
 html.alkebulan-site .checkbox-label,
-html.alkebulan-site .auth-switch { color: var(--alk-muted); font-size: .62rem; }
+html.alkebulan-site .auth-switch { color: var(--alk-muted); font-size: .62rem; cursor:pointer;}
 html.alkebulan-site .forgot-link,
 html.alkebulan-site .auth-switch a { color: var(--alk-ink); text-underline-offset: 4px; }
 html.alkebulan-site .auth-btn { min-height: 54px; background: var(--alk-ink); color: var(--alk-white); border: 1px solid var(--alk-ink); border-radius: 0; font-size: .6rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
@@ -916,6 +917,47 @@ html.alkebulan-site .auth-divider::before,
 html.alkebulan-site .auth-divider::after { height: 1px; flex: 1; background: var(--alk-line); content: ""; }
 html.alkebulan-site .login-container .auth-form .form-group { margin-bottom: 18px; }
 html.alkebulan-site .login-container .remember-forgot { margin: 4px 0 22px; }
+html.alkebulan-site .login-container .checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    line-height: 1;
+    cursor: pointer;
+}
+html.alkebulan-site .login-container .checkbox-label input[type="checkbox"] {
+    width: 13px;
+    height: 13px;
+    min-height: 13px;
+    flex: 0 0 13px;
+    margin: 0;
+    appearance: none;
+    background: var(--alk-white);
+    border: 1px solid var(--alk-muted);
+    border-radius: 2px;
+    cursor: pointer;
+    display: grid;
+    place-content: center;
+}
+html.alkebulan-site .login-container .checkbox-label input[type="checkbox"]::before {
+    width: 6px;
+    height: 6px;
+    background: var(--alk-white);
+    content: "";
+    clip-path: polygon(14% 44%, 0 59%, 40% 100%, 100% 18%, 84% 4%, 39% 72%);
+    transform: scale(0);
+    transition: transform .15s ease;
+}
+html.alkebulan-site .login-container .checkbox-label input[type="checkbox"]:checked {
+    background: var(--alk-ink);
+    border-color: var(--alk-ink);
+}
+html.alkebulan-site .login-container .checkbox-label input[type="checkbox"]:checked::before { transform: scale(1); }
+html.alkebulan-site .login-container .checkbox-label input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--alk-bronze);
+    outline-offset: 2px;
+}
+html.alkebulan-site .login-container .checkbox-label span { line-height: 13px; }
 html.alkebulan-site .login-actions { display: grid; grid-template-columns: 1.05fr .95fr; gap: 10px; margin-bottom: 0; }
 html.alkebulan-site .login-actions .auth-btn { width: 100%; min-width: 0; margin: 0; padding-inline: 18px; }
 html.alkebulan-site #standardLoginBtn { display: inline-flex; align-items: center; justify-content: space-between; gap: 12px; }

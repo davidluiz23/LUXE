@@ -60,7 +60,7 @@
             <div class="auth-container login-container">
                 <div class="auth-form-wrapper">
                     <p class="login-eyebrow">Your wardrobe is waiting</p>
-                    <h1>Welcome<br>back.</h1>
+                    <h1 style="line-height: 0.96;">Welcome<br>back.</h1>
                     <p class="auth-subtitle">Pick up where you left off with saved pieces, order updates, and a shopping experience shaped around you.</p>
                     <form id="loginForm" class="auth-form">
                         <button type="button" id="googleSignInBtn" class="google-signin-btn">
@@ -87,8 +87,9 @@
                             </div>
                         </div>
                         <div class="form-group remember-forgot" id="rememberForgotRow">
-                            <label class="checkbox-label">
-                                <input type="checkbox"> Remember me
+                            <label class="checkbox-label" for="rememberMe">
+                                <input type="checkbox" id="rememberMe" name="rememberMe">
+                                <span>Remember Me</span>
                             </label>
                             <a href="#" class="forgot-link" id="forgotPasswordLink">Forgot Password?</a>
                         </div>
@@ -105,7 +106,6 @@
                 <div class="auth-image login-image">
                     <div class="login-image-topline">
                         <span>ALKEBULAN MEMBERS</span>
-                        <span class="login-image-status"><i></i> Private access</span>
                     </div>
                     <div class="auth-image-content">
                         <p class="login-image-kicker">Made for your rhythm</p>
