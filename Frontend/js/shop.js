@@ -99,6 +99,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Reset sort
         if (sortSelect) sortSelect.value = "featured";
 
+        window.history.replaceState({}, "", "shop.html");
+
         applyFilters();
       });
     }
@@ -193,6 +195,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Render
     renderShopProducts(results, grid);
+
+    const resetButton = document.getElementById("resetFilters");
+    if (resetButton) {
+      const selectedCategory = document.querySelector(".category-filter.active")?.dataset.category || "all";
+      const selectedColor = document.querySelector(".color-dot.active")?.dataset.color || "all";
+      const hasActiveFilters =
+        selectedCategory !== "all" ||
+        maxPrice < 6000 ||
+        selectedColor !== "all" ||
+        sortValue !== "featured";
+      const resetLabel = resetButton.querySelector("span");
+
+      resetButton.disabled = !hasActiveFilters;
+      resetButton.classList.toggle("is-active", hasActiveFilters);
+      if (resetLabel) resetLabel.textContent = hasActiveFilters ? "Reset filters" : "Filters clear";
+    }
   }
 });
 
@@ -221,10 +239,9 @@ function renderShopProducts(productsList, grid) {
                 <img src="${product.image}" alt="${product.name}" loading="lazy">
                 ${product.discount && product.oldPrice ? `<span class="discount-badge">${Math.round((1 - product.price / product.oldPrice) * 100)}% OFF</span>` : ""}
                 ${product.trending ? `<span class="trending-badge"><i class="fas fa-fire"></i> Trending</span>` : ""}
-                ${product.brand ? `<span style="position:absolute;top:10px;left:10px;background:rgba(0,0,0,0.7);color:white;padding:4px 10px;border-radius:4px;font-size:0.7rem;font-weight:600;">${product.brand}</span>` : ""}
                 <div class="product-actions">
                     <button class="add-cart" onclick="event.stopPropagation(); if (typeof window.addToCart === 'function') window.addToCart(${product.id});">
-                        <i class="fas fa-shopping-bag"></i> Add
+                        <i class="fas fa-shopping-bag"></i> Quick add
                     </button>
                     <button class="wishlist-btn" onclick="event.stopPropagation(); if (typeof window.toggleWishlist === 'function') window.toggleWishlist(${product.id}, this); else if (typeof window.addToWishlist === 'function') window.addToWishlist(${product.id});">
                         <i class="fas fa-heart"></i>
@@ -235,6 +252,7 @@ function renderShopProducts(productsList, grid) {
                 </div>
             </div>
             <div class="product-info">
+                ${product.brand ? `<p class="product-brand">${product.brand}</p>` : ""}
                 <h4 class="product-name">${product.name}</h4>
                 <p class="product-category">${product.category}${product.subcategory ? " / " + product.subcategory : ""}</p>
                 <div class="product-price">
@@ -244,9 +262,9 @@ function renderShopProducts(productsList, grid) {
                 ${
                   product.rating
                     ? `
-                    <div style="margin-top: 5px; font-size: 0.8rem; color: #D4AF37;">
+                    <div class="product-rating">
                         ${window.LuxeIcons?.rating(product.rating) || ""}
-                        <span style="color: #777; margin-left: 5px;">(${product.rating})</span>
+                        <span class="rating-count">(${product.rating})</span>
                     </div>
                 `
                     : ""
