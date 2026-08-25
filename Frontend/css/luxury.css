@@ -1708,7 +1708,7 @@ html.alkebulan-site .back-to-top:active {
     html.alkebulan-site .login-container .auth-form-wrapper h1 { font-size: clamp(3.7rem, 19vw, 5.8rem); }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1020px) {
     html.alkebulan-site .nav-container { grid-template-columns: 1fr auto; }
     html.alkebulan-site .nav-links { display: none !important; }
     html.alkebulan-site .hamburger { display: flex !important; }
