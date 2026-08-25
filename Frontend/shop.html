@@ -88,9 +88,9 @@
       <div class="container">
         <!-- Toolbar -->
         <div class="shop-toolbar">
-          <div class="filter-toggle" id="filterToggle">
+          <button class="filter-toggle" id="filterToggle" type="button" aria-controls="shopSidebar" aria-expanded="false">
             <i class="fas fa-filter"></i> Filters
-          </div>
+          </button>
           <div class="shop-results-count">
             Showing <span id="showingCount">0</span> products
           </div>
@@ -109,9 +109,9 @@
         <div class="shop-layout">
           <!-- Sidebar Filters -->
           <aside class="shop-sidebar" id="shopSidebar">
-            <div class="sidebar-close" id="sidebarClose">
+            <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Close filters">
               <i class="fas fa-times"></i>
-            </div>
+            </button>
 
             <div class="filter-group">
               <h3>Categories</h3>
@@ -163,13 +163,13 @@
                   type="range"
                   id="priceRange"
                   min="0"
-                  max="1000"
+                  max="6000"
                   step="10"
-                  value="1000"
+                  value="6000"
                 />
                 <div class="price-values">
                   <span>$0 ></span>
-                  <span id="priceValue">$1000</span>
+                  <span id="priceValue">$6000</span>
                 </div>
               </div>
             </div>

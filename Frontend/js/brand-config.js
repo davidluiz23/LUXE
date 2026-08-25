@@ -4,9 +4,10 @@
   "use strict";
 
   const config = Object.freeze({
-    name: "LUXE",
-    skuPrefix: "LUXE",
-    isWorkingName: true,
+    name: "ALKEBULAN",
+    skuPrefix: "ALK",
+    isWorkingName: false,
+    mark: "assets/brand/alkebulan-mark.svg",
   });
 
   const workingName = "LUXE";
@@ -69,10 +70,42 @@
     }
   }
 
+  function loadLuxuryPresentation() {
+    const pageName = (window.location.pathname.split("/").pop() || "index.html").toLowerCase();
+    if (pageName === "admin.html") return;
+
+    document.documentElement.classList.add("alkebulan-site");
+    document.body?.classList.add("alkebulan-site");
+
+    if (!document.getElementById("alkebulanLuxuryStyles")) {
+      const stylesheet = document.createElement("link");
+      stylesheet.id = "alkebulanLuxuryStyles";
+      stylesheet.rel = "stylesheet";
+      stylesheet.href = "css/luxury.css?v=20260825-1";
+      document.head.appendChild(stylesheet);
+    }
+
+    if (!document.getElementById("alkebulanLuxuryUi")) {
+      const script = document.createElement("script");
+      script.id = "alkebulanLuxuryUi";
+      script.src = "js/luxury-ui.js?v=20260825-1";
+      script.async = false;
+      document.body.appendChild(script);
+    }
+
+    const favicon = document.querySelector('link[rel~="icon"]') || document.createElement("link");
+    favicon.rel = "icon";
+    favicon.type = "image/svg+xml";
+    favicon.href = config.mark;
+    if (!favicon.parentNode) document.head.appendChild(favicon);
+  }
+
   window.LuxeBrand = Object.freeze({
     ...config,
     replaceWorkingName,
   });
+
+  loadLuxuryPresentation();
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", applyBrand, { once: true });
