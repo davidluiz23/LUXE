@@ -1,10 +1,14 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import {
+  createClient,
+  type SupabaseClient,
+} from "npm:@supabase/supabase-js@2";
 
 type SignupAction = "request" | "check" | "complete";
 
 const TOKEN_TTL_MINUTES = 60;
 const RESEND_COOLDOWN_SECONDS = 60;
 const MAX_SENDS_PER_HOUR = 5;
+const MAX_CODE_ATTEMPTS = 5;
 
 function json(
   body: Record<string, unknown>,
@@ -98,6 +102,18 @@ function randomToken(): string {
     .join("");
 }
 
+function randomCode(): string {
+  const range = 1_000_000;
+  const unbiasedLimit = Math.floor(0x1_0000_0000 / range) * range;
+  let value: number;
+
+  do {
+    value = crypto.getRandomValues(new Uint32Array(1))[0];
+  } while (value >= unbiasedLimit);
+
+  return (value % range).toString().padStart(6, "0");
+}
+
 async function sha256Hex(value: string): Promise<string> {
   const bytes = new TextEncoder().encode(value);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
@@ -126,7 +142,7 @@ function genericRequestSuccess(origin: string) {
     {
       ok: true,
       message:
-        `If this email can be used for a new ${brandName()} account, a verification link has been sent.`,
+        `If this email can be used for a new ${brandName()} account, a verification code and link have been sent.`,
     },
     200,
     origin,
@@ -137,6 +153,7 @@ async function sendVerificationEmail(
   email: string,
   fullName: string,
   verificationUrl: string,
+  verificationCode: string,
 ): Promise<boolean> {
   const apiKey = Deno.env.get("BREVO_API_KEY");
   const senderEmail = Deno.env.get("BREVO_SENDER_EMAIL");
@@ -187,20 +204,24 @@ async function sendVerificationEmail(
             <h1 style="font-size:26px;margin-bottom:12px;">${escapedBrand}</h1>
             <p>Hello ${escapedName},</p>
             <p>Confirm that this email belongs to you. Your ${escapedBrand} account has <strong>not</strong> been created yet.</p>
+            <p style="margin:24px 0 10px;color:#777;font-size:13px;text-transform:uppercase;letter-spacing:1px;">Your verification code</p>
+            <p style="font-size:32px;font-weight:700;letter-spacing:8px;margin:0 0 24px;">${verificationCode}</p>
+            <p>Enter this code on the verification page, or use the secure button below.</p>
             <p style="margin:28px 0;">
               <a href="${verificationUrl}"
                  style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:13px 22px;border-radius:6px;">
                 Verify Email
               </a>
             </p>
-            <p>After opening the link, you’ll choose a password and finish creating your account.</p>
-            <p style="color:#777;font-size:13px;">This link expires in ${TOKEN_TTL_MINUTES} minutes.</p>
+            <p>After verification, you'll choose a password and finish creating your account.</p>
+            <p style="color:#777;font-size:13px;">The code and link expire in ${TOKEN_TTL_MINUTES} minutes.</p>
           </div>
         `,
         textContent:
           `Hello ${fullName},\n\n` +
-          `Verify your email to continue creating your ${brand} account:\n${verificationUrl}\n\n` +
-          `Your account has not been created yet. This link expires in ${TOKEN_TTL_MINUTES} minutes.`,
+          `Your verification code is: ${verificationCode}\n\n` +
+          `Or open this secure link:\n${verificationUrl}\n\n` +
+          `Your account has not been created yet. The code and link expire in ${TOKEN_TTL_MINUTES} minutes.`,
         tags: ["luxe-signup-verification"],
       }),
     },
@@ -217,6 +238,23 @@ async function sendVerificationEmail(
   }
 
   return true;
+}
+
+async function recordFailedCodeAttempt(
+  service: SupabaseClient<any, "public", "public", any, any>,
+  email: string,
+) {
+  const { error } = await service.rpc(
+    "increment_pending_signup_code_attempts",
+    { p_email: email },
+  );
+
+  if (error) {
+    console.error(
+      "[signup-flow] Could not record failed code attempt:",
+      error.message,
+    );
+  }
 }
 
 Deno.serve(async (request) => {
@@ -356,7 +394,9 @@ Deno.serve(async (request) => {
     }
 
     const token = randomToken();
+    const verificationCode = randomCode();
     const tokenHash = await sha256Hex(token);
+    const codeHash = await sha256Hex(verificationCode);
     const expiresAt = new Date(
       now + TOKEN_TTL_MINUTES * 60 * 1000,
     ).toISOString();
@@ -367,6 +407,8 @@ Deno.serve(async (request) => {
           email,
           full_name: fullName,
           token_hash: tokenHash,
+          code_hash: codeHash,
+          failed_code_attempts: 0,
           expires_at: expiresAt,
           last_sent_at: new Date(now).toISOString(),
           send_count: sendCount,
@@ -392,6 +434,7 @@ Deno.serve(async (request) => {
       email,
       fullName,
       verificationUrl.toString(),
+      verificationCode,
     );
 
     if (!sent) {
@@ -412,26 +455,36 @@ Deno.serve(async (request) => {
       typeof body?.token === "string"
         ? body.token.trim()
         : "";
+    const email = normalizeEmail(body?.email);
+    const code = typeof body?.code === "string" ? body.code.trim() : "";
+    let query = service
+      .from("pending_signups")
+      .select("email,expires_at")
+      .gt("expires_at", new Date().toISOString());
 
-    if (!/^[a-f0-9]{64}$/i.test(token)) {
+    if (/^[a-f0-9]{64}$/i.test(token)) {
+      query = query.eq("token_hash", await sha256Hex(token));
+    } else if (validEmail(email) && /^\d{6}$/.test(code)) {
+      query = query
+        .eq("email", email)
+        .eq("code_hash", await sha256Hex(code))
+        .lt("failed_code_attempts", MAX_CODE_ATTEMPTS);
+    } else {
       return json({ valid: false }, 200, origin);
     }
 
-    const tokenHash = await sha256Hex(token);
-
-    const { data, error } = await service
-      .from("pending_signups")
-      .select("email,expires_at")
-      .eq("token_hash", tokenHash)
-      .gt("expires_at", new Date().toISOString())
-      .maybeSingle();
+    const { data, error } = await query.maybeSingle();
 
     if (error) {
       console.error(
-        "[signup-flow] Token check failed:",
+        "[signup-flow] Verification check failed:",
         error.message,
       );
       return json({ valid: false }, 200, origin);
+    }
+
+    if (!data && validEmail(email) && /^\d{6}$/.test(code)) {
+      await recordFailedCodeAttempt(service, email);
     }
 
     return json({ valid: !!data }, 200, origin);
@@ -446,9 +499,13 @@ Deno.serve(async (request) => {
       typeof body?.password === "string"
         ? body.password
         : "";
+    const email = normalizeEmail(body?.email);
+    const code = typeof body?.code === "string" ? body.code.trim() : "";
+    const hasToken = /^[a-f0-9]{64}$/i.test(token);
+    const hasCode = validEmail(email) && /^\d{6}$/.test(code);
 
     if (
-      !/^[a-f0-9]{64}$/i.test(token) ||
+      (!hasToken && !hasCode) ||
       password.length < 8 ||
       password.length > 128
     ) {
@@ -459,17 +516,31 @@ Deno.serve(async (request) => {
       );
     }
 
-    const tokenHash = await sha256Hex(token);
+    let completionQuery = service
+      .from("pending_signups")
+      .select("email,full_name,expires_at")
+      .gt("expires_at", new Date().toISOString());
+
+    if (hasToken) {
+      completionQuery = completionQuery.eq(
+        "token_hash",
+        await sha256Hex(token),
+      );
+    } else {
+      completionQuery = completionQuery
+        .eq("email", email)
+        .eq("code_hash", await sha256Hex(code))
+        .lt("failed_code_attempts", MAX_CODE_ATTEMPTS);
+    }
 
     const { data: pending, error: pendingError } =
-      await service
-        .from("pending_signups")
-        .select("email,full_name,expires_at")
-        .eq("token_hash", tokenHash)
-        .gt("expires_at", new Date().toISOString())
-        .maybeSingle();
+      await completionQuery.maybeSingle();
 
     if (pendingError || !pending) {
+      if (!hasToken && hasCode) {
+        await recordFailedCodeAttempt(service, email);
+      }
+
       return json(
         { error: "invalid_or_expired_signup" },
         400,
@@ -486,7 +557,7 @@ Deno.serve(async (request) => {
           full_name: pending.full_name,
         },
         app_metadata: {
-          signup_source: "luxe_verified_email_link",
+          signup_source: "luxe_verified_email",
         },
       });
 
@@ -510,7 +581,7 @@ Deno.serve(async (request) => {
     await service
       .from("pending_signups")
       .delete()
-      .eq("token_hash", tokenHash);
+      .eq("email", pending.email);
 
     return json(
       {

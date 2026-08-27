@@ -140,6 +140,33 @@ const LuxeAuth = {
     }
   },
 
+  async checkSignupCode(email, code) {
+    if (!supabaseClient) {
+      return {
+        data: null,
+        error: { message: "Account service is not configured." },
+      };
+    }
+
+    try {
+      return await supabaseClient.functions.invoke("signup-flow", {
+        body: {
+          action: "check",
+          email,
+          code,
+        },
+      });
+    } catch (error) {
+      console.error("[ALKEBULAN] Signup code check error:", error);
+      return {
+        data: null,
+        error: {
+          message: error?.message || "Unable to check verification code.",
+        },
+      };
+    }
+  },
+
   async completeSignup(token, password) {
     if (!supabaseClient) {
       return {
@@ -158,6 +185,34 @@ const LuxeAuth = {
       });
     } catch (error) {
       console.error("[ALKEBULAN] Signup completion error:", error);
+      return {
+        data: null,
+        error: {
+          message: error?.message || "Unable to complete signup.",
+        },
+      };
+    }
+  },
+
+  async completeSignupWithCode(email, code, password) {
+    if (!supabaseClient) {
+      return {
+        data: null,
+        error: { message: "Account service is not configured." },
+      };
+    }
+
+    try {
+      return await supabaseClient.functions.invoke("signup-flow", {
+        body: {
+          action: "complete",
+          email,
+          code,
+          password,
+        },
+      });
+    } catch (error) {
+      console.error("[ALKEBULAN] Signup code completion error:", error);
       return {
         data: null,
         error: {

@@ -1,7 +1,7 @@
 // js/auth.js - ALKEBULAN authentication UI
 //
-// Signup verification uses Supabase EMAIL CONFIRMATION LINKS.
-// No six-digit signup OTP is used.
+// Deferred signup uses a Brevo email with both a secure link and a six-digit code.
+// The Auth account is created only after either verification path succeeds.
 
 document.addEventListener("DOMContentLoaded", () => {
   const loader = document.getElementById("loader");
@@ -104,10 +104,15 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       showAuthSuccess(
-        "Your account has not been created yet. Check your email and open the verification link to choose a password.",
+        "Verification email sent. Use the six-digit code or secure link to continue.",
       );
 
+      sessionStorage.setItem("luxe_pending_signup_email", email);
       signupForm.reset();
+
+      setTimeout(() => {
+        window.location.href = "verify-signup.html";
+      }, 900);
     });
   }
 
