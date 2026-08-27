@@ -1,0 +1,167 @@
+/* Page-specific overrides load after luxury.css so mobile type cannot overflow. */
+html.alkebulan-site body.verify-signup-page .auth-form-wrapper h1 {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+html.alkebulan-site body.verify-signup-page #signupTokenChecking,
+html.alkebulan-site body.verify-signup-page #signupCodeEntry,
+html.alkebulan-site body.verify-signup-page #signupTokenInvalid,
+html.alkebulan-site body.verify-signup-page #signupTokenVerified,
+html.alkebulan-site body.verify-signup-page #signupCreatedState {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+}
+
+@media (max-width: 992px) {
+    html.alkebulan-site body.verify-signup-page .auth-section {
+        padding: 104px 0 48px;
+    }
+
+    html.alkebulan-site body.verify-signup-page .auth-section > .container {
+        width: min(100%, 720px);
+        padding-inline: 24px;
+    }
+
+    html.alkebulan-site body.verify-signup-page .auth-container {
+        width: 100%;
+        gap: 0;
+    }
+
+    html.alkebulan-site body.verify-signup-page .auth-form-wrapper {
+        min-width: 0;
+        padding: 48px 42px;
+    }
+}
+
+@media (max-width: 760px) {
+    html.alkebulan-site body.verify-signup-page .auth-section {
+        min-height: calc(100svh - 64px);
+        padding: 92px 0 36px;
+    }
+
+    html.alkebulan-site body.verify-signup-page .auth-section > .container {
+        padding-inline: 18px;
+    }
+
+    html.alkebulan-site body.verify-signup-page .auth-container {
+        border-radius: 14px;
+    }
+
+    html.alkebulan-site body.verify-signup-page .auth-form-wrapper {
+        min-height: auto;
+        padding: 38px 30px;
+    }
+
+    html.alkebulan-site body.verify-signup-page .auth-form-wrapper h1 {
+        margin-bottom: 18px;
+        font-size: clamp(2.8rem, 9.5vw, 4.4rem);
+        letter-spacing: -0.055em;
+        line-height: 0.94;
+    }
+
+    html.alkebulan-site body.verify-signup-page .auth-subtitle {
+        margin-bottom: 26px;
+        font-size: 0.94rem;
+        line-height: 1.65;
+    }
+
+    html.alkebulan-site body.verify-signup-page .auth-form {
+        gap: 18px;
+    }
+
+    html.alkebulan-site body.verify-signup-page .auth-form input {
+        min-height: 50px;
+        font-size: 16px;
+    }
+
+    html.alkebulan-site body.verify-signup-page .verification-code-input {
+        padding-inline: 12px;
+        font-size: 1.3rem;
+        letter-spacing: 0.38rem;
+    }
+
+    html.alkebulan-site body.verify-signup-page .auth-message {
+        overflow-wrap: anywhere;
+    }
+
+    html.alkebulan-site body.verify-signup-page .auth-btn {
+        min-height: 50px;
+        white-space: normal;
+    }
+}
+
+@media (max-width: 480px) {
+    html.alkebulan-site body.verify-signup-page .auth-section {
+        padding: 82px 0 24px;
+    }
+
+    html.alkebulan-site body.verify-signup-page .auth-section > .container {
+        padding-inline: 12px;
+    }
+
+    html.alkebulan-site body.verify-signup-page .auth-container {
+        border-radius: 12px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    html.alkebulan-site body.verify-signup-page .auth-form-wrapper {
+        padding: 30px 20px;
+    }
+
+    html.alkebulan-site body.verify-signup-page .auth-form-wrapper h1 {
+        font-size: clamp(2.35rem, 12.5vw, 3.5rem);
+    }
+
+    html.alkebulan-site body.verify-signup-page .auth-subtitle {
+        margin-bottom: 22px;
+        font-size: 0.88rem;
+    }
+
+    html.alkebulan-site body.verify-signup-page .form-group label {
+        font-size: 0.84rem;
+    }
+
+    html.alkebulan-site body.verify-signup-page .verification-code-input {
+        padding-inline: 8px;
+        font-size: 1.15rem;
+        letter-spacing: 0.28rem;
+    }
+
+    html.alkebulan-site body.verify-signup-page .password-input-wrapper input {
+        padding-right: 48px;
+    }
+
+    html.alkebulan-site body.verify-signup-page .toggle-password {
+        width: 44px;
+        min-height: 44px;
+    }
+}
+
+@media (max-width: 340px) {
+    html.alkebulan-site body.verify-signup-page .auth-form-wrapper {
+        padding: 26px 15px;
+    }
+
+    html.alkebulan-site body.verify-signup-page .auth-form-wrapper h1 {
+        font-size: 2.15rem;
+    }
+
+    html.alkebulan-site body.verify-signup-page .verification-code-input {
+        font-size: 1.05rem;
+        letter-spacing: 0.2rem;
+    }
+}
+
+@media (max-height: 620px) and (orientation: landscape) {
+    html.alkebulan-site body.verify-signup-page .auth-section {
+        padding-top: 76px;
+        padding-bottom: 20px;
+    }
+
+    html.alkebulan-site body.verify-signup-page .auth-form-wrapper {
+        padding-block: 24px;
+    }
+}

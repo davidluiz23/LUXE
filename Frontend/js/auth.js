@@ -184,7 +184,9 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      showAuthSuccess("Sign-in link sent. Check your email.");
+      showAuthSuccess(
+        "If a verified account exists for that email, a sign-in link has been sent.",
+      );
     });
   }
 
@@ -192,6 +194,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const forgotModal = document.getElementById("forgotPasswordModal");
   const forgotForm = document.getElementById("forgotPasswordForm");
   const forgotSuccess = document.getElementById("forgotPasswordSuccess");
+  const forgotError = document.getElementById("forgotPasswordError");
   const closeForgotButton = document.getElementById("closeForgotModal");
 
   if (forgotLink && forgotModal) {
@@ -207,6 +210,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (forgotForm) forgotForm.style.display = "block";
       if (forgotSuccess) forgotSuccess.style.display = "none";
+      if (forgotError) {
+        forgotError.textContent = "";
+        forgotError.style.display = "none";
+      }
 
       forgotModal.classList.add("active");
     });
@@ -238,6 +245,11 @@ document.addEventListener("DOMContentLoaded", () => {
         button.textContent = "Sending...";
       }
 
+      if (forgotError) {
+        forgotError.textContent = "";
+        forgotError.style.display = "none";
+      }
+
       const { error } = await window.LuxeAuth.requestPasswordReset(
         email,
         "customer",
@@ -248,14 +260,20 @@ document.addEventListener("DOMContentLoaded", () => {
         button.textContent = "Send Reset Link";
       }
 
+      if (error) {
+        console.warn("[ALKEBULAN] Password reset request:", error.message);
+        if (forgotError) {
+          forgotError.textContent =
+            "We couldn't request a reset email right now. Please try again.";
+          forgotError.style.display = "block";
+        }
+        return;
+      }
+
       forgotForm.style.display = "none";
 
       if (forgotSuccess) {
         forgotSuccess.style.display = "block";
-      }
-
-      if (error) {
-        console.warn("[ALKEBULAN] Password reset request:", error.message);
       }
     });
   }
