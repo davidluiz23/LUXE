@@ -568,3 +568,45 @@
     letter-spacing: 0.45rem;
     text-align: center;
 }
+
+.verification-method-group {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.verification-method-group legend {
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.verification-method-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid rgba(17, 17, 17, 0.16);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.verification-method-option:has(input:checked) {
+    border-color: var(--primary);
+    background: rgba(177, 138, 67, 0.08);
+}
+
+.verification-method-option input {
+    margin-top: 4px;
+}
+
+.verification-method-option span {
+    display: grid;
+    gap: 2px;
+}
+
+.verification-method-option small {
+    color: #777;
+}

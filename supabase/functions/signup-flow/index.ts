@@ -5,7 +5,8 @@ import {
 
 type SignupAction = "request" | "check" | "complete";
 
-const TOKEN_TTL_MINUTES = 60;
+const TOKEN_TTL_MINUTES = 15;
+const CODE_TTL_MINUTES = 15;
 const RESEND_COOLDOWN_SECONDS = 60;
 const MAX_SENDS_PER_HOUR = 5;
 const MAX_CODE_ATTEMPTS = 5;
@@ -214,14 +215,14 @@ async function sendVerificationEmail(
               </a>
             </p>
             <p>After verification, you'll choose a password and finish creating your account.</p>
-            <p style="color:#777;font-size:13px;">The code and link expire in ${TOKEN_TTL_MINUTES} minutes.</p>
+            <p style="color:#777;font-size:13px;">The code and secure link expire in ${TOKEN_TTL_MINUTES} minutes.</p>
           </div>
         `,
         textContent:
           `Hello ${fullName},\n\n` +
           `Your verification code is: ${verificationCode}\n\n` +
           `Or open this secure link:\n${verificationUrl}\n\n` +
-          `Your account has not been created yet. The code and link expire in ${TOKEN_TTL_MINUTES} minutes.`,
+          `Your account has not been created yet. The code and secure link expire in ${TOKEN_TTL_MINUTES} minutes.`,
         tags: ["luxe-signup-verification"],
       }),
     },
@@ -400,6 +401,9 @@ Deno.serve(async (request) => {
     const expiresAt = new Date(
       now + TOKEN_TTL_MINUTES * 60 * 1000,
     ).toISOString();
+    const codeExpiresAt = new Date(
+      now + CODE_TTL_MINUTES * 60 * 1000,
+    ).toISOString();
 
     const { error: upsertError } =
       await service.from("pending_signups").upsert(
@@ -408,6 +412,7 @@ Deno.serve(async (request) => {
           full_name: fullName,
           token_hash: tokenHash,
           code_hash: codeHash,
+          code_expires_at: codeExpiresAt,
           failed_code_attempts: 0,
           expires_at: expiresAt,
           last_sent_at: new Date(now).toISOString(),
@@ -459,15 +464,17 @@ Deno.serve(async (request) => {
     const code = typeof body?.code === "string" ? body.code.trim() : "";
     let query = service
       .from("pending_signups")
-      .select("email,expires_at")
-      .gt("expires_at", new Date().toISOString());
+      .select("email,expires_at,code_expires_at");
 
     if (/^[a-f0-9]{64}$/i.test(token)) {
-      query = query.eq("token_hash", await sha256Hex(token));
+      query = query
+        .eq("token_hash", await sha256Hex(token))
+        .gt("expires_at", new Date().toISOString());
     } else if (validEmail(email) && /^\d{6}$/.test(code)) {
       query = query
         .eq("email", email)
         .eq("code_hash", await sha256Hex(code))
+        .gt("code_expires_at", new Date().toISOString())
         .lt("failed_code_attempts", MAX_CODE_ATTEMPTS);
     } else {
       return json({ valid: false }, 200, origin);
@@ -518,18 +525,18 @@ Deno.serve(async (request) => {
 
     let completionQuery = service
       .from("pending_signups")
-      .select("email,full_name,expires_at")
-      .gt("expires_at", new Date().toISOString());
+      .select("email,full_name,expires_at,code_expires_at");
 
     if (hasToken) {
       completionQuery = completionQuery.eq(
         "token_hash",
         await sha256Hex(token),
-      );
+      ).gt("expires_at", new Date().toISOString());
     } else {
       completionQuery = completionQuery
         .eq("email", email)
         .eq("code_hash", await sha256Hex(code))
+        .gt("code_expires_at", new Date().toISOString())
         .lt("failed_code_attempts", MAX_CODE_ATTEMPTS);
     }
 

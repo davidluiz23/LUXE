@@ -60,6 +60,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const fullName = document.getElementById("fullName")?.value.trim() || "";
       const email = document.getElementById("email")?.value.trim() || "";
+      const verificationMethod =
+        document.querySelector('input[name="verificationMethod"]:checked')
+          ?.value || "code";
       const terms = document.getElementById("terms")?.checked || false;
 
       if (!fullName || !email) {
@@ -104,15 +107,19 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       showAuthSuccess(
-        "Verification email sent. Use the six-digit code or secure link to continue.",
+        verificationMethod === "link"
+          ? "Verification email sent. Open the secure link in your inbox to continue."
+          : "Verification email sent. Enter the six-digit code to continue.",
       );
 
       sessionStorage.setItem("luxe_pending_signup_email", email);
       signupForm.reset();
 
-      setTimeout(() => {
-        window.location.href = "verify-signup.html";
-      }, 900);
+      if (verificationMethod === "code") {
+        setTimeout(() => {
+          window.location.href = "verify-signup.html";
+        }, 900);
+      }
     });
   }
 

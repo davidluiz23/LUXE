@@ -11,7 +11,7 @@
 
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/auth.css?v=20260827-2">
     <link rel="stylesheet" href="css/responsive.css">
     <link id="alkebulanLuxuryStyles" rel="stylesheet" href="css/luxury.css?v=20260825-11">
     <script id="alkebulanLuxuryUi" src="js/luxury-ui.js?v=20260825-5" defer></script>
@@ -78,6 +78,24 @@
                             <input type="email" id="email" placeholder="john@example.com" autocomplete="email" required>
                         </div>
 
+                        <fieldset class="verification-method-group">
+                            <legend>Choose how to verify your email</legend>
+                            <label class="verification-method-option">
+                                <input type="radio" name="verificationMethod" value="code" checked>
+                                <span>
+                                    <strong>6-digit code</strong>
+                                    <small>Recommended · expires in 15 minutes</small>
+                                </span>
+                            </label>
+                            <label class="verification-method-option">
+                                <input type="radio" name="verificationMethod" value="link">
+                                <span>
+                                    <strong>Secure email link</strong>
+                                    <small>Open the link from your inbox</small>
+                                </span>
+                            </label>
+                        </fieldset>
+
                         <!-- <div class="form-group">
                             <label for="password">Password</label>
                             <div class="password-input-wrapper">
@@ -102,7 +120,7 @@
                         <button type="submit" class="btn btn-primary auth-btn">Create Account</button>
 
                         <p style="margin-top:12px;text-align:center;font-size:0.82rem;color:#777;">
-                            We’ll send a six-digit verification code and a secure confirmation link.
+                            Your email contains both methods, so you can switch if needed.
                         </p>
 
                         <p class="auth-switch">Already have an account? <a href="login.html">Sign In</a></p>
@@ -173,6 +191,6 @@
     <script src="js/search.js"></script>
     <script src="js/animation.js"></script>
     <script src="js/app.js?v=20260825-3"></script>
-    <script src="js/auth.js?v=20260827-1"></script>
+    <script src="js/auth.js?v=20260827-2"></script>
 </body>
 </html>
