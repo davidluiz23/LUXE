@@ -1271,10 +1271,317 @@ const LuxePromotions = {
   },
 };
 
+// ---------------------------------------------------------------------
+// RESPONSIVE PRODUCT MEDIA
+//
+// Cloudinary keeps the uploaded master untouched. Storefront images use
+// derived URLs sized for the device, with a content-aware 4:5 crop on cards.
+// This prevents stretching and avoids downloading an 8K master into a 300px
+// product tile. The original URL remains available on the product page.
+// ---------------------------------------------------------------------
+
+const LuxeMedia = {
+  PRODUCT_ASPECT_RATIO: 4 / 5,
+  MAX_PRODUCT_BYTES: 40 * 1024 * 1024,
+  MAX_PRODUCT_PIXELS: 100 * 1000 * 1000,
+  RECOMMENDED_WIDTH: 1200,
+  RECOMMENDED_HEIGHT: 1500,
+  ALLOWED_IMAGE_TYPES: new Set([
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/avif",
+    "image/heic",
+    "image/heif",
+  ]),
+  ALLOWED_IMAGE_EXTENSIONS: new Set(["jpg", "jpeg", "png", "webp", "avif", "heic", "heif"]),
+  PRESETS: {
+    card: {
+      widths: [240, 360, 480, 640, 800, 1000],
+      width: 640,
+      height: 800,
+      crop: "fill",
+      gravity: "auto",
+      quality: "auto:good",
+      sizes: "(max-width: 480px) 48vw, (max-width: 768px) 46vw, (max-width: 1200px) 31vw, 23vw",
+    },
+    detail: {
+      widths: [480, 720, 960, 1280, 1600, 1920, 2400],
+      width: 1280,
+      height: 1600,
+      crop: "limit",
+      quality: "auto:best",
+      sizes: "(max-width: 900px) 100vw, 58vw",
+    },
+    thumb: {
+      widths: [96, 160, 240, 320, 480],
+      width: 240,
+      height: 300,
+      crop: "fill",
+      gravity: "auto",
+      quality: "auto:good",
+      sizes: "(max-width: 900px) 24vw, 150px",
+    },
+    compact: {
+      widths: [80, 120, 180, 240, 320],
+      width: 180,
+      height: 225,
+      crop: "fill",
+      gravity: "auto",
+      quality: "auto:eco",
+      sizes: "120px",
+    },
+    admin: {
+      widths: [160, 240, 360, 480, 640],
+      width: 360,
+      height: 450,
+      crop: "fill",
+      gravity: "auto",
+      quality: "auto:good",
+      sizes: "180px",
+    },
+  },
+
+  escapeAttribute(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;");
+  },
+
+  safeImageUrl(value, { allowLocalPreview = false } = {}) {
+    const candidate = String(value || "").trim();
+    if (!candidate) return "";
+    if (allowLocalPreview && /^(blob:|data:image\/)/i.test(candidate)) return candidate;
+    try {
+      const url = new URL(candidate, typeof window !== "undefined" ? window.location.href : undefined);
+      if (url.protocol === "https:") return url.href;
+      if (
+        url.protocol === "http:" &&
+        ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)
+      ) return url.href;
+    } catch { /* Invalid or unsafe image URL. */ }
+    return "";
+  },
+
+  isCloudinaryUrl(value) {
+    const safe = this.safeImageUrl(value);
+    if (!safe) return false;
+    try {
+      const url = new URL(safe);
+      return (
+        (url.hostname === "res.cloudinary.com" || url.hostname.endsWith(".res.cloudinary.com")) &&
+        url.pathname.includes("/image/upload/")
+      );
+    } catch {
+      return false;
+    }
+  },
+
+  cloudinaryUrl(value, options = {}) {
+    const safe = this.safeImageUrl(value);
+    if (!safe || !this.isCloudinaryUrl(safe)) return safe;
+
+    const width = Math.min(8192, Math.max(16, Math.round(Number(options.width) || 640)));
+    const requestedHeight = Number(options.height);
+    const height = Number.isFinite(requestedHeight)
+      ? Math.min(8192, Math.max(16, Math.round(requestedHeight)))
+      : null;
+    const crop = ["fill", "fit", "limit", "pad"].includes(options.crop) ? options.crop : "fill";
+    const gravity = /^[a-z_]+$/i.test(options.gravity || "") ? options.gravity : "auto";
+    const quality = /^auto(?::(?:best|good|eco|low))?$/.test(options.quality || "")
+      ? options.quality
+      : "auto:good";
+    const transformation = [
+      `c_${crop}`,
+      crop === "fill" ? `g_${gravity}` : "",
+      `w_${width}`,
+      height && crop !== "limit" ? `h_${height}` : "",
+      `q_${quality}`,
+      "f_auto",
+    ].filter(Boolean).join(",");
+
+    try {
+      const url = new URL(safe);
+      const marker = "/image/upload/";
+      const markerIndex = url.pathname.indexOf(marker);
+      if (markerIndex < 0) return safe;
+      const before = url.pathname.slice(0, markerIndex + marker.length);
+      const after = url.pathname.slice(markerIndex + marker.length);
+      url.pathname = `${before}${transformation}/${after}`;
+      return url.href;
+    } catch {
+      return safe;
+    }
+  },
+
+  responsive(value, options = {}) {
+    const original = this.safeImageUrl(value, { allowLocalPreview: !!options.allowLocalPreview });
+    const preset = this.PRESETS[options.preset] || this.PRESETS.card;
+    const config = { ...preset, ...options };
+    if (!original) return { original: "", src: "", srcset: "", sizes: config.sizes || "100vw", config };
+    if (!this.isCloudinaryUrl(original)) {
+      return { original, src: original, srcset: "", sizes: config.sizes || "100vw", config };
+    }
+
+    const heightForWidth = (width) => config.height && config.width
+      ? Math.round(width * (config.height / config.width))
+      : undefined;
+    const build = (width) => this.cloudinaryUrl(original, {
+      width,
+      height: heightForWidth(width),
+      crop: config.crop,
+      gravity: config.gravity,
+      quality: config.quality,
+    });
+    const widths = [...new Set((config.widths || [config.width]).map(Number))]
+      .filter((width) => Number.isFinite(width) && width > 0)
+      .sort((left, right) => left - right);
+    return {
+      original,
+      src: build(config.width),
+      srcset: widths.map((width) => `${build(width)} ${width}w`).join(", "),
+      sizes: config.sizes || "100vw",
+      config,
+    };
+  },
+
+  attributes(value, options = {}) {
+    const media = this.responsive(value, options);
+    const escape = (item) => this.escapeAttribute(item);
+    const priority = !!options.priority;
+    const attributes = [
+      `src="${escape(media.src)}"`,
+      media.srcset ? `srcset="${escape(media.srcset)}"` : "",
+      media.srcset ? `sizes="${escape(media.sizes)}"` : "",
+      `alt="${escape(options.alt || "")}"`,
+      `width="${Math.round(media.config.width || 640)}"`,
+      `height="${Math.round(media.config.height || 800)}"`,
+      `loading="${priority ? "eager" : "lazy"}"`,
+      `decoding="async"`,
+      priority ? `fetchpriority="high"` : `fetchpriority="auto"`,
+      `data-luxe-original="${escape(media.original)}"`,
+      options.className ? `class="${escape(options.className)}"` : "",
+    ];
+    return attributes.filter(Boolean).join(" ");
+  },
+
+  apply(image, value, options = {}) {
+    if (!image) return null;
+    const media = this.responsive(value, { ...options, allowLocalPreview: true });
+    image.src = media.src;
+    if (media.srcset) {
+      image.srcset = media.srcset;
+      image.sizes = media.sizes;
+    } else {
+      image.removeAttribute("srcset");
+      image.removeAttribute("sizes");
+    }
+    image.width = Math.round(media.config.width || 640);
+    image.height = Math.round(media.config.height || 800);
+    image.loading = options.priority ? "eager" : "lazy";
+    image.decoding = "async";
+    image.fetchPriority = options.priority ? "high" : "auto";
+    if (options.alt !== undefined) image.alt = String(options.alt || "");
+    image.dataset.luxeOriginal = media.original;
+    this.bindFallback(image);
+    return media;
+  },
+
+  bindFallback(image) {
+    if (!image || image.dataset.luxeFallbackBound === "true") return;
+    image.dataset.luxeFallbackBound = "true";
+    image.addEventListener("error", () => {
+      const original = this.safeImageUrl(image.dataset.luxeOriginal, { allowLocalPreview: true });
+      if (!original || image.src === original || image.dataset.luxeFallbackUsed === "true") return;
+      image.dataset.luxeFallbackUsed = "true";
+      image.removeAttribute("srcset");
+      image.removeAttribute("sizes");
+      image.src = original;
+    });
+  },
+
+  hydrate(root = document) {
+    if (!root?.querySelectorAll) return;
+    root.querySelectorAll("img[data-luxe-original]").forEach((image) => this.bindFallback(image));
+  },
+
+  async validateProductFile(file) {
+    if (typeof File !== "undefined" && !(file instanceof File)) {
+      return { data: null, error: { message: "Select a valid image file." } };
+    }
+    const extension = String(file?.name || "").split(".").pop().toLowerCase();
+    const declaredType = String(file?.type || "").toLowerCase();
+    const typeAllowed = this.ALLOWED_IMAGE_TYPES.has(declaredType);
+    const extensionAllowed = this.ALLOWED_IMAGE_EXTENSIONS.has(extension);
+    if (!file || (!typeAllowed && !(declaredType === "" && extensionAllowed))) {
+      return { data: null, error: { message: "Use a JPG, PNG, WebP, AVIF, HEIC or HEIF image." } };
+    }
+    if (!Number.isFinite(file.size) || file.size < 1 || file.size > this.MAX_PRODUCT_BYTES) {
+      return { data: null, error: { message: "Product images must be 40 MB or smaller. Your Cloudinary plan may have a lower limit." } };
+    }
+
+    const header = new Uint8Array(await file.slice(0, 32).arrayBuffer());
+    const ascii = (start, length) => String.fromCharCode(...header.slice(start, start + length));
+    const detected =
+      (header[0] === 0xff && header[1] === 0xd8 && header[2] === 0xff && "jpeg") ||
+      (header[0] === 0x89 && ascii(1, 3) === "PNG" && "png") ||
+      (ascii(0, 4) === "RIFF" && ascii(8, 4) === "WEBP" && "webp") ||
+      (ascii(4, 4) === "ftyp" && ["avif", "avis", "heic", "heix", "hevc", "hevx", "mif1", "msf1"].includes(ascii(8, 4)) && "bmff") ||
+      "";
+    if (!detected) {
+      return { data: null, error: { message: "The selected file does not contain a supported image." } };
+    }
+
+    let width = null;
+    let height = null;
+    let previewUrl = "";
+    try {
+      previewUrl = URL.createObjectURL(file);
+      const dimensions = await new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight });
+        image.onerror = reject;
+        image.src = previewUrl;
+      });
+      width = dimensions.width;
+      height = dimensions.height;
+    } catch {
+      // Some browsers cannot preview HEIC/HEIF even though Cloudinary can ingest it.
+      if (!(["image/heic", "image/heif"].includes(declaredType) || ["heic", "heif"].includes(extension))) {
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        return { data: null, error: { message: "This image is damaged or cannot be decoded by the browser." } };
+      }
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = "";
+    }
+
+    const pixels = width && height ? width * height : null;
+    if (pixels && pixels > this.MAX_PRODUCT_PIXELS) {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      return { data: null, error: { message: "This image exceeds the safe 100-megapixel upload limit." } };
+    }
+
+    return {
+      data: {
+        width,
+        height,
+        pixels,
+        megapixels: pixels ? pixels / 1000000 : null,
+        previewUrl,
+        recommended: !!(width && height && width >= this.RECOMMENDED_WIDTH && height >= this.RECOMMENDED_HEIGHT),
+        format: detected,
+      },
+      error: null,
+    };
+  },
+};
+
 const LuxeStorage = {
   BUCKET: "luxe-uploads",
   ALLOWED_IMAGE_TYPES: new Set([
-    "image/jpeg", "image/png", "image/webp", "image/gif", "image/avif",
+    "image/jpeg", "image/png", "image/webp", "image/avif",
   ]),
 
   _sanitizeName(filename) {
@@ -1295,7 +1602,7 @@ const LuxeStorage = {
       return { message: "Select a valid file." };
     }
     if (!file || !this.ALLOWED_IMAGE_TYPES.has(file.type)) {
-      return { message: "Use a JPG, PNG, WebP, GIF or AVIF image." };
+      return { message: "Use a JPG, PNG, WebP or AVIF image." };
     }
     if (!Number.isFinite(file.size) || file.size < 1 || file.size > maxBytes) {
       return { message: `Image must be smaller than ${Math.round(maxBytes / 1024 / 1024)} MB.` };
@@ -1345,12 +1652,12 @@ const LuxeStorage = {
     }
   },
 
-  async uploadProductImage(file) {
+  async uploadProductImage(file, validation = null) {
     if (!supabaseClient) {
       return { url: null, error: { message: "Backend not configured." } };
     }
-    const validationError = this._validateImage(file);
-    if (validationError) return { url: null, error: validationError };
+    const inspection = validation?.data ? validation : await LuxeMedia.validateProductFile(file);
+    if (inspection.error) return { url: null, error: inspection.error };
 
     try {
       const signed = await supabaseClient.functions.invoke("cloudinary-upload-signature", {
@@ -1385,7 +1692,18 @@ const LuxeStorage = {
           error: { message: payload?.error?.message || "Cloudinary could not upload this image." },
         };
       }
-      return { url: payload.secure_url, error: null };
+      return {
+        url: payload.secure_url,
+        media: {
+          publicId: payload.public_id || "",
+          width: Number(payload.width) || inspection.data?.width || null,
+          height: Number(payload.height) || inspection.data?.height || null,
+          bytes: Number(payload.bytes) || file.size,
+          format: payload.format || inspection.data?.format || "",
+          originalFilename: payload.original_filename || file.name,
+        },
+        error: null,
+      };
     } catch (error) {
       console.error("[ALKEBULAN] Cloudinary upload error:", error);
       return {
@@ -1431,7 +1749,7 @@ const LuxeProducts = {
           ? Number(row.old_price_ngn)
           : null,
       image: row.image,
-      hoverImage: row.hover_image || row.image,
+      hoverImage: row.hover_image || "",
       rating: Number(row.rating),
       discount: !!row.discount,
       description: row.description || "",
@@ -1468,7 +1786,7 @@ const LuxeProducts = {
       old_price: Number.isFinite(oldPrice) ? oldPrice : null,
       old_price_ngn: Number.isFinite(oldPriceNGN) ? oldPriceNGN : null,
       image: String(product.image || "").trim(),
-      hover_image: String(product.hoverImage || product.image || "").trim(),
+      hover_image: String(product.hoverImage || "").trim(),
       rating: Number.parseFloat(product.rating) || 5.0,
       discount: Boolean(
         (Number.isFinite(oldPrice) &&
@@ -2010,6 +2328,7 @@ if (typeof window !== "undefined") {
   window.LuxePresence = LuxePresence;
   window.LuxeCustomers = LuxeCustomers;
   window.LuxePromotions = LuxePromotions;
+  window.LuxeMedia = LuxeMedia;
   window.LuxeStorage = LuxeStorage;
   window.LuxeProducts = LuxeProducts;
   window.LuxeUpdates = LuxeUpdates;

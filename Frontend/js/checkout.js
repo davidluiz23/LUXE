@@ -236,8 +236,9 @@ function loadCheckoutItems() {
   container.innerHTML = items.map((item) => {
     const product = getProduct(item.id);
     if (!product) return "";
-    return `<div class="order-item"><img src="${escapeCheckoutAttr(product.image)}" alt="${escapeCheckoutAttr(product.name)}"><div class="order-item-details"><h4>${escapeCheckoutHtml(product.name)}</h4><p>Qty: ${item.quantity} × ${currency(product.price)}</p></div><strong>${currency(product.price * item.quantity)}</strong></div>`;
+    return `<div class="order-item"><img ${window.LuxeMedia.attributes(product.image, { preset: "compact", alt: product.name })}><div class="order-item-details"><h4>${escapeCheckoutHtml(product.name)}</h4><p>Qty: ${item.quantity} × ${currency(product.price)}</p></div><strong>${currency(product.price * item.quantity)}</strong></div>`;
   }).join("");
+  window.LuxeMedia.hydrate(container);
 }
 
 function updateOrderTotals() {

@@ -1,57 +1,75 @@
-// js/animation.js
-// Scroll reveal animations
-document.addEventListener('DOMContentLoaded', () => {
-    // Add CSS for reveal animation
-    if (!document.getElementById('reveal-animation-styles')) {
-        const style = document.createElement('style');
-        style.id = 'reveal-animation-styles';
-        style.textContent = `
-            .reveal-item {
-                opacity: 0;
-                transform: translateY(20px);
-                transition: opacity 0.6s ease, transform 0.6s ease;
-            }
-            .reveal-item.revealed {
-                opacity: 1 !important;
-                transform: translateY(0) !important;
-            }
-        `;
-        document.head.appendChild(style);
-    }
+// Small, progressive motion layer. Content remains visible when motion is
+// reduced or IntersectionObserver is unavailable.
+(function initializeSubtleMotion() {
+    'use strict';
 
-    const revealElements = document.querySelectorAll('.category-card, .feature, .review-card, .about-card');
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-    const revealObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
+    document.addEventListener('DOMContentLoaded', () => {
+        const selectors = [
+            '.category-card',
+            '.feature',
+            '.review-card',
+            '.about-card',
+            '.value-card',
+            '.stat-item',
+            '.section-heading-row',
+            '.house-story-copy',
+            '.newsletter-box',
+            '.support-card',
+        ].join(', ');
+        const elements = Array.from(document.querySelectorAll(selectors));
+        if (!elements.length) return;
+
+        if (!document.getElementById('reveal-animation-styles')) {
+            const style = document.createElement('style');
+            style.id = 'reveal-animation-styles';
+            style.textContent = `
+                @media (prefers-reduced-motion: no-preference) {
+                    .reveal-item,
+                    html.alkebulan-site .reveal-item {
+                        opacity: 0;
+                        transform: translateY(14px);
+                        transition:
+                            opacity .52s cubic-bezier(.2, .75, .25, 1),
+                            transform .52s cubic-bezier(.2, .75, .25, 1);
+                        transition-delay: var(--reveal-delay, 0ms);
+                    }
+                    .reveal-item.revealed,
+                    html.alkebulan-site .reveal-item.revealed {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        if (reducedMotion || !('IntersectionObserver' in window)) {
+            elements.forEach(element => element.classList.add('revealed'));
+            return;
+        }
+
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
                 entry.target.classList.add('revealed');
-                revealObserver.unobserve(entry.target);
+                observer.unobserve(entry.target);
+            });
+        }, {
+            threshold: 0.08,
+            rootMargin: '0px 0px -4% 0px',
+        });
+
+        elements.forEach((element, index) => {
+            element.classList.add('reveal-item');
+            element.style.setProperty('--reveal-delay', `${(index % 4) * 45}ms`);
+            const rect = element.getBoundingClientRect();
+            if (rect.top < window.innerHeight * 1.04 && rect.bottom > 0) {
+                element.classList.add('revealed');
+            } else {
+                observer.observe(element);
             }
         });
-    }, {
-        threshold: 0.05,
-        rootMargin: '50px'
-    });
-
-    revealElements.forEach(el => {
-        el.classList.add('reveal-item');
-        const rect = el.getBoundingClientRect();
-        // If already in or near viewport, reveal immediately
-        if (rect.top < window.innerHeight + 50 && rect.bottom > -50) {
-            el.classList.add('revealed');
-        } else {
-            revealObserver.observe(el);
-        }
-    });
-});
-
-
-
-// Parallax effect on hero
-window.addEventListener('scroll', () => {
-    const hero = document.querySelector('.hero');
-    if (hero) {
-        const scrolled = window.scrollY;
-        hero.style.backgroundPositionY = scrolled * 0.5 + 'px';
-    }
-});
+    }, { once: true });
+})();

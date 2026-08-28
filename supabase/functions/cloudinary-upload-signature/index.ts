@@ -34,6 +34,7 @@ function json(body: Record<string, unknown>, status: number, origin: string) {
       "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
       "Vary": "Origin",
     },
   });
@@ -51,6 +52,19 @@ Deno.serve(async (request) => {
   if (!origin) return new Response("Origin not allowed", { status: 403 });
   if (request.method === "OPTIONS") return json({ ok: true }, 200, origin);
   if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405, origin);
+  const contentLength = Number(request.headers.get("content-length") || 0);
+  if (contentLength > 2048) return json({ error: "request_too_large" }, 413, origin);
+  let body: { action?: unknown };
+  try {
+    const rawBody = await request.text();
+    if (rawBody.length > 2048) return json({ error: "request_too_large" }, 413, origin);
+    body = JSON.parse(rawBody);
+  } catch {
+    return json({ error: "invalid_json" }, 400, origin);
+  }
+  if (!body || typeof body !== "object" || body.action !== "sign_product_image") {
+    return json({ error: "invalid_action" }, 400, origin);
+  }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = getServiceKey();
@@ -88,6 +102,7 @@ Deno.serve(async (request) => {
     folder: configuredFolder,
     overwrite: "false",
     public_id: publicId,
+    tags: "alkebulan-product",
     timestamp,
   };
   const signaturePayload = Object.entries(signedParams)

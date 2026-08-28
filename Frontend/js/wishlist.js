@@ -159,7 +159,7 @@ function renderWishlistPage() {
         html += `
             <div class="wishlist-item" data-id="${product.id}" onclick="window.location.href='product.html?id=${product.id}'">
                 <div class="product-image">
-                    <img src="${product.image}" alt="${product.name}">
+                    <img ${window.LuxeMedia.attributes(product.image, { preset: 'card', alt: product.name })}>
                     ${product.brand ? `<span class="wishlist-badge">${product.brand}</span>` : ''}
                     <div class="product-actions">
                         <button class="add-cart" onclick="event.stopPropagation(); window.addToCart(${product.id})">
@@ -184,6 +184,7 @@ function renderWishlistPage() {
     });
 
     container.innerHTML = html;
+    window.LuxeMedia.hydrate(container);
 }
 
 document.addEventListener('DOMContentLoaded', async () => {

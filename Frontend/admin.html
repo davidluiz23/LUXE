@@ -12,8 +12,8 @@
 
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/admin.css?v=20260825-5">
-    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/admin.css?v=20260828-1">
+    <link rel="stylesheet" href="css/responsive.css?v=20260828-1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 
@@ -87,7 +87,7 @@
                 <aside class="admin-sidebar">
                     <div class="admin-owner">
                         <div class="admin-owner-avatar" id="adminOwnerAvatar" aria-hidden="true">
-                            <img id="adminOwnerAvatarImage" alt="" hidden>
+                            <img id="adminOwnerAvatarImage" alt="" width="58" height="58" decoding="async" hidden>
                             <i class="fas fa-user-shield" id="adminOwnerAvatarFallback"></i>
                         </div>
                         <div><strong id="adminRoleLabel">Admin</strong></div>
@@ -563,42 +563,52 @@
                     <div class="form-group full-width">
                         <label>Main Image *</label>
 
+                        <div class="admin-media-assistant">
+                            <i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i>
+                            <div>
+                                <strong>Smart image fit is on</strong>
+                                <span>Your original stays untouched. Product cards receive an automatic 4:5, subject-aware crop and device-sized delivery.</span>
+                            </div>
+                        </div>
+
                         <div class="admin-image-field">
-                            <div class="admin-image-preview">
-                                <img id="pImagePreview" alt="" style="display:none;">
+                            <div class="admin-image-preview" data-frame-label="4:5 preview">
+                                <img id="pImagePreview" alt="Main product image preview" width="360" height="450" decoding="async" style="display:none;">
                                 <i class="fas fa-image" id="pImagePreviewIcon"></i>
                             </div>
 
                             <div class="admin-image-inputs">
                                 <label class="admin-upload-btn" for="pImageFile">
                                     <i class="fas fa-cloud-upload-alt"></i> Upload to Cloudinary
-                                    <input type="file" id="pImageFile" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" hidden>
+                                    <input type="file" id="pImageFile" accept=".jpg,.jpeg,.png,.webp,.avif,.heic,.heif,image/jpeg,image/png,image/webp,image/avif,image/heic,image/heif" hidden>
                                 </label>
 
-                                <span class="admin-form-hint" id="pImageUploadStatus"></span>
+                                <span class="admin-form-hint admin-upload-status" id="pImageUploadStatus" aria-live="polite"></span>
+                                <span class="admin-image-meta" id="pImageMeta">Recommended: 1200 × 1500 px or larger.</span>
                                 <input type="url" id="pImage" required placeholder="...or paste an image URL">
                             </div>
                         </div>
 
-                        <p class="admin-form-hint">JPG, PNG, WebP, GIF or AVIF · maximum 8 MB. New product media is stored and delivered by Cloudinary.</p>
+                        <p class="admin-form-hint">JPG, PNG, WebP, AVIF, HEIC or HEIF · 40 MB browser safety limit. Your Cloudinary plan can impose a lower upload limit.</p>
                     </div>
 
                     <div class="form-group full-width">
                         <label>Hover Image (optional)</label>
 
                         <div class="admin-image-field">
-                            <div class="admin-image-preview">
-                                <img id="pHoverImagePreview" alt="" style="display:none;">
+                            <div class="admin-image-preview" data-frame-label="4:5 preview">
+                                <img id="pHoverImagePreview" alt="Hover product image preview" width="360" height="450" decoding="async" style="display:none;">
                                 <i class="fas fa-image" id="pHoverImagePreviewIcon"></i>
                             </div>
 
                             <div class="admin-image-inputs">
                                 <label class="admin-upload-btn" for="pHoverImageFile">
                                     <i class="fas fa-cloud-upload-alt"></i> Upload to Cloudinary
-                                    <input type="file" id="pHoverImageFile" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" hidden>
+                                    <input type="file" id="pHoverImageFile" accept=".jpg,.jpeg,.png,.webp,.avif,.heic,.heif,image/jpeg,image/png,image/webp,image/avif,image/heic,image/heif" hidden>
                                 </label>
 
-                                <span class="admin-form-hint" id="pHoverImageUploadStatus"></span>
+                                <span class="admin-form-hint admin-upload-status" id="pHoverImageUploadStatus" aria-live="polite"></span>
+                                <span class="admin-image-meta" id="pHoverImageMeta">Optional second angle · the same smart 4:5 fit is applied.</span>
                                 <input type="url" id="pHoverImage" placeholder="...or paste an image URL">
                             </div>
                         </div>
@@ -634,7 +644,7 @@
                     <div class="admin-preview-label"><i class="fas fa-eye"></i> Storefront preview</div>
                     <div class="product-card admin-preview-card">
                         <div class="product-image">
-                            <img id="livePreviewImage" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='500'%3E%3Crect width='100%25' height='100%25' fill='%23f2f2f2'/%3E%3C/svg%3E" alt="Product preview">
+                            <img id="livePreviewImage" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='500'%3E%3Crect width='100%25' height='100%25' fill='%23f2f2f2'/%3E%3C/svg%3E" alt="Product preview" width="400" height="500" decoding="async">
                             <span class="brand-badge" id="livePreviewBrand">ALKEBULAN</span>
                             <span class="discount-badge" id="livePreviewDiscount" hidden></span>
                         </div>
@@ -659,10 +669,10 @@
     <script src="js/brand-config.js"></script>
     <script src="js/icons.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
-    <script src="js/supabase-client.js?v=20260825-3"></script>
+    <script src="js/supabase-client.js?v=20260828-1"></script>
     <script src="js/products.js?v=20260825-2"></script>
-    <script src="js/animation.js"></script>
-    <script src="js/app.js?v=20260825-3"></script>
-    <script src="js/admin.js?v=20260825-4"></script>
+    <script src="js/animation.js?v=20260828-1"></script>
+    <script src="js/app.js?v=20260828-1"></script>
+    <script src="js/admin.js?v=20260828-1"></script>
 </body>
 </html>

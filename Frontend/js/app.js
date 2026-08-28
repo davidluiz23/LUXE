@@ -79,44 +79,20 @@ document.addEventListener('DOMContentLoaded', async function() {
 function renderProducts(products, grid) {
     window.finishProductGridLoading?.(grid);
     let html = '';
-    
-    products.forEach(function(product) {
-        const wishlist = (typeof loadWishlist === 'function') ? loadWishlist() : [];
+    const wishlist = (typeof loadWishlist === 'function') ? loadWishlist() : [];
+
+    products.forEach(function(product, productIndex) {
         const inWishlist = wishlist.includes(product.id);
         const heartColor = inWishlist ? 'style="color:#E74C3C;"' : '';
-
-        // Build images
-        let imagesHtml = '';
-        const allImages = [product.image];
-        if (product.hoverImage) {
-            allImages.push(product.hoverImage);
-        }
-        if (product.hoverImages && product.hoverImages.length > 0) {
-            product.hoverImages.forEach(function(img) {
-                if (!allImages.includes(img)) allImages.push(img);
-            });
-        }
-
-        imagesHtml = allImages.map(function(img, index) {
-            const active = index === 0 ? 'active' : '';
-            return `<img src="${img}" alt="${product.name}" class="carousel-img ${active}" data-index="${index}">`;
-        }).join('');
-
-        // Build dots
-        let dotsHtml = '';
-        if (allImages.length > 1) {
-            dotsHtml = '<div class="carousel-dots">';
-            allImages.forEach(function(_, index) {
-                const active = index === 0 ? 'active' : '';
-                dotsHtml += `<span class="dot ${active}" data-index="${index}"></span>`;
-            });
-            dotsHtml += '</div>';
-        }
 
         html += `
             <div class="product-card" data-id="${product.id}">
                 <div class="product-image">
-                    <img src="${product.image}" alt="${product.name}">
+                    <img ${window.LuxeMedia.attributes(product.image, {
+                        preset: 'card',
+                        alt: product.name,
+                        priority: productIndex === 0,
+                    })}>
                     ${product.brand ? `<span class="brand-badge">${product.brand}</span>` : ''}
                     ${product.discount && product.oldPrice ? `<span class="discount-badge">${Math.round((1 - product.price / product.oldPrice) * 100)}% OFF</span>` : ''}
                     ${product.trending ? `<span class="trending-badge"><i class="fas fa-fire"></i> Trending</span>` : ''}
@@ -152,6 +128,7 @@ function renderProducts(products, grid) {
     });
 
     grid.innerHTML = html;
+    window.LuxeMedia.hydrate(grid);
 
     // ===== ATTACH EVENT LISTENERS =====
     document.querySelectorAll('.product-card').forEach(function(card) {

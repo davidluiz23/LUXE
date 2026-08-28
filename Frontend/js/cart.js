@@ -144,7 +144,7 @@ function renderCartPage() {
 
         html += `
             <div class="cart-item" data-id="${product.id}">
-                <img src="${product.image}" alt="${product.name}">
+                <img ${window.LuxeMedia.attributes(product.image, { preset: 'compact', alt: product.name })}>
                 <div class="cart-item-info">
                     <h4>${product.name}</h4>
                     <p class="item-price">$${product.price.toFixed(2)}</p>
@@ -168,6 +168,7 @@ function renderCartPage() {
     });
 
     container.innerHTML = html;
+    window.LuxeMedia.hydrate(container);
 
     const shipping = subtotal > 200 ? 0 : 15;
     const tax = subtotal * 0.08;

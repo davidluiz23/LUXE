@@ -53,6 +53,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderRelatedProducts(product);
 });
 
+function escapeProductHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, character => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[character]);
+}
+
+function safeProductColor(value) {
+    const aliases = {
+        'navy blue': 'navy',
+        'off white': '#f5f2e9',
+        'off-white': '#f5f2e9',
+        grey: 'gray',
+    };
+    const candidate = String(value || '').split('/')[0].trim().toLowerCase();
+    const normalized = aliases[candidate] || candidate;
+    return typeof CSS !== 'undefined' && CSS.supports?.('color', normalized) ? normalized : '#777777';
+}
+
 function renderProductDetails(product) {
     const container = document.getElementById('productDetails');
     if (!container) return;
@@ -62,21 +80,36 @@ function renderProductDetails(product) {
 
     // Generate color options HTML
     const colorsHtml = (product.colors || ['Black', 'Navy', 'Grey']).map(color => `
-        <button class="color-btn" style="background: ${color.toLowerCase().includes('/') ? color.split('/')[0].toLowerCase() : color.toLowerCase()}" data-color="${color}" title="${color}"></button>
+        <button class="color-btn" type="button" style="background: ${safeProductColor(color)}" data-color="${escapeProductHtml(color)}" title="${escapeProductHtml(color)}" aria-label="Choose ${escapeProductHtml(color)}"></button>
     `).join('');
 
     // Generate size options HTML
     const sizesHtml = (product.sizes || ['S', 'M', 'L', 'XL']).map(size => `
-        <button class="size-btn-product" data-size="${size}">${size}</button>
+        <button class="size-btn-product" type="button" data-size="${escapeProductHtml(size)}">${escapeProductHtml(size)}</button>
     `).join('');
 
     // Generate specs HTML
     const specsHtml = `
-        <div class="spec-item"><span class="spec-label">Category</span><span class="spec-value">${product.category}</span></div>
-        <div class="spec-item"><span class="spec-label">Subcategory</span><span class="spec-value">${product.subcategory || 'Collection'}</span></div>
-        <div class="spec-item"><span class="spec-label">Brand</span><span class="spec-value">${product.brand || window.LuxeBrand?.name || 'ALKEBULAN'}</span></div>
+        <div class="spec-item"><span class="spec-label">Category</span><span class="spec-value">${escapeProductHtml(product.category)}</span></div>
+        <div class="spec-item"><span class="spec-label">Subcategory</span><span class="spec-value">${escapeProductHtml(product.subcategory || 'Collection')}</span></div>
+        <div class="spec-item"><span class="spec-label">Brand</span><span class="spec-value">${escapeProductHtml(product.brand || window.LuxeBrand?.name || 'ALKEBULAN')}</span></div>
         <div class="spec-item"><span class="spec-label">Rating</span><span class="spec-value">${product.rating || 4.5} / 5</span></div>
     `;
+
+    const galleryImages = [product.image, product.hoverImage, ...(product.hoverImages || [])]
+        .map(image => window.LuxeMedia.safeImageUrl(image))
+        .filter((image, index, list) => image && list.indexOf(image) === index)
+        .slice(0, 4);
+    const primaryImage = galleryImages[0] || product.image;
+    const thumbnailsHtml = galleryImages.map((image, index) => `
+        <button class="thumbnail-button${index === 0 ? ' active' : ''}" type="button" data-image="${window.LuxeMedia.escapeAttribute(image)}" aria-label="Show product image ${index + 1}">
+            <img ${window.LuxeMedia.attributes(image, {
+                preset: 'thumb',
+                alt: `${product.name} view ${index + 1}`,
+                className: index === 0 ? 'active' : '',
+            })}>
+        </button>
+    `).join('');
 
     const discountPercent = (product.discount && product.oldPrice && product.oldPrice > product.price) 
         ? Math.round((1 - product.price / product.oldPrice) * 100) 
@@ -86,21 +119,26 @@ function renderProductDetails(product) {
         <div class="product-detail-grid">
             <!-- Product Gallery -->
             <div class="product-gallery">
-                <img src="${product.image}" alt="${product.name}" class="main-image" id="mainImage">
+                <button class="product-main-image-trigger" id="productMainImageTrigger" type="button" aria-label="View full-resolution image">
+                    <img id="mainImage" ${window.LuxeMedia.attributes(primaryImage, {
+                        preset: 'detail',
+                        alt: product.name,
+                        className: 'main-image',
+                        priority: true,
+                    })}>
+                    <span class="product-zoom-hint"><i class="fas fa-expand" aria-hidden="true"></i> View original</span>
+                </button>
                 ${discountPercent > 0 ? `<span class="discount-badge-large">${discountPercent}% OFF</span>` : ''}
                 ${product.trending ? `<span class="trending-badge-large"><i class="fas fa-fire"></i> Trending now</span>` : ''}
                 <div class="thumbnail-grid">
-                    <img src="${product.image}" alt="Thumbnail 1" class="active" onclick="window.changeImage(this, '${product.image}')">
-                    <img src="${product.hoverImage || product.image}" alt="Thumbnail 2" onclick="window.changeImage(this, '${product.hoverImage || product.image}')">
-                    <img src="${product.image}" alt="Thumbnail 3" onclick="window.changeImage(this, '${product.image}')">
-                    <img src="${product.hoverImage || product.image}" alt="Thumbnail 4" onclick="window.changeImage(this, '${product.hoverImage || product.image}')">
+                    ${thumbnailsHtml}
                 </div>
             </div>
 
             <!-- Product Info -->
             <div class="product-info">
-                <span class="product-category">${product.category} / ${product.subcategory || 'Collection'}</span>
-                <h1>${product.name}</h1>
+                <span class="product-category">${escapeProductHtml(product.category)} / ${escapeProductHtml(product.subcategory || 'Collection')}</span>
+                <h1>${escapeProductHtml(product.name)}</h1>
                 
                 <div class="product-rating">
                     <span class="stars">${starsHtml}</span>
@@ -119,7 +157,7 @@ function renderProductDetails(product) {
 
                 <section class="product-description-panel" aria-labelledby="productDetailsHeading">
                     <h2 class="product-panel-label" id="productDetailsHeading">Product details</h2>
-                    <p class="product-description">${product.description || 'Crafted with premium materials and sophisticated design.'}</p>
+                    <p class="product-description">${escapeProductHtml(product.description || 'Crafted with premium materials and sophisticated design.')}</p>
 
                     <div class="product-specs">
                         ${specsHtml}
@@ -177,7 +215,71 @@ function renderProductDetails(product) {
                 </div>
             </div>
         </div>
+        <div class="product-image-viewer" id="productImageViewer" role="dialog" aria-modal="true" aria-label="Full-resolution product image" hidden>
+            <button class="product-image-viewer-backdrop" type="button" tabindex="-1" data-close-image-viewer aria-label="Close image viewer"></button>
+            <div class="product-image-viewer-dialog">
+                <button class="product-image-viewer-close" type="button" data-close-image-viewer aria-label="Close image viewer">&times;</button>
+                <img id="fullResolutionImage" alt="${escapeProductHtml(product.name)} full-resolution view" decoding="async">
+                <div class="product-image-viewer-meta">
+                    <span>Original Cloudinary master · no storefront crop</span>
+                    <a id="fullResolutionLink" href="${window.LuxeMedia.escapeAttribute(primaryImage)}" target="_blank" rel="noopener">Open original file <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+                </div>
+            </div>
+        </div>
     `;
+    window.LuxeMedia.hydrate(container);
+
+    const mainImageElement = container.querySelector('#mainImage');
+    const viewer = container.querySelector('#productImageViewer');
+    const viewerImage = container.querySelector('#fullResolutionImage');
+    const viewerLink = container.querySelector('#fullResolutionLink');
+    const mainTrigger = container.querySelector('#productMainImageTrigger');
+    const closeViewer = () => {
+        if (!viewer || viewer.hidden) return;
+        viewer.hidden = true;
+        document.body.classList.remove('product-image-viewer-open');
+        if (viewerImage) viewerImage.removeAttribute('src');
+        mainTrigger?.focus();
+    };
+    const openViewer = () => {
+        const original = window.LuxeMedia.safeImageUrl(mainImageElement?.dataset.luxeOriginal);
+        if (!original || !viewer || !viewerImage || !viewerLink) return;
+        viewerImage.src = original;
+        viewerLink.href = original;
+        viewer.hidden = false;
+        document.body.classList.add('product-image-viewer-open');
+        viewer.querySelector('.product-image-viewer-close')?.focus();
+    };
+    mainTrigger?.addEventListener('click', openViewer);
+    viewer?.querySelectorAll('[data-close-image-viewer]').forEach(button => button.addEventListener('click', closeViewer));
+    document.addEventListener('keydown', event => {
+        if (!viewer || viewer.hidden) return;
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            closeViewer();
+            return;
+        }
+        if (event.key !== 'Tab') return;
+        const focusable = Array.from(viewer.querySelectorAll('button, a[href]'))
+            .filter(element => !element.hidden && element.tabIndex >= 0 && !element.classList.contains('product-image-viewer-backdrop'));
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (!first || !last) return;
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    });
+
+    container.querySelectorAll('.thumbnail-button').forEach(button => {
+        button.addEventListener('click', () => {
+            window.changeImage(button.querySelector('img'), button.dataset.image);
+            container.querySelectorAll('.thumbnail-button').forEach(item => item.classList.toggle('active', item === button));
+        });
+    });
 
     // Set default active color and size
     const firstColor = container.querySelector('.color-btn');
@@ -242,7 +344,7 @@ function renderRelatedProducts(product) {
     container.innerHTML = related.map(p => `
         <div class="product-card" data-id="${p.id}" onclick="window.location.href='product.html?id=${p.id}'">
             <div class="product-image">
-                <img src="${p.image}" alt="${p.name}" loading="lazy">
+                <img ${window.LuxeMedia.attributes(p.image, { preset: 'card', alt: p.name })}>
                 ${p.discount && p.oldPrice ? `<span class="discount-badge">${Math.round((1 - p.price / p.oldPrice) * 100)}% OFF</span>` : ''}
                 ${p.trending ? `<span class="trending-badge"><i class="fas fa-fire"></i> Trending</span>` : ''}
                 <div class="product-actions">
@@ -251,8 +353,8 @@ function renderRelatedProducts(product) {
                 </div>
             </div>
             <div class="product-info">
-                <h4 class="product-name">${p.name}</h4>
-                <p class="product-category">${p.category}</p>
+                <h4 class="product-name">${escapeProductHtml(p.name)}</h4>
+                <p class="product-category">${escapeProductHtml(p.category)}</p>
                 <div class="product-price">
                     $${p.price.toFixed(2)}
                     ${p.oldPrice ? `<span class="old-price">$${p.oldPrice.toFixed(2)}</span>` : ''}
@@ -260,13 +362,18 @@ function renderRelatedProducts(product) {
             </div>
         </div>
     `).join('');
+    window.LuxeMedia.hydrate(container);
 }
 
 // Global window functions for inline onclick handlers
 window.changeImage = function(elem, src) {
     const mainImage = document.getElementById('mainImage');
     if (mainImage && src) {
-        mainImage.src = src;
+        window.LuxeMedia.apply(mainImage, src, {
+            preset: 'detail',
+            alt: mainImage.alt,
+            priority: true,
+        });
     }
     document.querySelectorAll('.thumbnail-grid img').forEach(img => {
         img.classList.remove('active');

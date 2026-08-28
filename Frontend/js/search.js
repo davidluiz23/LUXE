@@ -93,9 +93,10 @@
             link.href = `product.html?id=${encodeURIComponent(product.id)}`;
 
             const image = document.createElement("img");
-            image.src = product.image;
-            image.alt = product.name;
-            image.loading = "lazy";
+            window.LuxeMedia.apply(image, product.image, {
+                preset: "compact",
+                alt: product.name,
+            });
 
             const copy = document.createElement("span");
             copy.className = "search-result-copy";

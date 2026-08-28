@@ -720,8 +720,11 @@ html.alkebulan-site .product-section { min-height: 75vh; padding-top: clamp(48px
 html.alkebulan-site .product-details { padding: 0; background: transparent; border-radius: 0; box-shadow: none; }
 html.alkebulan-site .product-detail-grid { grid-template-columns: minmax(0, 1.18fr) minmax(390px, .82fr); gap: clamp(46px, 7vw, 110px); }
 html.alkebulan-site .product-gallery { min-width: 0; }
-html.alkebulan-site .main-image { height: min(72vw, 900px); margin: 0; background: var(--alk-paper-deep); border-radius: 0; object-fit: cover; }
+html.alkebulan-site .product-main-image-trigger { margin: 0; background: var(--alk-paper-deep); border-radius: 0; }
+html.alkebulan-site .main-image { height: auto; aspect-ratio: 4 / 5; margin: 0; background: var(--alk-paper-deep); border-radius: 0; object-fit: contain; }
 html.alkebulan-site .thumbnail-grid { margin-top: 1px; gap: 1px; background: var(--alk-line); }
+html.alkebulan-site .thumbnail-button { border: 0; border-radius: 0; }
+html.alkebulan-site .thumbnail-button.active { box-shadow: inset 0 0 0 1px var(--alk-ink); }
 html.alkebulan-site .thumbnail-grid img { height: 150px; border: 0; border-radius: 0; opacity: .58; }
 html.alkebulan-site .thumbnail-grid img:hover { border: 0; opacity: .86; transform: none; }
 html.alkebulan-site .thumbnail-grid img.active { border: 1px solid var(--alk-ink); opacity: 1; }
@@ -1708,7 +1711,7 @@ html.alkebulan-site .back-to-top:active {
     body.filters-open::after { position: fixed; z-index: 11000; inset: 0; background: rgba(17,17,15,.48); content: ""; backdrop-filter: blur(3px); }
 
     html.alkebulan-site .product-detail-grid { grid-template-columns: 1fr; }
-    html.alkebulan-site .main-image { height: min(115vw, 940px); }
+    html.alkebulan-site .main-image { height: auto; aspect-ratio: 4 / 5; }
     html.alkebulan-site .product-detail-grid > .product-info { position: static; padding-top: 48px; }
     html.alkebulan-site .product-detail-grid > .product-info h1 { font-size: clamp(4rem, 9vw, 7.5rem); }
 
@@ -1821,9 +1824,10 @@ html.alkebulan-site .back-to-top:active {
     html.alkebulan-site .filter-options-group { width: 100%; overflow-x: auto; }
 
     html.alkebulan-site .product-section .container { width: 100%; }
-    html.alkebulan-site .main-image { height: 128vw; }
+    html.alkebulan-site .main-image { height: auto; aspect-ratio: 4 / 5; }
     html.alkebulan-site .thumbnail-grid { display: flex; overflow-x: auto; }
-    html.alkebulan-site .thumbnail-grid img { width: 25vw; min-width: 92px; height: 118px; }
+    html.alkebulan-site .thumbnail-button { flex: 0 0 min(25vw, 150px); }
+    html.alkebulan-site .thumbnail-grid img { width: 100%; min-width: 0; height: 118px; }
     html.alkebulan-site .product-detail-grid > .product-info { padding: 42px 18px 0; }
     html.alkebulan-site .product-detail-grid > .product-info h1 { font-size: clamp(3.2rem, 14vw, 5.7rem); }
     html.alkebulan-site .product-actions-detail { grid-template-columns: 1fr 52px; }

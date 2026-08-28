@@ -251,10 +251,14 @@
       if (imageWrap && product?.hoverImage && !$(".luxury-secondary-image", imageWrap)) {
         const secondary = document.createElement("img");
         secondary.className = "luxury-secondary-image";
-        secondary.src = product.hoverImage;
-        secondary.alt = "";
-        secondary.loading = "lazy";
-        secondary.decoding = "async";
+        if (window.LuxeMedia) {
+          window.LuxeMedia.apply(secondary, product.hoverImage, { preset: "card", alt: "" });
+        } else {
+          secondary.src = product.hoverImage;
+          secondary.alt = "";
+          secondary.loading = "lazy";
+          secondary.decoding = "async";
+        }
         imageWrap.appendChild(secondary);
       }
       if (imageWrap && !$(".luxury-card-status", imageWrap)) {

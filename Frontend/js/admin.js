@@ -365,6 +365,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const productForm = document.getElementById("productForm");
   const productModalTitle = document.getElementById("productModalTitle");
   let adminProductCache = new Map();
+  let activeProductUploads = 0;
+  const productPreviewObjectUrls = new Map();
   const adminOrdersList = document.getElementById("adminOrdersList");
   const adminOrdersEmpty = document.getElementById("adminOrdersEmpty");
   const adminOrderCount = document.getElementById("adminOrderCount");
@@ -793,7 +795,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     productsTableBody.innerHTML = list.map((product) => `
       <tr>
-        <td><img src="${escapeAttr(product.image)}" alt="" onerror="this.style.visibility='hidden'"></td>
+        <td><img ${window.LuxeMedia.attributes(product.image, { preset: "compact", alt: "" })}></td>
         <td class="product-name-cell">${escapeAdminHtml(product.name)}</td>
         <td>${escapeAdminHtml(product.brand || "")}</td>
         <td>${escapeAdminHtml(product.category || "")}</td>
@@ -821,6 +823,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         </td>
       </tr>
     `).join("");
+    window.LuxeMedia.hydrate(productsTableBody);
 
     productsTableBody.querySelectorAll(".edit-product-btn").forEach((button) => {
       button.addEventListener("click", () => openProductModal(Number(button.dataset.id)));
@@ -873,7 +876,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!image || !icon) return;
 
     if (url) {
-      image.src = url;
+      const media = window.LuxeMedia?.apply(image, url, {
+        preset: "admin",
+        alt: imageId === "pImagePreview" ? "Main product image preview" : "Hover product image preview",
+      });
+      if (media && !media.src) {
+        image.removeAttribute("src");
+        image.style.display = "none";
+        icon.style.display = "block";
+        return;
+      }
+      if (!window.LuxeMedia) image.src = url;
       image.style.display = "block";
       icon.style.display = "none";
     } else {
@@ -909,7 +922,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     const imageElement = document.getElementById("livePreviewImage");
     if (imageElement) {
-      imageElement.src = image || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='500'%3E%3Crect width='100%25' height='100%25' fill='%23f2f2f2'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' fill='%23999' font-family='Arial' font-size='22'%3EProduct image%3C/text%3E%3C/svg%3E";
+      const placeholder = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='500'%3E%3Crect width='100%25' height='100%25' fill='%23f2f2f2'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' fill='%23999' font-family='Arial' font-size='22'%3EProduct image%3C/text%3E%3C/svg%3E";
+      if (image && window.LuxeMedia) {
+        window.LuxeMedia.apply(imageElement, image, { preset: "card", alt: name });
+      } else {
+        imageElement.src = image || placeholder;
+        imageElement.removeAttribute("srcset");
+      }
     }
     const discount = document.getElementById("livePreviewDiscount");
     if (discount) {
@@ -919,10 +938,39 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  function wireImageUpload(fileInputId, urlInputId, previewImageId, previewIconId, statusId) {
+  function setProductUploadBusy(isBusy) {
+    activeProductUploads = Math.max(0, activeProductUploads + (isBusy ? 1 : -1));
+    const saveButton = document.getElementById("saveProductBtn");
+    if (!saveButton) return;
+    saveButton.disabled = activeProductUploads > 0;
+    saveButton.textContent = activeProductUploads > 0 ? "Uploading image…" : "Save Product";
+  }
+
+  function replacePreviewObjectUrl(previewImageId, nextUrl = "") {
+    const previousUrl = productPreviewObjectUrls.get(previewImageId);
+    if (previousUrl) URL.revokeObjectURL(previousUrl);
+    if (nextUrl) productPreviewObjectUrls.set(previewImageId, nextUrl);
+    else productPreviewObjectUrls.delete(previewImageId);
+  }
+
+  function describeImageInspection(file, inspection) {
+    if (!inspection?.width || !inspection?.height) {
+      return `${formatBytes(file.size)} · original retained · preview will appear after Cloudinary converts it.`;
+    }
+    const resolution = `${inspection.width.toLocaleString()} × ${inspection.height.toLocaleString()} px`;
+    const megapixels = `${inspection.megapixels.toFixed(1)} MP`;
+    const quality = inspection.recommended
+      ? "excellent for the 4:5 product frame"
+      : "usable, but 1200 × 1500 px or larger is recommended";
+    return `${resolution} · ${megapixels} · ${formatBytes(file.size)} · ${quality}.`;
+  }
+
+  function wireImageUpload(fileInputId, urlInputId, previewImageId, previewIconId, statusId, metaId) {
     const fileInput = document.getElementById(fileInputId);
     const urlInput = document.getElementById(urlInputId);
     const status = document.getElementById(statusId);
+    const meta = document.getElementById(metaId);
+    const uploadLabel = fileInput?.closest(".admin-upload-btn");
 
     if (!fileInput || !urlInput || !status) return;
 
@@ -930,39 +978,86 @@ document.addEventListener("DOMContentLoaded", async () => {
       const file = fileInput.files?.[0];
       if (!file) return;
 
-      if (file.type && !file.type.startsWith("image/")) {
-        status.textContent = "Please select an image file.";
-        status.style.color = "#C0392B";
-        return;
-      }
-
-      status.textContent = `Uploading to Cloudinary (${formatBytes(file.size)})…`;
+      status.textContent = "Checking image quality and dimensions…";
       status.style.color = "";
+      if (meta) {
+        meta.textContent = "Reading the original file without resizing it.";
+        meta.classList.remove("is-ready", "is-warning");
+      }
 
-      const { url, error } = await window.LuxeStorage.uploadProductImage(file);
-
-      if (error) {
-        status.textContent = error.message || "Upload failed";
+      const inspection = await window.LuxeMedia?.validateProductFile(file);
+      if (!inspection || inspection.error) {
+        status.textContent = inspection?.error?.message || "This image could not be checked.";
         status.style.color = "#C0392B";
+        fileInput.value = "";
         return;
       }
 
-      urlInput.value = url;
-      setImagePreview(previewImageId, previewIconId, url);
-      renderProductLivePreview();
-      status.textContent = `Stored on Cloudinary ✓ (${formatBytes(file.size)})`;
-      status.style.color = "#1E8E4F";
+      if (inspection.data.previewUrl) {
+        replacePreviewObjectUrl(previewImageId, inspection.data.previewUrl);
+        setImagePreview(previewImageId, previewIconId, inspection.data.previewUrl);
+      }
+      if (meta) {
+        meta.textContent = describeImageInspection(file, inspection.data);
+        meta.classList.toggle("is-ready", inspection.data.recommended);
+        meta.classList.toggle("is-warning", !inspection.data.recommended);
+      }
+
+      setProductUploadBusy(true);
+      fileInput.disabled = true;
+      uploadLabel?.classList.add("is-uploading");
+      status.textContent = `Uploading the untouched master to Cloudinary (${formatBytes(file.size)})…`;
+
+      try {
+        const { url, media, error } = await window.LuxeStorage.uploadProductImage(file, inspection);
+        if (error) {
+          status.textContent = error.message || "Upload failed";
+          status.style.color = "#C0392B";
+          return;
+        }
+
+        urlInput.value = url;
+        setImagePreview(previewImageId, previewIconId, url);
+        replacePreviewObjectUrl(previewImageId);
+        renderProductLivePreview();
+        const storedSize = media?.bytes ? formatBytes(media.bytes) : formatBytes(file.size);
+        status.textContent = `Original stored securely ✓ (${storedSize})`;
+        status.style.color = "#1E8E4F";
+        if (meta && media?.width && media?.height) {
+          meta.textContent = `${Number(media.width).toLocaleString()} × ${Number(media.height).toLocaleString()} px master · smart 4:5 storefront versions ready.`;
+          meta.classList.add("is-ready");
+          meta.classList.remove("is-warning");
+        }
+      } finally {
+        fileInput.disabled = false;
+        uploadLabel?.classList.remove("is-uploading");
+        setProductUploadBusy(false);
+      }
     });
 
     urlInput.addEventListener("input", () => {
+      replacePreviewObjectUrl(previewImageId);
       setImagePreview(previewImageId, previewIconId, urlInput.value.trim());
       status.textContent = "";
+      status.style.color = "";
+      if (meta) {
+        const isCloudinary = window.LuxeMedia?.isCloudinaryUrl(urlInput.value.trim());
+        meta.textContent = urlInput.value.trim()
+          ? (isCloudinary
+            ? "Cloudinary master detected · responsive smart crop is active."
+            : "External image detected · 4:5 display fit is active, but automatic CDN sizing is unavailable.")
+          : (previewImageId === "pImagePreview"
+            ? "Recommended: 1200 × 1500 px or larger."
+            : "Optional second angle · the same smart 4:5 fit is applied.");
+        meta.classList.toggle("is-ready", !!isCloudinary);
+        meta.classList.toggle("is-warning", !!urlInput.value.trim() && !isCloudinary);
+      }
       renderProductLivePreview();
     });
   }
 
-  wireImageUpload("pImageFile", "pImage", "pImagePreview", "pImagePreviewIcon", "pImageUploadStatus");
-  wireImageUpload("pHoverImageFile", "pHoverImage", "pHoverImagePreview", "pHoverImagePreviewIcon", "pHoverImageUploadStatus");
+  wireImageUpload("pImageFile", "pImage", "pImagePreview", "pImagePreviewIcon", "pImageUploadStatus", "pImageMeta");
+  wireImageUpload("pHoverImageFile", "pHoverImage", "pHoverImagePreview", "pHoverImagePreviewIcon", "pHoverImageUploadStatus", "pHoverImageMeta");
   productForm?.addEventListener("input", renderProductLivePreview);
   productForm?.addEventListener("change", renderProductLivePreview);
 
@@ -975,6 +1070,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     setText("pImageUploadStatus", "");
     setText("pHoverImageUploadStatus", "");
+    setText("pImageMeta", "Recommended: 1200 × 1500 px or larger.");
+    setText("pHoverImageMeta", "Optional second angle · the same smart 4:5 fit is applied.");
+    replacePreviewObjectUrl("pImagePreview");
+    replacePreviewObjectUrl("pHoverImagePreview");
 
     if (id) {
       const product = adminProductCache.get(Number(id)) || window.getProductById?.(id);
@@ -1007,6 +1106,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       setImagePreview("pImagePreview", "pImagePreviewIcon", product.image);
       setImagePreview("pHoverImagePreview", "pHoverImagePreviewIcon", product.hoverImage);
+      const mainMeta = document.getElementById("pImageMeta");
+      const hoverMeta = document.getElementById("pHoverImageMeta");
+      const mainIsCloudinary = window.LuxeMedia?.isCloudinaryUrl(product.image);
+      const hoverIsCloudinary = window.LuxeMedia?.isCloudinaryUrl(product.hoverImage);
+      if (mainMeta) {
+        mainMeta.textContent = mainIsCloudinary
+          ? "Cloudinary master detected · responsive smart crop is active."
+          : "External image detected · display fit is active, but automatic CDN sizing is unavailable.";
+        mainMeta.classList.toggle("is-ready", !!mainIsCloudinary);
+        mainMeta.classList.toggle("is-warning", !mainIsCloudinary);
+      }
+      if (hoverMeta && product.hoverImage) {
+        hoverMeta.textContent = hoverIsCloudinary
+          ? "Cloudinary hover master detected · responsive smart crop is active."
+          : "External hover image detected · automatic CDN sizing is unavailable.";
+        hoverMeta.classList.toggle("is-ready", !!hoverIsCloudinary);
+        hoverMeta.classList.toggle("is-warning", !hoverIsCloudinary);
+      }
     } else {
       if (productModalTitle) productModalTitle.textContent = "Add Product";
       setImagePreview("pImagePreview", "pImagePreviewIcon", null);
@@ -1018,7 +1135,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function closeProductModal() {
+    if (activeProductUploads > 0) {
+      showToast("Please wait for the image upload to finish.", true);
+      return;
+    }
     productModalOverlay?.classList.remove("visible");
+    replacePreviewObjectUrl("pImagePreview");
+    replacePreviewObjectUrl("pHoverImagePreview");
   }
 
   document.getElementById("addProductBtn")?.addEventListener("click", () => openProductModal(null));
@@ -1030,6 +1153,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   productForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
+
+    if (activeProductUploads > 0) {
+      showToast("Please wait for the image upload to finish.", true);
+      return;
+    }
 
     const id = getValue("productId");
     const price = Number.parseFloat(getValue("pPrice"));

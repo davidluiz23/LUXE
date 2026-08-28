@@ -48,6 +48,18 @@ URLs remain readable, while every new admin file upload is stored on Cloudinary.
 The accompanying migration removes browser-side product write policies from the
 legacy Supabase bucket without affecting customer avatar uploads.
 
+The admin image assistant accepts JPG, PNG, WebP, AVIF, HEIC and HEIF, verifies
+the file signature before upload, reports dimensions/megapixels and previews the
+automatic 4:5 storefront frame. Use 1200 × 1500 px or larger for product media.
+The browser safety ceiling is 40 MB and 100 megapixels; the active Cloudinary
+plan can be stricter (the current Free plan documents 10 MB and 25 MP limits).
+Do not reduce the master merely to make a product card: Cloudinary retains that
+master and storefront code requests responsive `f_auto,q_auto` derivatives.
+Cards use content-aware 4:5 `c_fill,g_auto` variants, while the detail page uses
+an uncropped `c_limit` image and loads the full original only when a customer
+selects **View original**. This is how high-resolution phone photos remain
+available without forcing every mobile shopper to download the 8K source.
+
 ## WhatsApp Cloud API
 
 Configure `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, and

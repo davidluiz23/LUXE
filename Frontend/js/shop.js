@@ -241,10 +241,14 @@ function renderShopProducts(productsList, grid) {
 
   grid.innerHTML = productsList
     .map(
-      (product) => `
+      (product, index) => `
         <div class="product-card" data-id="${product.id}" onclick="window.location.href='product.html?id=${product.id}'">
             <div class="product-image">
-                <img src="${product.image}" alt="${product.name}" loading="lazy">
+                <img ${window.LuxeMedia.attributes(product.image, {
+                  preset: "card",
+                  alt: product.name,
+                  priority: index === 0,
+                })}>
                 ${product.discount && product.oldPrice ? `<span class="discount-badge">${Math.round((1 - product.price / product.oldPrice) * 100)}% OFF</span>` : ""}
                 ${product.trending ? `<span class="trending-badge"><i class="fas fa-fire"></i> Trending</span>` : ""}
                 <div class="product-actions">
@@ -282,6 +286,7 @@ function renderShopProducts(productsList, grid) {
     `,
     )
     .join("");
+  window.LuxeMedia.hydrate(grid);
 }
 
 function sortProducts(productsList, sortValue) {
