@@ -58,6 +58,14 @@
     box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
 }
 
+.auth-field-hint {
+    display: block;
+    margin-top: 8px;
+    color: var(--gray-text);
+    font-size: 0.76rem;
+    line-height: 1.55;
+}
+
 .password-input-wrapper {
     position: relative;
 }

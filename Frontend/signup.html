@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 
-<body>
+<body class="signup-page">
     <div id="loader"><div class="loader-spinner"></div></div>
 
     <header id="navbar">
@@ -76,52 +76,15 @@
                         <div class="form-group">
                             <label for="email">Email Address</label>
                             <input type="email" id="email" placeholder="john@example.com" autocomplete="email" required>
+                            <small class="auth-field-hint">We&rsquo;ll email you a six-digit verification code. It expires in 15 minutes.</small>
                         </div>
-
-                        <fieldset class="verification-method-group">
-                            <legend>Choose how to verify your email</legend>
-                            <label class="verification-method-option">
-                                <input type="radio" name="verificationMethod" value="code" checked>
-                                <span>
-                                    <strong>6-digit code</strong>
-                                    <small>Recommended · expires in 15 minutes</small>
-                                </span>
-                            </label>
-                            <label class="verification-method-option">
-                                <input type="radio" name="verificationMethod" value="link">
-                                <span>
-                                    <strong>Secure email link</strong>
-                                    <small>Open the link from your inbox</small>
-                                </span>
-                            </label>
-                        </fieldset>
-
-                        <!-- <div class="form-group">
-                            <label for="password">Password</label>
-                            <div class="password-input-wrapper">
-                                <input type="password" id="password" placeholder="Min 8 characters" autocomplete="new-password" minlength="8" required>
-                                <button type="button" class="toggle-password" aria-label="Show password"><i class="fas fa-eye"></i></button>
-                            </div>
-                        </div> -->
-<!-- 
-                        <div class="form-group">
-                            <label for="confirmPassword">Confirm Password</label>
-                            <div class="password-input-wrapper">
-                                <input type="password" id="confirmPassword" placeholder="Confirm your password" autocomplete="new-password" minlength="8" required>
-                                <button type="button" class="toggle-password" aria-label="Show password"><i class="fas fa-eye"></i></button>
-                            </div>
-                        </div> -->
 
                         <div class="form-group checkbox-group">
                             <input type="checkbox" id="terms" required>
                             <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
                         </div>
 
-                        <button type="submit" class="btn btn-primary auth-btn">Create Account</button>
-
-                        <p style="margin-top:12px;text-align:center;font-size:0.82rem;color:#777;">
-                            Your email contains both methods, so you can switch if needed.
-                        </p>
+                        <button type="submit" class="btn btn-primary auth-btn">Send Verification Code</button>
 
                         <p class="auth-switch">Already have an account? <a href="login.html">Sign In</a></p>
                     </form>

@@ -225,6 +225,45 @@
   white-space: nowrap;
 }
 
+.shop-query-summary {
+  display: flex;
+  margin: -12px 0 30px;
+  padding: 14px 18px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  color: #666;
+  font-size: 0.82rem;
+}
+
+.shop-query-summary[hidden] { display: none; }
+.shop-query-summary strong { color: #111; font-weight: 600; }
+.shop-query-summary button {
+  padding: 0 0 4px;
+  background: transparent;
+  color: #111;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.pagination[hidden] { display: none; }
+.pagination button { cursor: pointer; }
+.pagination button:disabled { opacity: 0.35; cursor: not-allowed; }
+.pagination-ellipsis { min-width: 28px; text-align: center; }
+
 .shop-sort {
   display: flex;
   align-items: center;

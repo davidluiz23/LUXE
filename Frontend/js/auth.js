@@ -60,9 +60,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const fullName = document.getElementById("fullName")?.value.trim() || "";
       const email = document.getElementById("email")?.value.trim() || "";
-      const verificationMethod =
-        document.querySelector('input[name="verificationMethod"]:checked')
-          ?.value || "code";
       const terms = document.getElementById("terms")?.checked || false;
 
       if (!fullName || !email) {
@@ -96,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (submitButton) {
         submitButton.disabled = false;
-        submitButton.textContent = "Create Account";
+        submitButton.textContent = "Send Verification Code";
       }
 
       if (error) {
@@ -106,20 +103,14 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      showAuthSuccess(
-        verificationMethod === "link"
-          ? "Verification email sent. Open the secure link in your inbox to continue."
-          : "Verification email sent. Enter the six-digit code to continue.",
-      );
+      showAuthSuccess("Verification email sent. Enter the six-digit code to continue.");
 
       sessionStorage.setItem("luxe_pending_signup_email", email);
       signupForm.reset();
 
-      if (verificationMethod === "code") {
-        setTimeout(() => {
-          window.location.href = "verify-signup.html";
-        }, 900);
-      }
+      setTimeout(() => {
+        window.location.href = "verify-signup.html";
+      }, 900);
     });
   }
 
@@ -138,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
       googleSignInButton.classList.add("is-loading");
       if (label) label.textContent = "Connecting to Google...";
 
-      const { error } = await window.LuxeAuth.signInWithGoogle();
+      const { error } = await window.LuxeAuth.signInWithGoogle(query.get("returnTo"));
 
       if (error) {
         googleSignInButton.disabled = false;
@@ -174,7 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
       magicLinkButton.disabled = true;
       magicLinkButton.textContent = "Sending...";
 
-      const { error } = await window.LuxeAuth.signInWithMagicLink(email);
+      const { error } = await window.LuxeAuth.signInWithMagicLink(email, query.get("returnTo"));
 
       magicLinkButton.disabled = false;
       magicLinkButton.innerHTML = originalHtml;
@@ -330,7 +321,8 @@ document.addEventListener("DOMContentLoaded", () => {
       showAuthSuccess("Welcome back! Redirecting...");
 
       setTimeout(() => {
-        window.location.href = "index.html";
+        const returnTo = query.get("returnTo");
+        window.location.href = returnTo === "checkout.html" ? returnTo : "index.html";
       }, 1000);
     });
   }

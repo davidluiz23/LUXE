@@ -107,6 +107,10 @@
             </select>
           </div>
         </div>
+        <div class="shop-query-summary" id="shopQuerySummary" hidden>
+          <span>Search results for <strong id="shopQueryText"></strong></span>
+          <button type="button" id="clearShopQuery">Clear search</button>
+        </div>
 
         <div class="shop-layout">
           <!-- Sidebar Filters -->
@@ -233,9 +237,9 @@
               <!-- Products loaded dynamically -->
             </div>
 
-            <div class="pagination" id="pagination">
+            <nav class="pagination" id="pagination" aria-label="Catalog pages">
               <!-- Pagination loaded dynamically -->
-            </div>
+            </nav>
           </main>
         </div>
       </div>

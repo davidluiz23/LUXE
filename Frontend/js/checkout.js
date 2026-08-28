@@ -12,14 +12,16 @@ const checkoutBrandName = () => window.LuxeBrand?.name || "ALKEBULAN";
 
 document.addEventListener("DOMContentLoaded", async () => {
   if (window.productsReady) await window.productsReady;
+  if (window.syncStorefrontNavigation) await window.syncStorefrontNavigation();
   const loader = document.getElementById("loader");
   if (loader) setTimeout(() => { loader.style.display = "none"; }, 250);
 
   configurePaymentOptions();
-  loadCheckoutItems();
-  updateOrderTotals();
   prefillSavedAddress();
   checkoutIdentityReady = loadCheckoutIdentity();
+  await checkoutIdentityReady;
+  loadCheckoutItems();
+  updateOrderTotals();
 
   document.getElementById("applyPromoBtn")?.addEventListener("click", applyPromoCode);
   document.getElementById("promoCode")?.addEventListener("input", () => {
@@ -41,7 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const user = identity.user || (window.LuxeAuth?.isReady() ? await window.LuxeAuth.getCurrentUser() : null);
     if (!user) {
       showCheckoutError("Please sign in before placing your order.");
-      setTimeout(() => { window.location.href = "login.html"; }, 1200);
+      setTimeout(() => { window.location.href = "login.html?returnTo=checkout.html"; }, 1200);
       return;
     }
 
@@ -69,10 +71,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     const button = form.querySelector(".checkout-btn");
     setButtonState(button, true, "Saving secure order…");
 
+    const normalizedPhone = window.LuxeWhatsApp?.normalizePhone(
+      value("phone"),
+      identity.defaultCountryCode,
+    ) || value("phone");
     const contact = {
       name: `${value("firstName")} ${value("lastName")}`.trim(),
       email: value("email"),
-      phone: value("phone"),
+      phone: normalizedPhone,
       whatsappOptIn: !!document.getElementById("whatsappConsent")?.checked,
     };
     const shippingAddress = {
@@ -257,18 +263,40 @@ function renderOrderTotals(totals) {
 }
 
 function validateCheckoutForm() {
-  let valid = true;
-  document.querySelectorAll("#checkoutForm [required]").forEach((field) => {
-    const filled = field.type === "radio"
-      ? document.querySelector(`[name="${field.name}"]:checked`)
-      : field.type === "checkbox" ? field.checked : field.value.trim();
-    field.classList.toggle("field-invalid", !filled);
-    if (!filled) valid = false;
-  });
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value("email"))) valid = false;
-  if (!/^\+?[0-9\s()-]{7,20}$/.test(value("phone"))) valid = false;
-  if (!valid) showCheckoutError("Please fill in all required contact and delivery details correctly.");
-  return valid;
+  const invalid = [];
+  const mark = (id, valid, label) => {
+    const field = document.getElementById(id);
+    if (!field) return;
+    field.classList.toggle("field-invalid", !valid);
+    field.setAttribute("aria-invalid", String(!valid));
+    if (!valid) invalid.push({ field, label });
+  };
+
+  mark("firstName", value("firstName").length >= 1, "first name");
+  mark("lastName", value("lastName").length >= 1, "last name");
+  mark("email", /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value("email")), "email address");
+  const normalizedPhone = window.LuxeWhatsApp?.normalizePhone(
+    value("phone"),
+    checkoutIdentity.defaultCountryCode,
+  );
+  mark("phone", !!normalizedPhone, "phone number");
+  mark("address", value("address").length >= 5, "street address");
+  mark("city", value("city").length >= 2, "city");
+  mark("state", value("state").length >= 2, "state or region");
+
+  const consent = document.getElementById("whatsappConsent");
+  const consentLabel = consent?.closest(".whatsapp-consent");
+  consentLabel?.classList.toggle("field-invalid-group", !consent?.checked);
+  consent?.setAttribute("aria-invalid", String(!consent?.checked));
+  if (!consent?.checked) invalid.push({ field: consent, label: "WhatsApp order-update consent" });
+
+  if (invalid.length) {
+    const labels = [...new Set(invalid.map((item) => item.label))];
+    showCheckoutError(`Please check ${labels.join(", ")}.`, invalid[0].field);
+    return false;
+  }
+  document.querySelector(".checkout-error")?.remove();
+  return true;
 }
 
 function getCheckoutIdempotencyKey(payload) {
@@ -325,14 +353,28 @@ function setButtonState(button, disabled, label) {
   button.disabled = disabled;
   button.innerHTML = disabled ? `<i class="fas fa-spinner fa-spin"></i> ${label}` : label;
 }
-function showCheckoutError(message) {
+function showCheckoutError(message, field = null) {
   document.querySelector(".checkout-error")?.remove();
   const box = document.createElement("div");
   box.className = "checkout-error";
+  box.setAttribute("role", "alert");
   box.textContent = message;
   document.querySelector(".checkout-form-wrapper")?.prepend(box);
-  box.scrollIntoView({ behavior: "smooth", block: "center" });
+  if (field instanceof HTMLElement) {
+    field.focus({ preventScroll: true });
+    field.scrollIntoView({ behavior: "smooth", block: "center" });
+  } else {
+    box.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 }
+
+document.addEventListener("input", (event) => {
+  const field = event.target.closest?.("#checkoutForm input");
+  if (!field) return;
+  field.classList.remove("field-invalid");
+  field.removeAttribute("aria-invalid");
+  field.closest(".whatsapp-consent")?.classList.remove("field-invalid-group");
+});
 
 function prefillSavedAddress() {
   try {

@@ -271,6 +271,8 @@
 .whatsapp-consent input { width: 17px; height: 17px; flex: 0 0 auto; margin-top: 1px; accent-color: var(--accent); }
 .checkout-error { background: #FDECEA; border-left: 4px solid #C0392B; color: #9D2F24; padding: 13px 15px; border-radius: 8px; margin-bottom: 18px; font-size: .88rem; }
 .field-invalid { border-color: #C0392B !important; }
+.field-invalid-group { color: #9D2F24; }
+.optional-label { margin-left: 6px; color: var(--gray-text); font-size: .66rem; font-weight: 400; letter-spacing: .05em; text-transform: uppercase; }
 .checkout-identity-note { margin-top: 8px; font-size: .76rem; line-height: 1.5; color: #8B6C12; }
 .checkout-identity-note.is-verified { color: #1E8E4F; }
 .checkout-identity-note.is-error { color: #C0392B; }

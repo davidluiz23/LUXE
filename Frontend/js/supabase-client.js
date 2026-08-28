@@ -29,6 +29,10 @@ function pageUrl(relativePath) {
   return new URL(relativePath, window.location.href).toString();
 }
 
+function safeAuthReturnPath(path) {
+  return path === "checkout.html" ? path : "index.html";
+}
+
 function syncStorefrontSessionCache(user, profile = null) {
   if (typeof window === "undefined") return;
 
@@ -244,7 +248,7 @@ const LuxeAuth = {
     }
   },
 
-  async signInWithGoogle() {
+  async signInWithGoogle(returnPath = "index.html") {
     if (!supabaseClient) {
       return {
         data: null,
@@ -256,7 +260,7 @@ const LuxeAuth = {
       return await supabaseClient.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: pageUrl("index.html"),
+          redirectTo: pageUrl(safeAuthReturnPath(returnPath)),
           queryParams: {
             access_type: "offline",
             prompt: "select_account",
@@ -272,7 +276,7 @@ const LuxeAuth = {
     }
   },
 
-  async signInWithMagicLink(email) {
+  async signInWithMagicLink(email, returnPath = "index.html") {
     if (!supabaseClient) {
       return {
         data: null,
@@ -285,7 +289,7 @@ const LuxeAuth = {
         email,
         options: {
           shouldCreateUser: false,
-          emailRedirectTo: pageUrl("index.html"),
+          emailRedirectTo: pageUrl(safeAuthReturnPath(returnPath)),
         },
       });
     } catch (error) {
@@ -516,6 +520,23 @@ const LuxeCommerce = {
     } catch (error) {
       console.warn("[ALKEBULAN] Could not load commerce settings:", error);
       return fallback;
+    }
+  },
+};
+
+const LuxeMetrics = {
+  async getPublic() {
+    if (!supabaseClient) {
+      return { data: null, error: { message: "Metrics service is not configured." } };
+    }
+    try {
+      const { data, error } = await supabaseClient.rpc("public_store_metrics_v1");
+      return { data: data || null, error };
+    } catch (error) {
+      return {
+        data: null,
+        error: { message: error?.message || "Unable to load store metrics." },
+      };
     }
   },
 };
@@ -1269,6 +1290,19 @@ const LuxeStorage = {
     return `${folder}/${unique}-${this._sanitizeName(file.name)}`;
   },
 
+  _validateImage(file, maxBytes = 8 * 1024 * 1024) {
+    if (typeof File !== "undefined" && !(file instanceof File)) {
+      return { message: "Select a valid file." };
+    }
+    if (!file || !this.ALLOWED_IMAGE_TYPES.has(file.type)) {
+      return { message: "Use a JPG, PNG, WebP, GIF or AVIF image." };
+    }
+    if (!Number.isFinite(file.size) || file.size < 1 || file.size > maxBytes) {
+      return { message: `Image must be smaller than ${Math.round(maxBytes / 1024 / 1024)} MB.` };
+    }
+    return null;
+  },
+
   async _upload(file, path, maxBytes = 8 * 1024 * 1024) {
     if (!supabaseClient) {
       return {
@@ -1277,26 +1311,8 @@ const LuxeStorage = {
       };
     }
 
-    if (typeof File !== "undefined" && !(file instanceof File)) {
-      return {
-        url: null,
-        error: { message: "Select a valid file." },
-      };
-    }
-
-    if (!this.ALLOWED_IMAGE_TYPES.has(file.type)) {
-      return {
-        url: null,
-        error: { message: "Use a JPG, PNG, WebP, GIF or AVIF image." },
-      };
-    }
-
-    if (!Number.isFinite(file.size) || file.size < 1 || file.size > maxBytes) {
-      return {
-        url: null,
-        error: { message: `Image must be smaller than ${Math.round(maxBytes / 1024 / 1024)} MB.` },
-      };
-    }
+    const validationError = this._validateImage(file, maxBytes);
+    if (validationError) return { url: null, error: validationError };
 
     try {
       const { error: uploadError } = await supabaseClient.storage
@@ -1330,7 +1346,53 @@ const LuxeStorage = {
   },
 
   async uploadProductImage(file) {
-    return await this._upload(file, this._uniquePath("products", file));
+    if (!supabaseClient) {
+      return { url: null, error: { message: "Backend not configured." } };
+    }
+    const validationError = this._validateImage(file);
+    if (validationError) return { url: null, error: validationError };
+
+    try {
+      const signed = await supabaseClient.functions.invoke("cloudinary-upload-signature", {
+        body: { action: "sign_product_image" },
+      });
+      if (signed.error || !signed.data?.uploadUrl || !signed.data?.fields) {
+        let message = signed.error?.message || "Cloudinary upload is not configured.";
+        try {
+          const context = await signed.error?.context?.json?.();
+          if (context?.error === "cloudinary_not_configured") {
+            message = "Cloudinary is not configured yet. Add its project secrets and redeploy the signing function.";
+          } else if (context?.error) {
+            message = String(context.error).replace(/_/g, " ");
+          }
+        } catch { /* Keep the safe message above. */ }
+        return { url: null, error: { message } };
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+      Object.entries(signed.data.fields).forEach(([key, value]) => {
+        formData.append(key, String(value));
+      });
+      const response = await fetch(signed.data.uploadUrl, {
+        method: "POST",
+        body: formData,
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload.secure_url) {
+        return {
+          url: null,
+          error: { message: payload?.error?.message || "Cloudinary could not upload this image." },
+        };
+      }
+      return { url: payload.secure_url, error: null };
+    } catch (error) {
+      console.error("[ALKEBULAN] Cloudinary upload error:", error);
+      return {
+        url: null,
+        error: { message: error?.message || "Cloudinary upload failed." },
+      };
+    }
   },
 
   async uploadAvatar(file, userId) {
@@ -1938,6 +2000,7 @@ if (typeof window !== "undefined") {
   window.LuxeAuth = LuxeAuth;
   window.LuxeProfile = LuxeProfile;
   window.LuxeCommerce = LuxeCommerce;
+  window.LuxeMetrics = LuxeMetrics;
   window.LuxeWhatsApp = LuxeWhatsApp;
   window.LuxeOrders = LuxeOrders;
   window.LuxeNotifications = LuxeNotifications;

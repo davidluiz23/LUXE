@@ -385,23 +385,13 @@
 }
 
 .category-products .product-grid .product-image {
-    height: 280px;
+    height: auto;
+    aspect-ratio: 4 / 5;
 }
 
-@media screen and (max-width: 768px) {
-    .category-products .product-grid .product-image {
-        height: 220px;
-    }
-}
-
-@media screen and (max-width: 576px) {
-    .category-products .product-grid .product-image {
-        height: 200px;
-    }
-}
-
-@media screen and (max-width: 375px) {
-    .category-products .product-grid .product-image {
-        height: 160px;
-    }
+.category-products .product-grid .product-image > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
 }

@@ -117,37 +117,44 @@ function renderProductDetails(product) {
                     ${product.inStock !== false ? 'In Stock' : 'Out of Stock'}
                 </div>
 
-                <p class="product-description">${product.description || 'Crafted with premium materials and sophisticated design.'}</p>
+                <section class="product-description-panel" aria-labelledby="productDetailsHeading">
+                    <h2 class="product-panel-label" id="productDetailsHeading">Product details</h2>
+                    <p class="product-description">${product.description || 'Crafted with premium materials and sophisticated design.'}</p>
 
-                <div class="product-specs">
-                    ${specsHtml}
-                </div>
-
-                <!-- Color Selection -->
-                <div class="color-selection">
-                    <label>Color:</label>
-                    <div class="color-options">
-                        ${colorsHtml}
+                    <div class="product-specs">
+                        ${specsHtml}
                     </div>
-                </div>
+                </section>
 
-                <!-- Size Selection -->
-                <div class="size-selection">
-                    <label>Size:</label>
-                    <div class="size-options">
-                        ${sizesHtml}
-                    </div>
-                </div>
+                <section class="product-options-panel" aria-labelledby="productOptionsHeading">
+                    <h2 class="product-panel-label" id="productOptionsHeading">Choose your options</h2>
 
-                <!-- Quantity -->
-                <div class="quantity-selector">
-                    <label>Quantity:</label>
-                    <div class="quantity-control">
-                        <button onclick="window.updateQuantity(-1)">−</button>
-                        <span id="quantityDisplay">1</span>
-                        <button onclick="window.updateQuantity(1)">+</button>
+                    <!-- Color Selection -->
+                    <div class="color-selection">
+                        <label>Color:</label>
+                        <div class="color-options">
+                            ${colorsHtml}
+                        </div>
                     </div>
-                </div>
+
+                    <!-- Size Selection -->
+                    <div class="size-selection">
+                        <label>Size:</label>
+                        <div class="size-options">
+                            ${sizesHtml}
+                        </div>
+                    </div>
+
+                    <!-- Quantity -->
+                    <div class="quantity-selector">
+                        <label>Quantity:</label>
+                        <div class="quantity-control">
+                            <button type="button" aria-label="Decrease quantity" onclick="window.updateQuantity(-1)">−</button>
+                            <span id="quantityDisplay">1</span>
+                            <button type="button" aria-label="Increase quantity" onclick="window.updateQuantity(1)">+</button>
+                        </div>
+                    </div>
+                </section>
 
                 <!-- ADD TO CART & WHATSAPP -->
                 <div class="product-actions-detail" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">

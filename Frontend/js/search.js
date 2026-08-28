@@ -28,9 +28,11 @@
                     <span class="eyebrow">ALKEBULAN / Search the collection</span>
                     <h2 id="searchModalTitle">What are you looking for?</h2>
                 </div>
-                <div class="search-input-row">
+                <div class="search-input-row" role="search">
                     <i class="fas fa-search" aria-hidden="true"></i>
-                    <input type="search" id="headerSearchInput" placeholder="Type a piece, brand, or category" autocomplete="off" aria-describedby="searchInstructions">
+                    <label class="sr-only" for="headerSearchInput">Search the collection</label>
+                    <input type="search" id="headerSearchInput" placeholder="Piece, brand, or category" autocomplete="off" aria-describedby="searchInstructions" aria-controls="headerSearchResults">
+                    <button id="clearSearchInput" class="search-clear-button" type="button" aria-label="Clear search" hidden>&times;</button>
                 </div>
                 <div id="headerSearchResults" aria-live="polite"></div>
                 <p id="searchInstructions" class="search-keyboard-note">Enter at least two characters &nbsp; / &nbsp; Press Esc to close</p>
@@ -73,7 +75,15 @@
 
         const summary = document.createElement("div");
         summary.className = "search-result-summary";
-        summary.textContent = `${matches.length} piece${matches.length === 1 ? "" : "s"} found`;
+        const count = document.createElement("span");
+        count.textContent = `${matches.length} piece${matches.length === 1 ? "" : "s"} found`;
+        summary.appendChild(count);
+        if (matches.length > 8) {
+            const viewAll = document.createElement("a");
+            viewAll.href = `shop.html?q=${encodeURIComponent(query)}`;
+            viewAll.textContent = "View all results";
+            summary.appendChild(viewAll);
+        }
         const grid = document.createElement("div");
         grid.className = "search-results-grid";
 
@@ -113,12 +123,21 @@
         const input = document.getElementById("headerSearchInput");
         const results = document.getElementById("headerSearchResults");
         const closeButton = document.getElementById("closeSearchModal");
+        const clearButton = document.getElementById("clearSearchInput");
+        const modalContent = modal.querySelector(".search-modal-content");
         let returnFocus = null;
+
+        const syncQueryState = () => {
+            const hasText = Boolean(input?.value.length);
+            modalContent?.classList.toggle("has-query", hasText);
+            if (clearButton) clearButton.hidden = !hasText;
+        };
 
         const openSearch = () => {
             returnFocus = document.activeElement;
             modal.hidden = false;
             document.body.classList.add("search-is-open");
+            syncQueryState();
             renderResults(results, "");
             window.setTimeout(() => input?.focus(), 30);
         };
@@ -127,7 +146,14 @@
             modal.hidden = true;
             document.body.classList.remove("search-is-open");
             if (input) input.value = "";
+            syncQueryState();
             if (returnFocus instanceof HTMLElement) returnFocus.focus();
+        };
+
+        const updateSearch = () => {
+            const query = input?.value.trim() || "";
+            syncQueryState();
+            renderResults(results, query);
         };
 
         toggle?.addEventListener("click", (event) => {
@@ -138,7 +164,20 @@
         modal.addEventListener("click", (event) => {
             if (event.target === modal) closeSearch();
         });
-        input?.addEventListener("input", () => renderResults(results, input.value.trim()));
+        input?.addEventListener("input", updateSearch);
+        input?.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter") return;
+            const firstResult = results?.querySelector(".search-result-item");
+            if (!firstResult) return;
+            event.preventDefault();
+            firstResult.click();
+        });
+        clearButton?.addEventListener("click", () => {
+            if (!input) return;
+            input.value = "";
+            updateSearch();
+            input.focus();
+        });
 
         document.addEventListener("keydown", (event) => {
             if (modal.hidden) return;

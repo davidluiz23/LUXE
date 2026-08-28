@@ -936,7 +936,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
 
-      status.textContent = `Uploading original (${formatBytes(file.size)})…`;
+      status.textContent = `Uploading to Cloudinary (${formatBytes(file.size)})…`;
       status.style.color = "";
 
       const { url, error } = await window.LuxeStorage.uploadProductImage(file);
@@ -950,7 +950,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       urlInput.value = url;
       setImagePreview(previewImageId, previewIconId, url);
       renderProductLivePreview();
-      status.textContent = `Uploaded ✓ Original file kept (${formatBytes(file.size)})`;
+      status.textContent = `Stored on Cloudinary ✓ (${formatBytes(file.size)})`;
       status.style.color = "#1E8E4F";
     });
 

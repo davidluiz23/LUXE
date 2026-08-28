@@ -29,11 +29,24 @@ supabase functions deploy order-notifications
 supabase functions deploy whatsapp-verification
 supabase functions deploy admin-messaging
 supabase functions deploy account-administration
+supabase functions deploy cloudinary-upload-signature
 supabase functions deploy payment-gateway --no-verify-jwt
 ```
 
 Set Edge Function secrets from `supabase/.env.example`. Keep all access tokens
 and payment secret keys in Supabase secrets, never in `Frontend/js`.
+
+## Product images on Cloudinary
+
+New main and hover images uploaded from the admin console use a short-lived,
+signed Cloudinary upload. Set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and
+`CLOUDINARY_API_SECRET` as Supabase Edge Function secrets, optionally customize
+`CLOUDINARY_PRODUCT_FOLDER`, then deploy `cloudinary-upload-signature`. The API
+secret is never returned to the browser; only authenticated owner/admin accounts
+can request an upload signature. Existing Supabase Storage or external image
+URLs remain readable, while every new admin file upload is stored on Cloudinary.
+The accompanying migration removes browser-side product write policies from the
+legacy Supabase bucket without affecting customer avatar uploads.
 
 ## WhatsApp Cloud API
 

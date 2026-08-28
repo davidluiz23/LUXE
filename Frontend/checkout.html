@@ -82,26 +82,26 @@
         <h1 class="checkout-title">Checkout</h1>
         <div class="checkout-grid">
           <div class="checkout-form-wrapper">
-            <form id="checkoutForm">
+            <form id="checkoutForm" novalidate>
               <div class="form-section">
                 <h3>Shipping Information</h3>
                 <div class="form-row">
                   <div class="form-group">
                     <label for="firstName">First Name *</label>
-                    <input type="text" id="firstName" required />
+                    <input type="text" id="firstName" autocomplete="given-name" required />
                   </div>
                   <div class="form-group">
                     <label for="lastName">Last Name *</label>
-                    <input type="text" id="lastName" required />
+                    <input type="text" id="lastName" autocomplete="family-name" required />
                   </div>
                 </div>
                 <div class="form-group">
                   <label for="email">Email Address *</label>
-                  <input type="email" id="email" required />
+                  <input type="email" id="email" autocomplete="email" required />
                 </div>
                 <div class="form-group">
                   <label for="phone">Phone Number *</label>
-                  <input type="tel" id="phone" required />
+                  <input type="tel" id="phone" autocomplete="tel" inputmode="tel" placeholder="e.g. +234 810 346 3852" required />
                   <p class="checkout-identity-note" id="whatsappIdentityNotice" hidden></p>
                 </div>
                 <div class="form-group">
@@ -110,21 +110,22 @@
                     type="text"
                     id="address"
                     placeholder="123 Main Street"
+                    autocomplete="street-address"
                     required
                   />
                 </div>
                 <div class="form-row">
                   <div class="form-group">
                     <label for="city">City *</label>
-                    <input type="text" id="city" required />
+                    <input type="text" id="city" autocomplete="address-level2" required />
                   </div>
                   <div class="form-group">
-                    <label for="state">State *</label>
-                    <input type="text" id="state" required />
+                    <label for="state">State / Region *</label>
+                    <input type="text" id="state" autocomplete="address-level1" required />
                   </div>
                   <div class="form-group">
-                    <label for="zip">ZIP Code *</label>
-                    <input type="text" id="zip" required />
+                    <label for="zip">Postal Code <span class="optional-label">Optional</span></label>
+                    <input type="text" id="zip" autocomplete="postal-code" inputmode="numeric" />
                   </div>
                 </div>
               </div>
