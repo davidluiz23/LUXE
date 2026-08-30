@@ -29,10 +29,10 @@
                     .reveal-item,
                     html.alkebulan-site .reveal-item {
                         opacity: 0;
-                        transform: translateY(14px);
+                        transform: translateY(10px);
                         transition:
-                            opacity .52s cubic-bezier(.2, .75, .25, 1),
-                            transform .52s cubic-bezier(.2, .75, .25, 1);
+                            opacity .68s cubic-bezier(.16, 1, .3, 1),
+                            transform .68s cubic-bezier(.16, 1, .3, 1);
                         transition-delay: var(--reveal-delay, 0ms);
                     }
                     .reveal-item.revealed,
@@ -63,7 +63,7 @@
 
         elements.forEach((element, index) => {
             element.classList.add('reveal-item');
-            element.style.setProperty('--reveal-delay', `${(index % 4) * 45}ms`);
+            element.style.setProperty('--reveal-delay', `${(index % 4) * 36}ms`);
             const rect = element.getBoundingClientRect();
             if (rect.top < window.innerHeight * 1.04 && rect.bottom > 0) {
                 element.classList.add('revealed');

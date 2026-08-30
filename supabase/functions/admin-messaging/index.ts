@@ -1,19 +1,8 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.112.4";
 import { sendPushToUsers } from "../_shared/web-push.ts";
+import { getSupabaseServiceKey } from "../_shared/supabase-server.ts";
 
 type DeliveryResult = { status: string; reference?: string };
-
-function getServiceKey(): string | null {
-  const legacy = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (legacy) return legacy;
-  const secretKeys = Deno.env.get("SUPABASE_SECRET_KEYS");
-  if (!secretKeys) return null;
-  try {
-    return Object.values(JSON.parse(secretKeys)).find(
-      (value) => typeof value === "string" && value.length > 20,
-    ) as string || null;
-  } catch { return null; }
-}
 
 function allowedOrigin(request: Request): string | null {
   const configured = (Deno.env.get("LUXE_ALLOWED_ORIGINS") || Deno.env.get("LUXE_SITE_URL") || "")
@@ -154,7 +143,7 @@ Deno.serve(async (request) => {
   if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405, origin);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const serviceKey = getServiceKey();
+  const serviceKey = getSupabaseServiceKey();
   if (!supabaseUrl || !serviceKey) return json({ error: "server_not_configured" }, 500, origin);
   const service = createClient(supabaseUrl, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },

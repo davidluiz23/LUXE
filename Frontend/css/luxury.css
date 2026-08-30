@@ -21,13 +21,14 @@
     --alk-card-shadow: 0 1px 0 rgba(17, 17, 15, .04), 0 14px 34px rgba(17, 17, 15, .055);
     --alk-serif: "Playfair Display", Georgia, serif;
     --alk-sans: "Poppins", "Helvetica Neue", Arial, sans-serif;
-    --alk-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --alk-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --alk-ease-gentle: cubic-bezier(0.33, 1, 0.68, 1);
     --alk-radius-xs: 4px;
     --alk-radius-sm: 7px;
     --alk-radius-md: 11px;
     --alk-radius-lg: 16px;
-    --alk-fast: 180ms;
-    --alk-normal: 420ms;
+    --alk-fast: 220ms;
+    --alk-normal: 520ms;
     --alk-nav-height: 88px;
 }
 
@@ -99,7 +100,7 @@ html.alkebulan-site #loader {
     place-items: center;
     background: var(--alk-ink);
     color: var(--alk-white);
-    animation: luxuryLoaderExit 0.35s var(--alk-ease) 0.18s forwards;
+    animation: luxuryLoaderExit 0.55s var(--alk-ease) 0.12s forwards;
 }
 
 .luxury-loader-lockup {
@@ -215,8 +216,9 @@ html.alkebulan-site .navbar-notification-badge {
     transform-origin: left;
 }
 
-html.alkebulan-site .hamburger { width: 42px; height: 42px; padding: 10px 9px; justify-content: space-between; border: 1px solid var(--alk-line); border-radius: var(--alk-radius-sm); transition: background var(--alk-fast) ease, transform var(--alk-fast) var(--alk-ease); }
+html.alkebulan-site .hamburger { width: 40px; height: 40px; padding: 9px 7px; justify-content: space-between; color: var(--alk-ink); background: transparent; border: 0; border-radius: 0; box-shadow: none; transition: color var(--alk-fast) ease, transform var(--alk-fast) var(--alk-ease); }
 html.alkebulan-site .hamburger span { width: 100%; height: 1px; background: currentColor; transform-origin: center; transition: transform .3s var(--alk-ease), opacity var(--alk-fast) ease; }
+html.alkebulan-site .hamburger:hover { color: var(--alk-bronze); background: transparent; }
 html.alkebulan-site .hamburger:active { transform: scale(.96); }
 html.alkebulan-site .hamburger.is-active span:nth-child(1) { transform: translateY(10px) rotate(45deg); }
 html.alkebulan-site .hamburger.is-active span:nth-child(2) { opacity: 0; transform: scaleX(.4); }
@@ -239,7 +241,7 @@ html.alkebulan-site .mobile-menu {
     opacity: 0;
     transform: translateX(28px);
     visibility: hidden;
-    transition: right .46s var(--alk-ease), opacity .28s ease, transform .46s var(--alk-ease), visibility 0s .46s;
+    transition: right .58s var(--alk-ease), opacity .4s var(--alk-ease-gentle), transform .58s var(--alk-ease), visibility 0s .58s;
 }
 
 html.alkebulan-site .mobile-menu.active { right: 0; opacity: 1; transform: translateX(0); visibility: visible; transition-delay: 0s; }
@@ -248,7 +250,7 @@ html.alkebulan-site .mobile-close:hover { background: rgba(255,255,255,.08); }
 html.alkebulan-site .mobile-close:active { transform: scale(.96); }
 html.alkebulan-site .mobile-brand-lockup { position: absolute; top: 25px; left: 30px; }
 html.alkebulan-site .mobile-menu ul { margin-top: 44px; }
-html.alkebulan-site .mobile-menu li { margin: 0; border-bottom: 1px solid var(--alk-line-dark); opacity: 0; transform: translateY(9px); transition: opacity .28s ease, transform .38s var(--alk-ease); }
+html.alkebulan-site .mobile-menu li { margin: 0; border-bottom: 1px solid var(--alk-line-dark); opacity: 0; transform: translateY(7px); transition: opacity .4s var(--alk-ease-gentle), transform .5s var(--alk-ease); }
 html.alkebulan-site .mobile-menu.active li { opacity: 1; transform: translateY(0); }
 html.alkebulan-site .mobile-menu.active li:nth-child(1) { transition-delay: .08s; }
 html.alkebulan-site .mobile-menu.active li:nth-child(2) { transition-delay: .11s; }
@@ -470,38 +472,25 @@ html.alkebulan-site .product-card {
     border-radius: 18px;
     box-shadow: 0 1px 0 rgba(17,17,15,.04);
     cursor: pointer;
-    transition: background .28s ease, border-color .28s ease, box-shadow .35s ease, transform .35s var(--alk-ease);
+    backface-visibility: hidden;
+    transition: background .38s var(--alk-ease-gentle), border-color .38s var(--alk-ease-gentle), box-shadow .5s var(--alk-ease), transform .5s var(--alk-ease);
 }
 html.alkebulan-site .product-card[data-luxury-card="true"] {
-    animation: luxuryProductCardIn .48s var(--alk-ease) both;
+    animation: luxuryProductCardIn .64s var(--alk-ease) both;
     animation-delay: var(--card-delay, 0ms);
 }
-html.alkebulan-site .product-card:hover { background: #f7f4ee; border-color: rgba(17,17,15,.1); box-shadow: 0 18px 42px rgba(17,17,15,.1); transform: translateY(-5px); }
+html.alkebulan-site .product-card:hover { background: #f7f4ee; border-color: rgba(17,17,15,.1); box-shadow: 0 18px 42px rgba(17,17,15,.1); transform: translateY(-4px); }
 html.alkebulan-site .product-image { height: auto; aspect-ratio: 4 / 5; overflow: hidden; background: #e8e5df; border-radius: 13px; }
-html.alkebulan-site .product-image > img { object-fit: cover; transition: opacity var(--alk-normal) var(--alk-ease), transform .7s var(--alk-ease); }
+html.alkebulan-site .product-image > img { object-fit: cover; backface-visibility: hidden; transition: opacity .62s var(--alk-ease-gentle), transform .9s var(--alk-ease); }
 html.alkebulan-site .product-card.is-image-loading .product-image > img:first-child { opacity: 0; }
 html.alkebulan-site .product-card.is-image-loading .product-image::before {
     position: absolute;
     z-index: 5;
     inset: 0;
-    background: linear-gradient(105deg, transparent 30%, rgba(251,250,247,.62) 48%, transparent 66%);
+    background: linear-gradient(105deg, transparent 32%, rgba(251,250,247,.5) 49%, transparent 66%);
     content: "";
     transform: translateX(-100%);
-    animation: productCardShimmer 1.15s ease-in-out infinite;
-}
-html.alkebulan-site .product-card.is-image-loading .product-image::after {
-    position: absolute;
-    z-index: 6;
-    top: 50%;
-    left: 50%;
-    margin: -13px 0 0 -13px;
-    width: 26px;
-    height: 26px;
-    border: 2px solid rgba(17,17,15,.18);
-    border-top-color: var(--alk-ink);
-    border-radius: 50%;
-    content: "";
-    animation: productCardRefresh .75s linear infinite;
+    animation: productCardShimmer 1.9s var(--alk-ease-gentle) infinite;
 }
 html.alkebulan-site .product-card:hover .product-image > img:first-child { transform: scale(1.025); }
 html.alkebulan-site .product-image .luxury-secondary-image { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
@@ -513,13 +502,15 @@ html.alkebulan-site .luxury-card-status { position: absolute; z-index: 7; top: 1
 html.alkebulan-site .discount-badge { right: 12px; left: auto; background: var(--alk-ink); color: var(--alk-white); }
 html.alkebulan-site .trending-badge { display: none; }
 html.alkebulan-site .luxury-card-status.is-sold { background: var(--alk-ink); color: var(--alk-white); }
-html.alkebulan-site .product-actions { z-index: 8; right: 8px; bottom: 8px; left: 8px; padding: 4px; gap: 4px; overflow: hidden; background: rgba(251,250,247,.88); border: 1px solid rgba(255,255,255,.66); border-radius: 11px; box-shadow: 0 12px 30px rgba(17,17,15,.14); backdrop-filter: blur(14px); opacity: 0; transform: translateY(10px); transition: opacity var(--alk-fast) ease, transform .28s var(--alk-ease); }
+html.alkebulan-site .product-actions { z-index: 8; right: 8px; bottom: 8px; left: 8px; padding: 4px; gap: 4px; overflow: hidden; background: rgba(251,250,247,.88); border: 1px solid rgba(255,255,255,.66); border-radius: 11px; box-shadow: 0 12px 30px rgba(17,17,15,.14); backdrop-filter: blur(14px); opacity: 0; transform: translateY(8px); transition: opacity .32s var(--alk-ease-gentle), transform .38s var(--alk-ease); }
 html.alkebulan-site .product-card:hover .product-actions { bottom: 9px; opacity: 1; transform: translateY(0); }
 html.alkebulan-site .product-actions button { min-height: 42px; padding: 9px 12px; background: transparent; color: var(--alk-ink); border: 0; border-radius: 8px; box-shadow: none; font-size: .48rem; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; transition: color .22s ease, background .22s ease, transform .22s var(--alk-ease); }
 html.alkebulan-site .product-actions .add-cart { background: var(--alk-ink); color: var(--alk-white); }
 html.alkebulan-site .product-actions .add-cart:hover { background: var(--alk-bronze); box-shadow: none; transform: translateY(-1px); }
 html.alkebulan-site .product-actions .wishlist-btn,
-html.alkebulan-site .product-actions .quick-view { width: 42px; height: 42px; background: var(--alk-white); color: var(--alk-ink); }
+html.alkebulan-site .product-actions .quick-view { flex: 0 0 42px; width: 42px; min-width: 42px; max-width: 42px; height: 42px; min-height: 42px; max-height: 42px; padding: 0; place-items: center; justify-content: center; aspect-ratio: 1; background: var(--alk-white); color: var(--alk-ink); line-height: 1; }
+html.alkebulan-site .product-actions .wishlist-btn i,
+html.alkebulan-site .product-actions .quick-view i { display: block; flex: 0 0 auto; line-height: 1; transform: none; }
 html.alkebulan-site .product-actions .wishlist-btn:hover,
 html.alkebulan-site .product-actions .quick-view:hover { background: var(--alk-paper-deep); color: var(--alk-ink); box-shadow: none; transform: translateY(-1px); }
 html.alkebulan-site .product-actions button:disabled { opacity: .72; cursor: not-allowed; transform: none; }
@@ -544,38 +535,19 @@ html.alkebulan-site .product-card-skeleton:hover {
     transform: none;
     box-shadow: none;
 }
+html.alkebulan-site .product-grid-loading .product-card-skeleton {
+    animation: catalogSkeletonIn .52s var(--alk-ease) both;
+    animation-delay: calc(var(--skeleton-order, 0) * 28ms);
+}
 html.alkebulan-site .product-skeleton-image { position: relative; isolation: isolate; }
 html.alkebulan-site .product-skeleton-image::before {
     position: absolute;
     z-index: 1;
     inset: 0;
-    background: linear-gradient(105deg, #e4e0d9 25%, #f5f2ec 45%, #e4e0d9 65%);
-    background-size: 220% 100%;
+    background: linear-gradient(105deg, #e4e0d9 28%, #efebe4 48%, #e4e0d9 68%);
+    background-size: 200% 100%;
     content: "";
-    animation: productCardSkeleton 1.2s ease-in-out infinite;
-}
-.product-loading-indicator {
-    position: absolute;
-    z-index: 2;
-    top: 50%;
-    left: 50%;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--alk-muted);
-    font-size: .48rem;
-    font-weight: 600;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    transform: translate(-50%, -50%);
-}
-.product-loading-indicator i {
-    width: 22px;
-    height: 22px;
-    border: 2px solid rgba(17,17,15,.16);
-    border-top-color: var(--alk-ink);
-    border-radius: 50%;
-    animation: productCardRefresh .75s linear infinite;
+    animation: productCardSkeleton 2.2s var(--alk-ease-gentle) infinite;
 }
 .product-skeleton-line {
     display: block;
@@ -589,14 +561,17 @@ html.alkebulan-site .product-skeleton-image::before {
 .product-skeleton-line.short { width: 34%; }
 .product-skeleton-line.medium { width: 68%; }
 
-@keyframes productCardRefresh { to { transform: rotate(360deg); } }
 @keyframes productCardShimmer { to { transform: translateX(100%); } }
 @keyframes productCardSkeleton {
     0% { background-position: 100% 0; }
     100% { background-position: -100% 0; }
 }
+@keyframes catalogSkeletonIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
 @keyframes luxuryProductCardIn {
-    from { opacity: 0; transform: translateY(12px); }
+    from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
@@ -1777,10 +1752,35 @@ html.alkebulan-site .back-to-top:active {
 
     html.alkebulan-site .product-grid,
     html.alkebulan-site .wishlist-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px 8px; }
-    html.alkebulan-site .product-actions { right: 0; bottom: 0; left: 0; padding: 0; overflow: visible; background: transparent; border: 0; border-radius: 0; box-shadow: none; backdrop-filter: none; opacity: 1; transform: none; }
+    html.alkebulan-site .shop-layout,
+    html.alkebulan-site .shop-main,
+    html.alkebulan-site .product-grid,
+    html.alkebulan-site .product-card,
+    html.alkebulan-site .product-image { min-width: 0; width: 100%; }
+    html.alkebulan-site .product-actions { right: 0; bottom: 0 !important; left: 0; padding: 0 !important; gap: 0 !important; overflow: visible; background: transparent; border: 0; border-radius: 0; box-shadow: none; backdrop-filter: none; opacity: 1; transform: none; }
     html.alkebulan-site .product-actions .add-cart,
     html.alkebulan-site .product-actions .quick-view { display: none; }
-    html.alkebulan-site .product-actions .wishlist-btn { position: absolute; right: 8px; bottom: 8px; display: grid; width: 38px !important; height: 38px !important; place-items: center; background: rgba(251,250,247,.94); border-radius: 50% !important; box-shadow: 0 7px 18px rgba(17,17,15,.1); }
+    html.alkebulan-site .product-actions .wishlist-btn {
+        --product-heart-size: clamp(38px, 10vw, 42px);
+        position: absolute;
+        right: clamp(6px, 2vw, 9px);
+        bottom: clamp(6px, 2vw, 9px);
+        display: grid;
+        flex: 0 0 var(--product-heart-size);
+        width: var(--product-heart-size) !important;
+        min-width: var(--product-heart-size) !important;
+        max-width: var(--product-heart-size) !important;
+        height: var(--product-heart-size) !important;
+        min-height: var(--product-heart-size) !important;
+        max-height: var(--product-heart-size) !important;
+        padding: 0 !important;
+        place-items: center;
+        aspect-ratio: 1;
+        background: rgba(251,250,247,.94);
+        border-radius: 50% !important;
+        box-shadow: 0 7px 18px rgba(17,17,15,.1);
+    }
+    html.alkebulan-site .product-actions .wishlist-btn i { font-size: clamp(.72rem, 2.8vw, .86rem) !important; }
     html.alkebulan-site .product-image .luxury-secondary-image { display: none; }
     html.alkebulan-site .product-info .product-name { font-size: .65rem; }
     .house-story { width: calc(100% - 24px); margin: 48px auto; padding: 7px; gap: 7px; border-radius: 20px; }
@@ -1957,6 +1957,8 @@ html.alkebulan-site .back-to-top:active {
 }
 
 @media (max-width: 420px) {
+    html.alkebulan-site .nav-container { grid-template-columns: minmax(0, 1fr) auto; }
+    html.alkebulan-site .nav-icons { gap: 4px; }
     html.alkebulan-site .nav-icons .user-icon { display: none; }
     html.alkebulan-site .mobile-menu { padding-inline: 22px; }
     html.alkebulan-site .mobile-brand-lockup { left: 22px; }
@@ -2004,3 +2006,83 @@ html.alkebulan-site .back-to-top:active {
     html.alkebulan-site *::before,
     html.alkebulan-site *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* Shared states added by the audited storefront interactions. */
+html.alkebulan-site .product-price {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+}
+html.alkebulan-site .product-current-price { font-weight: 700; }
+html.alkebulan-site .product-price-secondary {
+    color: var(--alk-muted);
+    font-size: .64em;
+    font-weight: 500;
+}
+html.alkebulan-site .newsletter-status {
+    margin: 12px 0 0;
+    color: rgba(255,255,255,.86);
+    font-size: .74rem;
+}
+html.alkebulan-site .newsletter-status.is-error { color: #ffd4d0; }
+html.alkebulan-site .newsletter-status.is-success { color: #c8f1d4; }
+html.alkebulan-site .catalog-empty-state {
+    grid-column: 1 / -1;
+    min-height: 280px;
+    padding: 56px 24px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 12px;
+    text-align: center;
+    border: 1px solid var(--alk-line);
+    background: var(--alk-white);
+}
+html.alkebulan-site .catalog-empty-state > i { font-size: 1.6rem; color: var(--alk-muted); }
+html.alkebulan-site .catalog-empty-state h3,
+html.alkebulan-site .catalog-empty-state p { margin: 0; }
+html.alkebulan-site .filter-option-btn:disabled {
+    opacity: .42;
+    cursor: not-allowed;
+}
+html.alkebulan-site .color-dot {
+    display: inline-block;
+    padding: 0;
+    appearance: none;
+}
+html.alkebulan-site .color-dot:focus-visible,
+html.alkebulan-site .filter-option-btn:focus-visible,
+html.alkebulan-site .faq-question:focus-visible {
+    outline: 2px solid var(--alk-bronze);
+    outline-offset: 3px;
+}
+html.alkebulan-site .cart-item-options,
+html.alkebulan-site .order-item-options,
+html.alkebulan-site .item-name small {
+    display: block;
+    margin-top: 5px;
+    color: var(--alk-muted);
+    font-size: .7rem;
+    line-height: 1.45;
+}
+html.alkebulan-site .contact-form-alert {
+    margin: 0 0 20px;
+    padding: 13px 15px;
+    border: 1px solid var(--alk-line);
+    border-radius: 4px;
+    font-size: .82rem;
+}
+html.alkebulan-site .contact-form-alert.is-success { background: #edf8f0; color: #185d2d; border-color: #b8ddc2; }
+html.alkebulan-site .contact-form-alert.is-error { background: #fff0ef; color: #8c2720; border-color: #e6bbb7; }
+html.alkebulan-site .faq-question {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    text-align: left;
+}
+html.alkebulan-site .signup-captcha {
+    min-height: 65px;
+    margin: 0 0 18px;
+}
+html.alkebulan-site .signup-captcha[hidden] { display: none; }

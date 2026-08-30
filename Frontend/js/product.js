@@ -37,12 +37,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!product) {
         const container = document.getElementById('productDetails');
         if (container) {
+            const catalogUnavailable = window.LuxeCatalogStatus?.state === 'unavailable';
             container.innerHTML = `
                 <div style="text-align: center; padding: 80px 0;">
                     <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #E74C3C; margin-bottom: 20px;"></i>
-                    <h2>Product Not Found</h2>
-                    <p style="color: #777; margin-bottom: 20px;">The product you are looking for does not exist or has been removed.</p>
-                    <a href="shop.html" class="btn btn-primary">Return to Shop</a>
+                    <h2>${catalogUnavailable ? 'Catalog temporarily unavailable' : 'Product not found'}</h2>
+                    <p style="color: #777; margin-bottom: 20px;">${catalogUnavailable
+                        ? 'We could not verify the live product catalog. Please try again shortly.'
+                        : 'This product does not exist or is no longer published.'}</p>
+                    <a href="${catalogUnavailable ? window.location.href : 'shop.html'}" class="btn btn-primary">${catalogUnavailable ? 'Try again' : 'Return to shop'}</a>
                 </div>
             `;
         }
@@ -62,8 +65,18 @@ function escapeProductHtml(value) {
 function safeProductColor(value) {
     const aliases = {
         'navy blue': 'navy',
+        'midnight blue': '#191970',
+        'royal blue': 'royalblue',
+        'sky blue': 'skyblue',
+        'light blue': 'lightblue',
+        'midnight black': '#0b0b0d',
+        'military green': '#4b5320',
+        'olive green': 'olive',
+        'forest green': 'forestgreen',
         'off white': '#f5f2e9',
         'off-white': '#f5f2e9',
+        'dark grey': 'darkgray',
+        'dark gray': 'darkgray',
         grey: 'gray',
     };
     const candidate = String(value || '').split('/')[0].trim().toLowerCase();
@@ -71,21 +84,68 @@ function safeProductColor(value) {
     return typeof CSS !== 'undefined' && CSS.supports?.('color', normalized) ? normalized : '#777777';
 }
 
+function detailMoney(product, oldPrice = false) {
+    const formatted = window.LuxeMoney?.forProduct?.(product, oldPrice);
+    if (formatted) return formatted;
+    const usdValue = Number(oldPrice ? product?.oldPrice : product?.price);
+    const ngnRaw = oldPrice ? product?.oldPriceNGN : product?.priceNGN;
+    const ngnValue = ngnRaw === null || ngnRaw === undefined || ngnRaw === '' ? NaN : Number(ngnRaw);
+    return {
+        usd: Number.isFinite(usdValue) ? `$${usdValue.toFixed(2)}` : '',
+        ngn: Number.isFinite(ngnValue) ? `₦${ngnValue.toLocaleString('en-NG', { maximumFractionDigits: 0 })}` : '',
+    };
+}
+
+function detailPriceMarkup(product) {
+    const current = detailMoney(product);
+    const old = detailMoney(product, true);
+    const primary = current.ngn || current.usd || 'Price unavailable';
+    const secondary = current.ngn && current.usd ? current.usd : '';
+    const oldPrimary = old.ngn || old.usd || '';
+    return `<span class="current-price">${escapeProductHtml(primary)}</span>
+        ${secondary ? `<span class="product-price-secondary">${escapeProductHtml(secondary)}</span>` : ''}
+        ${oldPrimary ? `<span class="old-price">${escapeProductHtml(oldPrimary)}</span>` : ''}`;
+}
+
+function productOptionValues(values) {
+    return [...new Set((Array.isArray(values) ? values : [])
+        .map(value => String(value || '').trim().slice(0, 80))
+        .filter(Boolean))];
+}
+
+function detailStockLimit(product) {
+    const quantity = Number(product?.stockQuantity);
+    if (Number.isInteger(quantity)) return Math.max(0, Math.min(window.CART_MAX_QUANTITY || 99, quantity));
+    return product?.inStock === false ? 0 : (window.CART_MAX_QUANTITY || 99);
+}
+
+function selectedDetailOptions() {
+    return {
+        size: document.querySelector('.size-btn-product.active')?.dataset.size || '',
+        color: document.querySelector('.color-btn.active')?.dataset.color || '',
+    };
+}
+
 function renderProductDetails(product) {
     const container = document.getElementById('productDetails');
     if (!container) return;
 
     // Generate star rating HTML
-    const starsHtml = generateStars(product.rating || 4.5);
+    const rating = Math.max(0, Math.min(5, Number(product.rating) || 0));
+    const starsHtml = generateStars(rating);
+    const colors = productOptionValues(product.colors);
+    const sizes = productOptionValues(product.sizes);
+    const stockLimit = detailStockLimit(product);
+    const isAvailable = product.inStock !== false && stockLimit > 0;
 
     // Generate color options HTML
-    const colorsHtml = (product.colors || ['Black', 'Navy', 'Grey']).map(color => `
-        <button class="color-btn" type="button" style="background: ${safeProductColor(color)}" data-color="${escapeProductHtml(color)}" title="${escapeProductHtml(color)}" aria-label="Choose ${escapeProductHtml(color)}"></button>
+    const colorsHtml = colors.map((color, index) => `
+        <button class="color-btn${index === 0 ? ' active' : ''}" type="button" style="background: ${safeProductColor(color)}" data-color="${escapeProductHtml(color)}" title="${escapeProductHtml(color)}" aria-label="Choose ${escapeProductHtml(color)}" aria-pressed="${index === 0}"></button>
     `).join('');
 
     // Generate size options HTML
-    const sizesHtml = (product.sizes || ['S', 'M', 'L', 'XL']).map(size => `
-        <button class="size-btn-product" type="button" data-size="${escapeProductHtml(size)}">${escapeProductHtml(size)}</button>
+    const sizesHtml = sizes.map((size, index) => `
+        <button class="size-btn-product${index === 0 ? ' active' : ''}" type="button" data-size="${escapeProductHtml(size)}" aria-pressed="${index === 0}">${escapeProductHtml(size)}</button>
     `).join('');
 
     // Generate specs HTML
@@ -93,7 +153,7 @@ function renderProductDetails(product) {
         <div class="spec-item"><span class="spec-label">Category</span><span class="spec-value">${escapeProductHtml(product.category)}</span></div>
         <div class="spec-item"><span class="spec-label">Subcategory</span><span class="spec-value">${escapeProductHtml(product.subcategory || 'Collection')}</span></div>
         <div class="spec-item"><span class="spec-label">Brand</span><span class="spec-value">${escapeProductHtml(product.brand || window.LuxeBrand?.name || 'ALKEBULAN')}</span></div>
-        <div class="spec-item"><span class="spec-label">Rating</span><span class="spec-value">${product.rating || 4.5} / 5</span></div>
+        <div class="spec-item"><span class="spec-label">Rating</span><span class="spec-value">${rating.toFixed(1)} / 5</span></div>
     `;
 
     const galleryImages = [product.image, product.hoverImage, ...(product.hoverImages || [])]
@@ -140,24 +200,25 @@ function renderProductDetails(product) {
                 <span class="product-category">${escapeProductHtml(product.category)} / ${escapeProductHtml(product.subcategory || 'Collection')}</span>
                 <h1>${escapeProductHtml(product.name)}</h1>
                 
-                <div class="product-rating">
-                    <span class="stars">${starsHtml}</span>
-                    <span class="rating-count">(${product.rating || 4.5} reviews)</span>
+                <div class="product-rating" aria-label="Rated ${rating.toFixed(1)} out of 5">
+                    <span class="stars" aria-hidden="true">${starsHtml}</span>
+                    <span class="rating-count">${product.reviewCount !== null && product.reviewCount !== undefined
+                        ? `${Math.max(0, Number(product.reviewCount) || 0)} verified review${Number(product.reviewCount) === 1 ? '' : 's'}`
+                        : `${rating.toFixed(1)} / 5`}</span>
                 </div>
 
                 <div class="product-price-section">
-                    <span class="current-price">$${product.price.toFixed(2)}</span>
-                    ${product.oldPrice ? `<span class="old-price">$${product.oldPrice.toFixed(2)}</span>` : ''}
+                    ${detailPriceMarkup(product)}
                 </div>
 
-                <div class="availability ${product.inStock !== false ? '' : 'out-of-stock'}">
-                    <i class="fas ${product.inStock !== false ? 'fa-check-circle' : 'fa-times-circle'}"></i>
-                    ${product.inStock !== false ? 'In Stock' : 'Out of Stock'}
+                <div class="availability ${isAvailable ? '' : 'out-of-stock'}">
+                    <i class="fas ${isAvailable ? 'fa-check-circle' : 'fa-times-circle'}" aria-hidden="true"></i>
+                    ${isAvailable ? `In stock${Number.isInteger(Number(product.stockQuantity)) ? ` · ${stockLimit} available` : ''}` : 'Out of stock'}
                 </div>
 
                 <section class="product-description-panel" aria-labelledby="productDetailsHeading">
                     <h2 class="product-panel-label" id="productDetailsHeading">Product details</h2>
-                    <p class="product-description">${escapeProductHtml(product.description || 'Crafted with premium materials and sophisticated design.')}</p>
+                    <p class="product-description">${escapeProductHtml(product.description || 'Product information is being updated.')}</p>
 
                     <div class="product-specs">
                         ${specsHtml}
@@ -167,43 +228,43 @@ function renderProductDetails(product) {
                 <section class="product-options-panel" aria-labelledby="productOptionsHeading">
                     <h2 class="product-panel-label" id="productOptionsHeading">Choose your options</h2>
 
-                    <!-- Color Selection -->
-                    <div class="color-selection">
-                        <label>Color:</label>
+                    ${colors.length ? `<!-- Color Selection -->
+                    <div class="color-selection" role="group" aria-labelledby="productColorLabel">
+                        <span id="productColorLabel">Color:</span>
                         <div class="color-options">
                             ${colorsHtml}
                         </div>
-                    </div>
+                    </div>` : ''}
 
-                    <!-- Size Selection -->
-                    <div class="size-selection">
-                        <label>Size:</label>
+                    ${sizes.length ? `<!-- Size Selection -->
+                    <div class="size-selection" role="group" aria-labelledby="productSizeLabel">
+                        <span id="productSizeLabel">Size:</span>
                         <div class="size-options">
                             ${sizesHtml}
                         </div>
-                    </div>
+                    </div>` : ''}
 
                     <!-- Quantity -->
                     <div class="quantity-selector">
                         <label>Quantity:</label>
                         <div class="quantity-control">
-                            <button type="button" aria-label="Decrease quantity" onclick="window.updateQuantity(-1)">−</button>
-                            <span id="quantityDisplay">1</span>
-                            <button type="button" aria-label="Increase quantity" onclick="window.updateQuantity(1)">+</button>
+                            <button type="button" aria-label="Decrease quantity" data-quantity-delta="-1">−</button>
+                            <span id="quantityDisplay" data-max="${stockLimit}" aria-live="polite">1</span>
+                            <button type="button" aria-label="Increase quantity" data-quantity-delta="1">+</button>
                         </div>
                     </div>
                 </section>
 
                 <!-- ADD TO CART & WHATSAPP -->
                 <div class="product-actions-detail" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
-                    <button class="add-to-cart" onclick="window.addToCartHandler(${product.id})" ${product.inStock === false ? 'disabled aria-disabled="true"' : ''}>
-                        <i class="fas ${product.inStock === false ? 'fa-ban' : 'fa-shopping-bag'}"></i> ${product.inStock === false ? 'Out of Stock' : 'Add to Cart'}
+                    <button type="button" class="add-to-cart" id="productAddToCart" ${!isAvailable ? 'disabled aria-disabled="true"' : ''}>
+                        <i class="fas ${!isAvailable ? 'fa-ban' : 'fa-shopping-bag'}" aria-hidden="true"></i> ${!isAvailable ? 'Out of stock' : 'Add to cart'}
                     </button>
-                    <button class="whatsapp-btn-product" onclick="window.sendProductToWhatsApp(${product.id}, parseInt(document.getElementById('quantityDisplay').textContent || 1))" ${product.inStock === false ? 'disabled aria-disabled="true"' : ''} style="background: #25D366; color: white; border: none; padding: 14px 22px; border-radius: 30px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; transition: background 0.3s ease;">
+                    <button type="button" class="whatsapp-btn-product" id="productWhatsAppOrder" ${!isAvailable ? 'disabled aria-disabled="true"' : ''} style="background: #25D366; color: white; border: none; padding: 14px 22px; border-radius: 30px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; transition: background 0.3s ease;">
                         <i class="fab fa-whatsapp" style="font-size: 1.2rem;"></i> Order via WhatsApp
                     </button>
-                    <button class="wishlist-btn-product" onclick="window.addToWishlistHandler(${product.id})">
-                        <i class="fas fa-heart"></i>
+                    <button type="button" class="wishlist-btn-product" id="productWishlistButton" data-id="${Number(product.id)}" aria-label="Save ${escapeProductHtml(product.name)} to wishlist" aria-pressed="false">
+                        <i class="fas fa-heart" aria-hidden="true"></i>
                     </button>
                 </div>
 
@@ -221,13 +282,14 @@ function renderProductDetails(product) {
                 <button class="product-image-viewer-close" type="button" data-close-image-viewer aria-label="Close image viewer">&times;</button>
                 <img id="fullResolutionImage" alt="${escapeProductHtml(product.name)} full-resolution view" decoding="async">
                 <div class="product-image-viewer-meta">
-                    <span>Original Cloudinary master · no storefront crop</span>
+                    <span>${window.LuxeMedia.isCloudinaryUrl(primaryImage) ? 'Original Cloudinary master · no storefront crop' : 'Original source image · no storefront crop'}</span>
                     <a id="fullResolutionLink" href="${window.LuxeMedia.escapeAttribute(primaryImage)}" target="_blank" rel="noopener">Open original file <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
                 </div>
             </div>
         </div>
     `;
     window.LuxeMedia.hydrate(container);
+    window.syncWishlistButtons?.(container);
 
     const mainImageElement = container.querySelector('#mainImage');
     const viewer = container.querySelector('#productImageViewer');
@@ -281,44 +343,58 @@ function renderProductDetails(product) {
         });
     });
 
-    // Set default active color and size
-    const firstColor = container.querySelector('.color-btn');
-    if (firstColor) firstColor.classList.add('active');
-
-    const firstSize = container.querySelector('.size-btn-product');
-    if (firstSize) firstSize.classList.add('active');
-
     // Color selection
     container.querySelectorAll('.color-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            container.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+            container.querySelectorAll('.color-btn').forEach(b => {
+                b.classList.remove('active');
+                b.setAttribute('aria-pressed', 'false');
+            });
             this.classList.add('active');
+            this.setAttribute('aria-pressed', 'true');
         });
     });
 
     // Size selection
     container.querySelectorAll('.size-btn-product').forEach(btn => {
         btn.addEventListener('click', function() {
-            container.querySelectorAll('.size-btn-product').forEach(b => b.classList.remove('active'));
+            container.querySelectorAll('.size-btn-product').forEach(b => {
+                b.classList.remove('active');
+                b.setAttribute('aria-pressed', 'false');
+            });
             this.classList.add('active');
+            this.setAttribute('aria-pressed', 'true');
         });
+    });
+
+    container.querySelectorAll('[data-quantity-delta]').forEach(button => {
+        button.addEventListener('click', () => window.updateQuantity(Number(button.dataset.quantityDelta)));
+    });
+    container.querySelector('#productAddToCart')?.addEventListener('click', () => window.addToCartHandler(product.id));
+    container.querySelector('#productWhatsAppOrder')?.addEventListener('click', () => {
+        const quantity = Number.parseInt(container.querySelector('#quantityDisplay')?.textContent || '1', 10);
+        window.sendProductToWhatsApp?.(product.id, quantity, selectedDetailOptions());
+    });
+    container.querySelector('#productWishlistButton')?.addEventListener('click', (event) => {
+        window.toggleWishlist?.(product.id, event.currentTarget);
     });
 }
 
 function generateStars(rating) {
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 >= 0.5;
+    const normalized = Math.max(0, Math.min(5, Number(rating) || 0));
+    const fullStars = Math.floor(normalized);
+    const hasHalfStar = normalized % 1 >= 0.5;
     let stars = '';
     
     for (let i = 0; i < fullStars; i++) {
-        stars += '<i class="fas fa-star"></i>';
+        stars += '<i class="fas fa-star" aria-hidden="true"></i>';
     }
     if (hasHalfStar) {
-        stars += '<i class="fas fa-star-half-alt"></i>';
+        stars += '<i class="fas fa-star-half-alt" aria-hidden="true"></i>';
     }
     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
     for (let i = 0; i < emptyStars; i++) {
-        stars += '<i class="far fa-star"></i>';
+        stars += '<i class="far fa-star" aria-hidden="true"></i>';
     }
     
     return stars;
@@ -341,28 +417,45 @@ function renderRelatedProducts(product) {
         return;
     }
 
-    container.innerHTML = related.map(p => `
-        <div class="product-card" data-id="${p.id}" onclick="window.location.href='product.html?id=${p.id}'">
+    container.innerHTML = related.map(p => {
+        const relatedId = Number.parseInt(p.id, 10);
+        if (!Number.isFinite(relatedId)) return '';
+        const safeName = escapeProductHtml(p.name || 'Product');
+        const hasOptions = productOptionValues(p.sizes).length > 0 || productOptionValues(p.colors).length > 0;
+        return `
+        <article class="product-card" data-id="${relatedId}">
             <div class="product-image">
                 <img ${window.LuxeMedia.attributes(p.image, { preset: 'card', alt: p.name })}>
                 ${p.discount && p.oldPrice ? `<span class="discount-badge">${Math.round((1 - p.price / p.oldPrice) * 100)}% OFF</span>` : ''}
-                ${p.trending ? `<span class="trending-badge"><i class="fas fa-fire"></i> Trending</span>` : ''}
+                ${p.trending ? `<span class="trending-badge"><i class="fas fa-fire" aria-hidden="true"></i> Trending</span>` : ''}
                 <div class="product-actions">
-                    <button class="add-cart" onclick="event.stopPropagation(); if(typeof window.addToCart==='function') window.addToCart(${p.id});"><i class="fas fa-shopping-bag"></i> Add</button>
-                    <button class="wishlist-btn" onclick="event.stopPropagation(); if(typeof window.toggleWishlist==='function') window.toggleWishlist(${p.id}, this);"><i class="fas fa-heart"></i></button>
+                    <button type="button" class="add-cart" data-id="${relatedId}" data-has-options="${hasOptions}" aria-label="${hasOptions ? 'Choose options for' : 'Add'} ${safeName}"><i class="fas fa-shopping-bag" aria-hidden="true"></i> ${hasOptions ? 'Choose options' : 'Add'}</button>
+                    <button type="button" class="wishlist-btn" data-id="${relatedId}" aria-label="Save ${safeName} to wishlist" aria-pressed="false"><i class="fas fa-heart" aria-hidden="true"></i></button>
                 </div>
             </div>
             <div class="product-info">
-                <h4 class="product-name">${escapeProductHtml(p.name)}</h4>
-                <p class="product-category">${escapeProductHtml(p.category)}</p>
-                <div class="product-price">
-                    $${p.price.toFixed(2)}
-                    ${p.oldPrice ? `<span class="old-price">$${p.oldPrice.toFixed(2)}</span>` : ''}
-                </div>
+                <h4 class="product-name"><a class="product-name-link" href="product.html?id=${relatedId}" style="color:inherit;text-decoration:none">${safeName}</a></h4>
+                <p class="product-category">${escapeProductHtml(p.category || '')}</p>
+                <div class="product-price">${detailPriceMarkup(p)}</div>
             </div>
-        </div>
-    `).join('');
+        </article>`;
+    }).join('');
     window.LuxeMedia.hydrate(container);
+    window.syncWishlistButtons?.(container);
+    container.querySelectorAll('.product-card').forEach(card => {
+        const open = () => { window.location.href = `product.html?id=${Number.parseInt(card.dataset.id, 10)}`; };
+        card.addEventListener('click', event => { if (!event.target.closest('button, a')) open(); });
+    });
+    container.querySelectorAll('.add-cart').forEach(button => button.addEventListener('click', event => {
+        event.stopPropagation();
+        const id = Number.parseInt(button.dataset.id, 10);
+        if (button.dataset.hasOptions === 'true') window.location.href = `product.html?id=${id}`;
+        else window.addToCart?.(id);
+    }));
+    container.querySelectorAll('.wishlist-btn').forEach(button => button.addEventListener('click', event => {
+        event.stopPropagation();
+        window.toggleWishlist?.(Number.parseInt(button.dataset.id, 10), button);
+    }));
 }
 
 // Global window functions for inline onclick handlers
@@ -386,19 +479,22 @@ window.changeImage = function(elem, src) {
 window.updateQuantity = function(delta) {
     const display = document.getElementById('quantityDisplay');
     if (!display) return;
-    let current = parseInt(display.textContent);
-    current = Math.max(1, current + delta);
+    const maximum = Math.max(1, Math.min(window.CART_MAX_QUANTITY || 99, Number(display.dataset.max) || 99));
+    let current = Number.parseInt(display.textContent, 10) || 1;
+    current = Math.max(1, Math.min(maximum, current + Math.trunc(Number(delta) || 0)));
     display.textContent = current;
 };
 
 window.addToCartHandler = function(id) {
     const display = document.getElementById('quantityDisplay');
-    const quantity = display ? parseInt(display.textContent) : 1;
+    const quantity = display ? Number.parseInt(display.textContent, 10) : 1;
+    const options = selectedDetailOptions();
     if (typeof addToCart === 'function') {
-        addToCart(id, quantity);
+        return addToCart(id, quantity, options);
     } else if (typeof window.addToCart === 'function') {
-        window.addToCart(id, quantity);
+        return window.addToCart(id, quantity, options);
     }
+    return false;
 };
 
 window.addToWishlistHandler = function(id) {

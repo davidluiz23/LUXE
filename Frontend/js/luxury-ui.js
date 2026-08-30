@@ -37,6 +37,7 @@
       shipping: "Client services",
       returns: "Client services",
       privacy: "Legal / Privacy",
+      terms: "Legal / Terms",
     };
     return labels[page] || "ALKEBULAN / 2026";
   }
@@ -171,8 +172,23 @@
       }
 
       document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape" && mobileMenu.classList.contains("active")) {
+        if (!mobileMenu.classList.contains("active") || !mobileViewport.matches) return;
+        if (event.key === "Escape") {
           closeMobileMenu({ restoreFocus: true });
+          return;
+        }
+        if (event.key !== "Tab") return;
+        const focusable = $$('a[href], button, [tabindex="0"]', mobileMenu)
+          .filter((element) => !element.hidden && element.getAttribute("aria-hidden") !== "true");
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (!first || !last) return;
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
         }
       });
       document.addEventListener("click", (event) => {
@@ -307,10 +323,10 @@
       <div class="container luxury-footer-grid">
         <div><span class="footer-label">Collection</span><a href="shop.html?sort=newest">New arrivals</a><a href="men.html">Men</a><a href="women.html">Women</a><a href="shop.html">Shop all</a></div>
         <div><span class="footer-label">The house</span><a href="about.html">Our story</a><a href="wishlist.html">Saved pieces</a><a href="dashboard.html">My account</a><a href="contact.html">Contact</a></div>
-        <div><span class="footer-label">Client services</span><a href="shipping.html">Shipping</a><a href="returns.html">Returns</a><a href="faq.html">FAQ</a><a href="privacy.html">Privacy</a></div>
+        <div><span class="footer-label">Client services</span><a href="shipping.html">Shipping</a><a href="returns.html">Returns</a><a href="faq.html">FAQ</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div>
         <div class="footer-location"><span class="footer-label">Location</span><strong>Lagos, Nigeria</strong><a href="tel:+2348103463852">+234 810 346 3852</a><a href="mailto:hello@alkebulan.com">hello@alkebulan.com</a></div>
       </div>
-      <div class="container luxury-footer-bottom"><span>© 2026 ALKEBULAN</span><span>Secure commerce / Worldwide delivery</span><a href="#top" class="no-page-transition">Back to top ↑</a></div>`;
+      <div class="container luxury-footer-bottom"><span>© 2026 ALKEBULAN</span><span>Secure commerce / Delivery options confirmed at checkout</span><a href="#top" class="no-page-transition">Back to top ↑</a></div>`;
   }
 
   function releaseStaleScrollLocks({ resetPanels = false } = {}) {
@@ -338,6 +354,8 @@
   function addImageFallbacks() {
     const markUnavailable = (image) => {
       if (!(image instanceof HTMLImageElement) || image.dataset.fallbackApplied) return;
+      const placeholder = image.dataset.luxePlaceholder;
+      if (placeholder && image.dataset.luxePlaceholderUsed !== "true") return;
       image.dataset.fallbackApplied = "true";
       image.classList.add("image-unavailable");
       image.alt = image.alt || "Image unavailable";
@@ -345,6 +363,12 @@
     document.addEventListener("error", (event) => {
       const image = event.target;
       markUnavailable(image);
+    }, true);
+    document.addEventListener("load", (event) => {
+      const image = event.target;
+      if (!(image instanceof HTMLImageElement)) return;
+      image.classList.remove("image-unavailable");
+      delete image.dataset.fallbackApplied;
     }, true);
     document.querySelectorAll("img").forEach((image) => {
       if (image.complete && image.naturalWidth === 0) markUnavailable(image);

@@ -1,17 +1,9 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
-import { sendPushToAllUsers, webPushPublicKey } from "../_shared/web-push.ts";
-
-function getServiceKey(): string | null {
-  const legacy = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (legacy) return legacy;
-  const secretKeys = Deno.env.get("SUPABASE_SECRET_KEYS");
-  if (!secretKeys) return null;
-  try {
-    return Object.values(JSON.parse(secretKeys)).find(
-      (value) => typeof value === "string" && value.length > 20,
-    ) as string || null;
-  } catch { return null; }
-}
+import { createClient } from "npm:@supabase/supabase-js@2.112.4";
+import {
+  isAllowedPushEndpoint,
+  webPushPublicKey,
+} from "../_shared/web-push.ts";
+import { getSupabaseServiceKey } from "../_shared/supabase-server.ts";
 
 function allowedOrigin(request: Request): string | null {
   const configured = (Deno.env.get("LUXE_ALLOWED_ORIGINS") || Deno.env.get("LUXE_SITE_URL") || "")
@@ -33,15 +25,10 @@ function json(body: Record<string, unknown>, status: number, origin: string) {
       "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
       "Vary": "Origin",
     },
   });
-}
-
-function validEndpoint(value: unknown): value is string {
-  if (typeof value !== "string" || value.length < 20 || value.length > 2048) return false;
-  try { return new URL(value).protocol === "https:"; }
-  catch { return false; }
 }
 
 Deno.serve(async (request) => {
@@ -49,9 +36,11 @@ Deno.serve(async (request) => {
   if (!origin) return new Response("Origin not allowed", { status: 403 });
   if (request.method === "OPTIONS") return json({ ok: true }, 200, origin);
   if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405, origin);
+  const contentLength = Number(request.headers.get("content-length") || 0);
+  if (contentLength > 16_384) return json({ error: "request_too_large" }, 413, origin);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const serviceKey = getServiceKey();
+  const serviceKey = getSupabaseServiceKey();
   if (!supabaseUrl || !serviceKey) return json({ error: "server_not_configured" }, 500, origin);
 
   const token = (request.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
@@ -64,7 +53,11 @@ Deno.serve(async (request) => {
   if (authError || !authData.user) return json({ error: "invalid_session" }, 401, origin);
 
   let body: Record<string, unknown>;
-  try { body = await request.json(); }
+  try {
+    const rawBody = await request.text();
+    if (rawBody.length > 16_384) return json({ error: "request_too_large" }, 413, origin);
+    body = JSON.parse(rawBody || "{}");
+  }
   catch { return json({ error: "invalid_json" }, 400, origin); }
 
   if (body.action === "config") {
@@ -84,14 +77,36 @@ Deno.serve(async (request) => {
     if (title.length < 3 || title.length > 100 || message.length < 3 || message.length > 1000) {
       return json({ error: "invalid_update" }, 400, origin);
     }
-    const delivery = await sendPushToAllUsers(service, {
-      title,
-      body: message,
-      url: "index.html#site-updates",
-      tag: `site-update-${Date.now()}`,
-      data: { notificationKind: "site_update" },
-    });
-    return json({ ok: true, delivery }, 200, origin);
+    if (!webPushPublicKey()) return json({ error: "push_not_configured" }, 503, origin);
+    const { data: broadcast, error: queueError } = await service.rpc(
+      "service_enqueue_push_broadcast_v1",
+      {
+        p_admin_user_id: authData.user.id,
+        p_title: title,
+        p_message: message,
+      },
+    );
+    if (queueError) {
+      console.error("[push-notifications] Broadcast enqueue failed:", queueError.message);
+      return json({ error: "broadcast_queue_failed" }, 500, origin);
+    }
+    const queued = (broadcast || {}) as Record<string, unknown>;
+    const audienceCount = Number(queued.audienceCount || 0);
+    return json({
+      ok: true,
+      queued: audienceCount > 0,
+      broadcast: queued,
+      delivery: {
+        status: audienceCount > 0 ? "queued" : "unavailable",
+        configured: true,
+        complete: audienceCount === 0,
+        attempted: 0,
+        sent: 0,
+        failed: 0,
+        expired: 0,
+        queued: audienceCount,
+      },
+    }, 202, origin);
   }
 
   const subscription = body.subscription && typeof body.subscription === "object"
@@ -100,7 +115,7 @@ Deno.serve(async (request) => {
   const endpoint = String(subscription.endpoint || body.endpoint || "");
 
   if (body.action === "unsubscribe") {
-    if (!validEndpoint(endpoint)) return json({ error: "invalid_subscription" }, 400, origin);
+    if (!isAllowedPushEndpoint(endpoint)) return json({ error: "invalid_subscription" }, 400, origin);
     const { error } = await service.from("push_subscriptions")
       .delete().eq("user_id", authData.user.id).eq("endpoint", endpoint);
     if (error) return json({ error: "unsubscribe_failed" }, 500, origin);
@@ -118,24 +133,21 @@ Deno.serve(async (request) => {
     : Number(subscription.expirationTime);
 
   if (!webPushPublicKey()) return json({ error: "push_not_configured" }, 503, origin);
-  if (!validEndpoint(endpoint) || p256dh.length < 20 || p256dh.length > 512 || authSecret.length < 8 || authSecret.length > 512) {
+  if (!isAllowedPushEndpoint(endpoint) || p256dh.length < 20 || p256dh.length > 512 || authSecret.length < 8 || authSecret.length > 512) {
     return json({ error: "invalid_subscription" }, 400, origin);
   }
   if (expirationTime !== null && (!Number.isSafeInteger(expirationTime) || expirationTime < 0)) {
     return json({ error: "invalid_expiration" }, 400, origin);
   }
 
-  const { error } = await service.from("push_subscriptions").upsert({
-    user_id: authData.user.id,
-    endpoint,
-    p256dh,
-    auth_secret: authSecret,
-    expiration_time: expirationTime,
-    user_agent: String(request.headers.get("user-agent") || "").slice(0, 500) || null,
-    failure_count: 0,
-    disabled_at: null,
-    updated_at: new Date().toISOString(),
-  }, { onConflict: "endpoint" });
+  const { error } = await service.rpc("service_save_push_subscription_v1", {
+    p_user_id: authData.user.id,
+    p_endpoint: endpoint,
+    p_p256dh: p256dh,
+    p_auth_secret: authSecret,
+    p_expiration_time: expirationTime,
+    p_user_agent: String(request.headers.get("user-agent") || "").slice(0, 500) || null,
+  });
 
   if (error) {
     console.error("[push-notifications] Subscription save failed:", error.message);

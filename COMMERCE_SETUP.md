@@ -30,11 +30,19 @@ supabase functions deploy whatsapp-verification
 supabase functions deploy admin-messaging
 supabase functions deploy account-administration
 supabase functions deploy cloudinary-upload-signature
+supabase functions deploy signup-flow
+supabase functions deploy password-reset
+supabase functions deploy push-notifications
 supabase functions deploy payment-gateway --no-verify-jwt
+supabase functions deploy commerce-maintenance --no-verify-jwt
 ```
 
 Set Edge Function secrets from `supabase/.env.example`. Keep all access tokens
 and payment secret keys in Supabase secrets, never in `Frontend/js`.
+Server functions resolve the explicitly named Supabase secret key
+(`LUXE_SUPABASE_SECRET_KEY_NAME`, default `default`) and validate the legacy
+service-role JWT only as a migration fallback; they never pick an arbitrary key
+from the secret-key map.
 
 ## Product images on Cloudinary
 
@@ -45,6 +53,10 @@ signed Cloudinary upload. Set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and
 secret is never returned to the browser; only authenticated owner/admin accounts
 can request an upload signature. Existing Supabase Storage or external image
 URLs remain readable, while every new admin file upload is stored on Cloudinary.
+The product rows store normal secure Cloudinary delivery URLs plus their validated
+Cloudinary public IDs. Replacing or deleting a product queues the old public ID
+for authenticated server-side destruction; the API secret never reaches the
+browser.
 The accompanying migration removes browser-side product write policies from the
 legacy Supabase bucket without affecting customer avatar uploads.
 
@@ -59,6 +71,48 @@ Cards use content-aware 4:5 `c_fill,g_auto` variants, while the detail page uses
 an uncropped `c_limit` image and loads the full original only when a customer
 selects **View original**. This is how high-resolution phone photos remain
 available without forcing every mobile shopper to download the 8K source.
+
+## Inventory reservations and scheduled maintenance
+
+The latest migration makes stock quantity authoritative in PostgreSQL. Creating
+an order reserves stock atomically, cancellation restores it once, and abandoned
+online-payment reservations become eligible for release after their expiry time.
+Do not manually edit order rows to simulate payment; use the payment function or
+the audited admin controls.
+
+Deploy `commerce-maintenance`, generate a random
+`COMMERCE_MAINTENANCE_SECRET` of at least 32 characters, and save the same value
+as both a Supabase Edge Function secret and a GitHub repository secret. Also add
+the project base URL (for example, `https://project-ref.supabase.co`) as the
+repository secret `SUPABASE_PROJECT_URL`. The included
+`.github/workflows/commerce-maintenance.yml` invokes the protected function every
+ten minutes to release expired reservations and process the Cloudinary deletion
+queue. The same run claims a bounded batch of queued site-update push deliveries,
+retries transient provider failures, closes subscriptions removed after a queue
+snapshot, and prunes completed notification claims after their retention window.
+Until both repository secrets exist, the scheduled job exits safely and prints
+an Actions notice instead of calling an unprotected endpoint.
+
+Publishing a site update now queues one durable delivery per active browser
+subscription and returns immediately; it does not fan out to every push provider
+inside the admin request. Each ten-minute maintenance run delivers up to 25
+queued devices, so a larger audience drains over multiple runs. Keep the VAPID
+secrets configured on `commerce-maintenance` as well as `push-notifications`.
+Delivery is at-least-once after a worker crash; the stable per-broadcast Web Push
+tag lets browsers replace a replay instead of stacking duplicate visible alerts.
+
+## Signup abuse protection
+
+Signup requests are rate-limited atomically in PostgreSQL. For public production
+traffic, create a Cloudflare Turnstile widget, put its public site key in
+`Frontend/js/brand-config.js`, set `TURNSTILE_SECRET_KEY` in Supabase secrets,
+then set `REQUIRE_SIGNUP_CAPTCHA=true` and redeploy `signup-flow`. Configure the
+public and secret keys as a pair: enabling the server requirement before adding
+the public key will intentionally reject every signup request.
+
+The Edge Function always verifies the widget token server-side. The browser
+widget alone is not treated as proof and its token is reset after each signup
+attempt.
 
 ## WhatsApp Cloud API
 

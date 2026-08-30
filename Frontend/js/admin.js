@@ -26,16 +26,48 @@ document.addEventListener("DOMContentLoaded", async () => {
   const confirmationInput = document.getElementById("adminConfirmationInput");
   const confirmationAccept = document.getElementById("acceptAdminConfirmation");
   let confirmationResolver = null;
+  let confirmationReturnFocus = null;
+  const confirmationBackgroundState = new Map();
+
+  function setConfirmationBackgroundInert(active) {
+    const backgroundElements = [...document.body.children].filter((element) =>
+      element !== confirmationOverlay && !element.matches("script, style, link")
+    );
+    if (active) {
+      confirmationBackgroundState.clear();
+      backgroundElements.forEach((element) => {
+        confirmationBackgroundState.set(element, !!element.inert);
+        element.inert = true;
+      });
+      return;
+    }
+    confirmationBackgroundState.forEach((wasInert, element) => {
+      if (element.isConnected) element.inert = wasInert;
+    });
+    confirmationBackgroundState.clear();
+  }
 
   function closeAdminConfirmation(confirmed = false) {
     confirmationOverlay?.classList.remove("visible");
+    confirmationOverlay?.setAttribute("aria-hidden", "true");
+    setConfirmationBackgroundInert(false);
+    document.body.classList.toggle(
+      "admin-modal-open",
+      !!document.querySelector(".admin-modal-overlay.visible"),
+    );
+    const returnFocus = confirmationReturnFocus;
+    confirmationReturnFocus = null;
     const resolve = confirmationResolver;
     confirmationResolver = null;
+    if (returnFocus instanceof HTMLElement && returnFocus.isConnected) {
+      returnFocus.focus({ preventScroll: true });
+    }
     if (resolve) resolve(confirmed);
   }
 
   function requestAdminConfirmation({ title, message, expectedText = "", danger = false }) {
     if (!confirmationOverlay) return Promise.resolve(false);
+    if (confirmationResolver) closeAdminConfirmation(false);
     setText("adminConfirmationTitle", title || "Confirm sensitive action");
     setText("adminConfirmationMessage", message || "Review this change before continuing.");
     setText("adminConfirmationExpected", expectedText);
@@ -47,7 +79,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       confirmationAccept.textContent = danger ? "Confirm action" : "Confirm";
       confirmationAccept.classList.toggle("admin-danger-btn", !!danger);
     }
+    confirmationReturnFocus = document.activeElement;
+    setConfirmationBackgroundInert(true);
+    confirmationOverlay.setAttribute("aria-hidden", "false");
     confirmationOverlay.classList.add("visible");
+    document.body.classList.add("admin-modal-open");
     setTimeout(() => (expectedText ? confirmationInput : confirmationAccept)?.focus(), 0);
     return new Promise((resolve) => { confirmationResolver = resolve; });
   }
@@ -64,6 +100,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("cancelAdminConfirmation")?.addEventListener("click", () => closeAdminConfirmation(false));
   confirmationOverlay?.addEventListener("click", (event) => {
     if (event.target === confirmationOverlay) closeAdminConfirmation(false);
+  });
+  confirmationOverlay?.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab") return;
+    const focusable = [...confirmationOverlay.querySelectorAll(
+      'button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+    )].filter((element) => !element.hidden && element.offsetParent !== null);
+    if (!focusable.length) {
+      event.preventDefault();
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   });
 
   function activatePanel(panelId) {
@@ -367,6 +422,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let adminProductCache = new Map();
   let activeProductUploads = 0;
   const productPreviewObjectUrls = new Map();
+  const productUploadMetadata = new Map();
   const adminOrdersList = document.getElementById("adminOrdersList");
   const adminOrdersEmpty = document.getElementById("adminOrdersEmpty");
   const adminOrderCount = document.getElementById("adminOrderCount");
@@ -375,12 +431,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   const adminOrderSearchInput = document.getElementById("adminOrderSearchInput");
   const adminOrderSearchStatus = document.getElementById("adminOrderSearchStatus");
   const clearAdminOrderSearch = document.getElementById("clearAdminOrderSearch");
+  const adminOrdersPagination = document.getElementById("adminOrdersPagination");
+  const loadMoreAdminOrders = document.getElementById("loadMoreAdminOrders");
   const adminPushToggle = document.getElementById("adminPushToggle");
   const onlineVisitorBadge = document.getElementById("onlineVisitorBadge");
   const onlineVisitorsList = document.getElementById("onlineVisitorsList");
   const onlineVisitorsEmpty = document.getElementById("onlineVisitorsEmpty");
   const refreshPresenceBtn = document.getElementById("refreshPresenceBtn");
   let activeOrderSearch = "";
+  let adminOrderRows = [];
+  let adminOrderNextCursor = null;
+  let adminOrderHasMore = false;
+  let adminOrdersLoading = false;
   let presenceLoading = false;
   let onlineCustomerIds = new Set();
   let customerPresenceAvailable = true;
@@ -421,49 +483,118 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!error) updateAdminOrderBadge(Number(data) || 0);
   }
 
-  async function loadOrders() {
-    if (!adminOrdersList) return;
+  async function loadOrders({ append = false } = {}) {
+    if (!adminOrdersList || adminOrdersLoading) return;
+    adminOrdersLoading = true;
+    adminOrdersList.setAttribute("aria-busy", "true");
     const search = activeOrderSearch.trim();
-    if (adminOrderCount) adminOrderCount.textContent = search ? "Finding matching orders…" : "Loading customer orders…";
-    if (adminOrderSearchStatus) adminOrderSearchStatus.textContent = search ? `Searching for “${search}”…` : "";
-    const { data: orders, error } = search
-      ? await window.LuxeOrders.searchAdminOrders(search)
-      : await window.LuxeOrders.getAdminOrders();
+    if (!append) {
+      adminOrderRows = [];
+      adminOrderNextCursor = null;
+      adminOrderHasMore = false;
+      adminOrdersList.innerHTML = "";
+      if (adminOrdersEmpty) adminOrdersEmpty.style.display = "none";
+      if (adminOrdersPagination) adminOrdersPagination.hidden = true;
+      if (adminOrderCount) adminOrderCount.textContent = search ? "Finding matching orders…" : "Loading customer orders…";
+      if (adminOrderSearchStatus) adminOrderSearchStatus.textContent = search ? `Searching for “${search}”…` : "";
+    }
+    if (loadMoreAdminOrders) {
+      loadMoreAdminOrders.disabled = true;
+      loadMoreAdminOrders.textContent = append ? "Loading more…" : "Load more orders";
+    }
+
+    const { data: page, error } = await window.LuxeOrders.getAdminOrdersPage({
+      search,
+      limit: 40,
+      cursor: append ? adminOrderNextCursor : null,
+    });
+    adminOrdersLoading = false;
+    adminOrdersList.removeAttribute("aria-busy");
     if (error) {
-      if (adminOrderCount) adminOrderCount.textContent = "Could not load orders.";
+      if (adminOrderCount) adminOrderCount.textContent = append ? "Could not load more orders." : "Could not load orders.";
       if (adminOrderSearchStatus) adminOrderSearchStatus.textContent = error.message || "Search failed.";
+      if (clearAdminOrderSearch) clearAdminOrderSearch.hidden = !search;
+      if (!append) {
+        adminOrderRows = [];
+        adminOrderNextCursor = null;
+        adminOrderHasMore = false;
+        adminOrdersList.innerHTML = "";
+        if (adminOrdersEmptyMessage) {
+          adminOrdersEmptyMessage.textContent = search
+            ? `Orders matching “${search}” could not be loaded.`
+            : "Customer orders could not be loaded.";
+        }
+        if (adminOrdersEmpty) adminOrdersEmpty.style.display = "block";
+        if (adminOrdersPagination) adminOrdersPagination.hidden = true;
+      } else if (adminOrdersPagination) {
+        adminOrdersPagination.hidden = !adminOrderRows.length;
+      }
+      if (loadMoreAdminOrders) {
+        loadMoreAdminOrders.disabled = !append;
+        loadMoreAdminOrders.textContent = append ? "Try loading more again" : "Load more orders";
+      }
       showToast(error.message || "Failed to load orders", true);
       return;
+    }
+
+    const incomingOrders = Array.isArray(page?.orders) ? page.orders : [];
+    if (append) {
+      const uniqueOrders = new Map(adminOrderRows.map((order) => [String(order.id), order]));
+      incomingOrders.forEach((order) => uniqueOrders.set(String(order.id), order));
+      adminOrderRows = [...uniqueOrders.values()];
+    } else {
+      adminOrderRows = incomingOrders;
+    }
+    adminOrderHasMore = page?.hasMore === true;
+    adminOrderNextCursor = page?.nextCursor || null;
+    const orders = adminOrderRows;
+
+    if (adminOrdersPagination) adminOrdersPagination.hidden = !adminOrderHasMore || !orders.length;
+    if (loadMoreAdminOrders) {
+      loadMoreAdminOrders.disabled = !adminOrderHasMore;
+      loadMoreAdminOrders.textContent = "Load more orders";
     }
 
     const unseen = orders.filter((order) => !order.admin_seen_at).length;
     if (!search) updateAdminOrderBadge(unseen);
     if (adminOrderCount) {
       adminOrderCount.textContent = search
-        ? `${orders.length} matching order${orders.length === 1 ? "" : "s"}`
-        : `${orders.length} order${orders.length === 1 ? "" : "s"} · ${unseen} new`;
+        ? `${orders.length}${adminOrderHasMore ? "+" : ""} matching order${orders.length === 1 ? "" : "s"}`
+        : `${orders.length}${adminOrderHasMore ? "+" : ""} order${orders.length === 1 ? "" : "s"} loaded · ${unseen} new`;
     }
     if (adminOrderSearchStatus) {
-      adminOrderSearchStatus.textContent = search
-        ? `${orders.length ? "Showing" : "No"} order${orders.length === 1 ? "" : "s"} matching “${search}”.`
-        : "";
+      adminOrderSearchStatus.textContent = !search
+        ? ""
+        : orders.length
+          ? `Showing ${orders.length} order${orders.length === 1 ? "" : "s"} matching “${search}”${adminOrderHasMore ? "; more are available." : "."}`
+          : `No orders match “${search}”.`;
     }
     if (clearAdminOrderSearch) clearAdminOrderSearch.hidden = !search;
     if (adminOrdersEmptyMessage) {
       adminOrdersEmptyMessage.textContent = search ? `No order matches “${search}”.` : "No customer orders yet.";
     }
     adminOrdersEmpty.style.display = orders.length ? "none" : "block";
-    if (!orders.length) { adminOrdersList.innerHTML = ""; return; }
+    if (!orders.length) {
+      adminOrdersList.innerHTML = "";
+      if (adminOrdersPagination) adminOrdersPagination.hidden = true;
+      return;
+    }
 
     adminOrdersList.innerHTML = orders.map((order) => {
       const address = order.shipping_address || {};
       const addressText = [address.address, address.city, address.state, address.zip].filter(Boolean).join(", ");
       const items = (order.order_items || []).map((item) => `
         <div class="admin-order-item">
-          <img src="${escapeAttr(item.image_url || "")}" alt="">
+          <img ${window.LuxeMedia.attributes(item.image_url || "", { preset: "compact", alt: "" })}>
           <div class="admin-order-item-copy">
             <span>${escapeAdminHtml(item.product_name)} ×${Number(item.quantity)}</span>
             <small>${escapeAdminHtml(item.product_reference || formatProductReference(item.product_id))}</small>
+            ${item.selected_size || item.selected_color
+              ? `<small>${[
+                  item.selected_size ? `Size: ${escapeAdminHtml(item.selected_size)}` : "",
+                  item.selected_color ? `Colour: ${escapeAdminHtml(item.selected_color)}` : "",
+                ].filter(Boolean).join(" · ")}</small>`
+              : ""}
           </div>
           <strong>$${(Number(item.price) * Number(item.quantity)).toFixed(2)}</strong>
         </div>`).join("");
@@ -500,7 +631,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       </article>`;
     }).join("");
 
-    if (search && orders.length) {
+    if (search && orders.length && !append) {
       const exactOrder = [...adminOrdersList.querySelectorAll(".admin-order-card")].find(
         (card) => card.dataset.orderNumber?.toLowerCase() === search.toLowerCase(),
       );
@@ -519,6 +650,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         const button = form.querySelector('button[type="submit"]');
         const orderNumber = card.dataset.orderNumber;
         const nextStatus = form.elements.status.value;
+        const waybillUrl = form.elements.waybill.value.trim();
+        if (waybillUrl && !isSafeHttpsUrl(waybillUrl)) {
+          showToast("Tracking links must use a secure https:// URL.", true);
+          form.elements.waybill.focus();
+          return;
+        }
         const isCancellation = nextStatus === "cancelled";
         const confirmed = await requestAdminConfirmation({
           title: isCancellation ? `Cancel ${orderNumber}?` : `Confirm changes to ${orderNumber}?`,
@@ -535,7 +672,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           status: nextStatus,
           estimatedMinDays: Number(form.elements.etaMin.value) || null,
           estimatedMaxDays: Number(form.elements.etaMax.value) || null,
-          waybillUrl: form.elements.waybill.value.trim(),
+          waybillUrl,
           expectedVersion: Number(card.dataset.orderVersion),
           expectedUpdatedAt: card.dataset.updatedAt,
         });
@@ -630,6 +767,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
     return labels[page] || page.replace(/[-_]+/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
   }
+
+  loadMoreAdminOrders?.addEventListener("click", () => loadOrders({ append: true }));
 
   function visitorRecency(timestamp) {
     const seconds = Math.max(0, Math.floor((Date.now() - new Date(timestamp).getTime()) / 1000));
@@ -768,6 +907,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const { data, error } = await window.LuxeProducts.getAll();
 
     if (error) {
+      adminProductCache.clear();
+      if (productsTableBody) {
+        productsTableBody.innerHTML = '<tr><td colspan="7">The live catalog could not be loaded. Refresh to try again.</td></tr>';
+      }
+      if (productsEmptyState) productsEmptyState.style.display = "none";
       if (productCountLabel) productCountLabel.textContent = "Could not load products.";
       showToast(error.message || "Failed to load products", true);
       return;
@@ -803,7 +947,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         <td>
           <div class="admin-stock-control">
             <span class="admin-badge ${product.inStock ? "in-stock" : "out-stock"}">
-              ${product.inStock ? "In Stock" : "Out of Stock"}
+              ${product.inStock
+                ? (Number.isInteger(Number(product.stockQuantity)) ? `In stock (${Math.max(0, Number(product.stockQuantity))})` : "In stock")
+                : "Out of stock"}
             </span>
             <button type="button" class="admin-stock-toggle ${product.inStock ? "mark-out" : "mark-in"}" data-id="${product.id}" title="${product.inStock ? "Mark this product out of stock" : "Put this product back in stock"}">
               <i class="fas ${product.inStock ? "fa-box" : "fa-rotate-left"}" aria-hidden="true"></i>
@@ -813,11 +959,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         </td>
         <td>
           <div class="admin-row-actions">
-            <button class="admin-icon-btn edit-product-btn" data-id="${product.id}" title="Edit">
-              <i class="fas fa-pen"></i>
+            <button type="button" class="admin-icon-btn edit-product-btn" data-id="${product.id}" title="Edit" aria-label="Edit ${escapeAttr(product.name)}">
+              <i class="fas fa-pen" aria-hidden="true"></i>
             </button>
-            <button class="admin-icon-btn delete-btn delete-product-btn" data-id="${product.id}" title="Delete">
-              <i class="fas fa-trash"></i>
+            <button type="button" class="admin-icon-btn delete-btn delete-product-btn" data-id="${product.id}" title="Delete" aria-label="Delete ${escapeAttr(product.name)}">
+              <i class="fas fa-trash" aria-hidden="true"></i>
             </button>
           </div>
         </td>
@@ -855,6 +1001,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const { data, error } = await window.updateProduct(id, {
       ...product,
       inStock: nextInStock,
+      stockQuantity: nextInStock ? Math.max(1, Number(product.stockQuantity) || 1) : 0,
     });
 
     if (error) {
@@ -1017,6 +1164,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         urlInput.value = url;
+        const publicId = String(media?.publicId || media?.public_id || "").trim();
+        productUploadMetadata.set(urlInputId, publicId || null);
         setImagePreview(previewImageId, previewIconId, url);
         replacePreviewObjectUrl(previewImageId);
         renderProductLivePreview();
@@ -1036,6 +1185,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     urlInput.addEventListener("input", () => {
+      productUploadMetadata.set(urlInputId, window.LuxeMedia?.publicIdFromUrl(urlInput.value.trim()) || null);
       replacePreviewObjectUrl(previewImageId);
       setImagePreview(previewImageId, previewIconId, urlInput.value.trim());
       status.textContent = "";
@@ -1060,13 +1210,30 @@ document.addEventListener("DOMContentLoaded", async () => {
   wireImageUpload("pHoverImageFile", "pHoverImage", "pHoverImagePreview", "pHoverImagePreviewIcon", "pHoverImageUploadStatus", "pHoverImageMeta");
   productForm?.addEventListener("input", renderProductLivePreview);
   productForm?.addEventListener("change", renderProductLivePreview);
+  const stockQuantityInput = document.getElementById("pStockQuantity");
+  const stockCheckbox = document.getElementById("pInStock");
+  stockQuantityInput?.addEventListener("input", () => {
+    const quantity = Number(stockQuantityInput.value);
+    if (stockCheckbox && Number.isInteger(quantity) && quantity >= 0) {
+      stockCheckbox.checked = quantity > 0;
+    }
+  });
+  stockCheckbox?.addEventListener("change", () => {
+    if (!stockQuantityInput) return;
+    const quantity = Number(stockQuantityInput.value);
+    stockQuantityInput.value = stockCheckbox.checked
+      ? String(Math.max(1, Number.isInteger(quantity) ? quantity : 1))
+      : "0";
+  });
 
   function openProductModal(id) {
     productForm?.reset();
     setValue("productId", "");
+    productUploadMetadata.clear();
 
     const stockCheckbox = document.getElementById("pInStock");
     if (stockCheckbox) stockCheckbox.checked = true;
+    setValue("pStockQuantity", 1);
 
     setText("pImageUploadStatus", "");
     setText("pHoverImageUploadStatus", "");
@@ -1097,10 +1264,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       setValue("pOldPriceNGN", product.oldPriceNGN ?? "");
       setValue("pImage", product.image);
       setValue("pHoverImage", product.hoverImage);
+      productUploadMetadata.set("pImage", product.imagePublicId || window.LuxeMedia?.publicIdFromUrl(product.image) || null);
+      productUploadMetadata.set("pHoverImage", product.hoverImagePublicId || window.LuxeMedia?.publicIdFromUrl(product.hoverImage) || null);
       setValue("pDescription", product.description);
       setValue("pSizes", (product.sizes || []).join(", "));
       setValue("pColors", (product.colors || []).join(", "));
       setValue("pTags", (product.tags || []).join(", "));
+      setValue("pStockQuantity", Number.isInteger(Number(product.stockQuantity))
+        ? Number(product.stockQuantity)
+        : (product.inStock ? 1 : 0));
 
       if (stockCheckbox) stockCheckbox.checked = !!product.inStock;
 
@@ -1162,6 +1334,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const id = getValue("productId");
     const price = Number.parseFloat(getValue("pPrice"));
     const priceNGN = Number.parseFloat(getValue("pPriceNGN"));
+    const stockQuantity = Number(getValue("pStockQuantity"));
 
     if (!Number.isFinite(price) || price < 0) {
       showToast("Enter a valid USD price", true);
@@ -1170,6 +1343,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (!Number.isFinite(priceNGN) || priceNGN < 0) {
       showToast("Enter a valid NGN price", true);
+      return;
+    }
+
+    if (!Number.isInteger(stockQuantity) || stockQuantity < 0 || stockQuantity > 1000000) {
+      showToast("Inventory quantity must be a whole number from 0 to 1,000,000", true);
       return;
     }
 
@@ -1194,11 +1372,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       oldPriceNGN: getValue("pOldPriceNGN") || null,
       image: getValue("pImage"),
       hoverImage: getValue("pHoverImage"),
+      imagePublicId: productUploadMetadata.get("pImage") || null,
+      hoverImagePublicId: productUploadMetadata.get("pHoverImage") || null,
       description: getValue("pDescription"),
       sizes: getValue("pSizes"),
       colors: getValue("pColors"),
       tags: getValue("pTags"),
-      inStock: !!document.getElementById("pInStock")?.checked,
+      stockQuantity,
+      inStock: stockQuantity > 0,
     };
 
     const confirmed = await requestAdminConfirmation({
@@ -1376,9 +1557,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("postUpdateForm")?.reset();
     const pushResult = await window.LuxePush?.broadcastUpdate(title, message);
     const pushDelivery = pushResult?.data?.delivery;
+    const queuedDevices = Number(pushDelivery?.queued || 0);
     showToast(
       pushResult?.error || pushDelivery?.status === "not_configured"
         ? "Update posted. Browser push is currently unavailable."
+        : pushDelivery?.status === "queued"
+          ? `Update posted. Browser push queued for ${queuedDevices} subscribed device${queuedDevices === 1 ? "" : "s"}.`
         : pushDelivery?.status === "sent"
           ? `Update posted and sent to ${pushDelivery.sent} subscribed device${pushDelivery.sent === 1 ? "" : "s"}.`
           : "Update posted. No subscribed devices are active yet.",

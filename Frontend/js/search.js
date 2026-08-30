@@ -3,7 +3,13 @@
 (function initializeSearch() {
     "use strict";
 
-    const formatPrice = (value) => `$${Number(value || 0).toFixed(2)}`;
+    const formatPrice = (product) => {
+        const money = window.LuxeMoney?.forProduct?.(product) || {
+            usd: `$${Number(product?.price || 0).toFixed(2)}`,
+            ngn: '',
+        };
+        return [money.ngn, money.usd].filter(Boolean).join(' / ');
+    };
 
     function getCatalog() {
         if (typeof window.getProducts === "function") return window.getProducts() || [];
@@ -55,7 +61,7 @@
         return state;
     }
 
-    function renderResults(container, query) {
+    function renderResults(container, query, catalogPending = false) {
         container.replaceChildren();
         if (query.length < 2) {
             container.appendChild(createEmptyState("Begin your search", "Try a product name, category, or designer."));
@@ -63,7 +69,12 @@
         }
 
         const normalized = query.toLocaleLowerCase();
-        const matches = getCatalog().filter((product) => {
+        const catalog = getCatalog();
+        if (catalogPending && !catalog.length) {
+            container.appendChild(createEmptyState("Loading the collection", "Search results will appear as soon as the catalogue is ready."));
+            return;
+        }
+        const matches = catalog.filter((product) => {
             const fields = [product.name, product.category, product.subcategory, product.brand, ...(product.tags || [])];
             return fields.some((field) => String(field || "").toLocaleLowerCase().includes(normalized));
         });
@@ -105,7 +116,7 @@
             const category = document.createElement("small");
             category.textContent = [product.brand, product.category, product.subcategory].filter(Boolean).join(" / ");
             const price = document.createElement("em");
-            price.textContent = formatPrice(product.price);
+            price.textContent = formatPrice(product);
             copy.append(name, category, price);
             link.append(image, copy);
             grid.appendChild(link);
@@ -114,11 +125,7 @@
         container.append(summary, grid);
     }
 
-    document.addEventListener("DOMContentLoaded", async () => {
-        if (window.productsReady) {
-            try { await window.productsReady; } catch (_) { /* Offline fallback remains usable. */ }
-        }
-
+    document.addEventListener("DOMContentLoaded", () => {
         const toggle = document.getElementById("searchToggle");
         const modal = createSearchModal();
         const input = document.getElementById("headerSearchInput");
@@ -126,6 +133,7 @@
         const closeButton = document.getElementById("closeSearchModal");
         const clearButton = document.getElementById("clearSearchInput");
         const modalContent = modal.querySelector(".search-modal-content");
+        let catalogPending = Boolean(window.productsReady);
         let returnFocus = null;
 
         const syncQueryState = () => {
@@ -139,7 +147,7 @@
             modal.hidden = false;
             document.body.classList.add("search-is-open");
             syncQueryState();
-            renderResults(results, "");
+            renderResults(results, "", catalogPending);
             window.setTimeout(() => input?.focus(), 30);
         };
 
@@ -154,8 +162,19 @@
         const updateSearch = () => {
             const query = input?.value.trim() || "";
             syncQueryState();
-            renderResults(results, query);
+            renderResults(results, query, catalogPending);
         };
+
+        if (window.productsReady) {
+            Promise.resolve(window.productsReady)
+                .catch(() => { /* The bundled/offline catalogue remains searchable. */ })
+                .finally(() => {
+                    catalogPending = false;
+                    if (!modal.hidden) updateSearch();
+                });
+        } else {
+            catalogPending = false;
+        }
 
         toggle?.addEventListener("click", (event) => {
             event.preventDefault();

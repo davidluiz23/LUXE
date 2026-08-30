@@ -7,12 +7,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/variables.css">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/contact.css">
-    <link rel="stylesheet" href="css/responsive.css?v=20260828-1">
-    <link id="alkebulanLuxuryStyles" rel="stylesheet" href="css/luxury.css?v=20260828-2">
-    <script id="alkebulanLuxuryUi" src="js/luxury-ui.js?v=20260828-1" defer></script>
+    <link rel="stylesheet" href="css/variables.css?v=20260830-1">
+    <link rel="stylesheet" href="css/style.css?v=20260830-1">
+    <link rel="stylesheet" href="css/contact.css?v=20260830-1">
+    <link rel="stylesheet" href="css/responsive.css?v=20260830-1">
+    <link id="alkebulanLuxuryStyles" rel="stylesheet" href="css/luxury.css?v=20260830-1">
+    <script id="alkebulanLuxuryUi" src="js/luxury-ui.js?v=20260830-1" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
@@ -74,22 +74,22 @@
                     <div class="contact-info-card">
                         <div class="contact-info-icon"><i class="fas fa-map-marker-alt"></i></div>
                         <div class="contact-info-text">
-                            <h3>ALKEBULAN Atelier</h3>
-                            <p>123 Fashion Ave, Suite 500<br>Lagos, Nigeria</p>
+                            <h3>Based in Lagos</h3>
+                            <p>ALKEBULAN operates from Lagos, Nigeria. Contact client services before planning an in-person visit.</p>
                         </div>
                     </div>
                     <div class="contact-info-card">
                         <div class="contact-info-icon"><i class="fas fa-phone-alt"></i></div>
                         <div class="contact-info-text">
                             <h3>Customer Support</h3>
-                            <p>+234 810 346 3852<br>Mon - Sat: 9:00 AM - 6:00 PM WAT</p>
+                            <p><a href="tel:+2348103463852">+234 810 346 3852</a><br>Phone and WhatsApp enquiries</p>
                         </div>
                     </div>
                     <div class="contact-info-card">
                         <div class="contact-info-icon"><i class="fas fa-envelope"></i></div>
                         <div class="contact-info-text">
                             <h3>Email Concierge</h3>
-                            <p>hello@alkebulan.com<br>Response time within 24 hours</p>
+                            <p><a href="mailto:hello@alkebulan.com">hello@alkebulan.com</a><br>Order, sizing, delivery, and account help</p>
                         </div>
                     </div>
                 </div>
@@ -98,7 +98,7 @@
                 <div class="contact-form-wrapper">
                     <h2>Send Us a Message</h2>
                     <p>Fill out the form below and a representative will get back to you shortly.</p>
-                    <div id="formAlert" style="display: none;"></div>
+                    <div id="formAlert" role="status" aria-live="polite" tabindex="-1" hidden></div>
                     <form id="contactForm">
                         <div class="form-group">
                             <label for="contactName">Full Name *</label>
@@ -128,23 +128,12 @@
         </div>
     </section>
 
-    <!-- Map Location Section -->
+    <!-- Location information -->
     <section class="map-section">
         <div class="container">
             <div class="map-header">
-                <h2>Visit Our Flagship Store</h2>
-                <p>Experience the ALKEBULAN touch in person at our New York atelier.</p>
-            </div>
-            <div class="map-container">
-                <iframe 
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.217349942733!2d-73.9878446845937!3d40.7510259793276!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c259a9b3117469%3A0xd134e199a405a163!2sFashion%20Ave%2C%20New%20York%2C%20NY!5e0!3m2!1sen!2sus!4v1680000000000!5m2!1sen!2sus" 
-                    width="100%" 
-                    height="450" 
-                    style="border:0;" 
-                    allowfullscreen="" 
-                    loading="lazy" 
-                    referrerpolicy="no-referrer-when-downgrade">
-                </iframe>
+                <h2>Lagos, Nigeria</h2>
+                <p>Client services are available by phone, WhatsApp, and email. Any collection or appointment details will be confirmed directly with you.</p>
             </div>
         </div>
     </section>
@@ -155,30 +144,30 @@
             <h2 class="section-title text-center">Frequently Asked Questions</h2>
             <div class="faq-container">
                 <div class="faq-item active">
-                    <div class="faq-question">
+                    <button type="button" class="faq-question">
                         <span>What is your return & exchange policy?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
+                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </button>
                     <div class="faq-answer">
-                        We offer complimentary returns and exchanges within 30 days of delivery. Items must be unworn with original tags attached.
+                        Eligible return requests can be made within 30 days of delivery. Read the <a href="returns.html">returns guidance</a> and contact us before sending an item back.
                     </div>
                 </div>
                 <div class="faq-item">
-                    <div class="faq-question">
+                    <button type="button" class="faq-question">
                         <span>How long does shipping take?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
+                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </button>
                     <div class="faq-answer">
-                        Standard shipping takes 3-5 business days across the US. Express 2-day and overnight shipping options are available at checkout.
+                        Timing depends on destination, availability, and courier service. The team confirms an estimated delivery window after reviewing your order.
                     </div>
                 </div>
                 <div class="faq-item">
-                    <div class="faq-question">
+                    <button type="button" class="faq-question">
                         <span>Do you ship internationally?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
+                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </button>
                     <div class="faq-answer">
-                        Yes, ALKEBULAN ships globally to over 50 countries via DHL Express with duty-paid checkout options.
+                        Available destinations and courier options are confirmed during checkout or by client services. Contact us if your destination is not listed.
                     </div>
                 </div>
             </div>
@@ -191,11 +180,6 @@
             <div class="footer-col">
                 <h3>ALKEBULAN</h3>
                 <p>Premium clothing for the discerning.</p>
-                <div class="social-icons">
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-facebook"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                </div>
             </div>
             <div class="footer-col">
                 <h4>Quick Links</h4>
@@ -224,17 +208,17 @@
     </footer>
 
     <!-- JavaScript -->
-    <script src="js/brand-config.js"></script>
-    <script src="js/icons.js"></script>
+    <script src="js/brand-config.js?v=20260830-1"></script>
+    <script src="js/icons.js?v=20260830-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
-    <script src="js/supabase-client.js?v=20260828-1"></script>
-    <script src="js/updates-banner.js"></script>
-    <script src="js/products.js?v=20260825-2"></script>
-    <script src="js/cart.js?v=20260828-1"></script>
-    <script src="js/wishlist.js?v=20260828-1"></script>
-    <script src="js/search.js?v=20260828-1"></script>
-    <script src="js/animation.js?v=20260828-1"></script>
-    <script src="js/contact.js"></script>
-    <script src="js/app.js?v=20260828-1"></script>
+    <script src="js/supabase-client.js?v=20260830-1"></script>
+    <script src="js/updates-banner.js?v=20260830-1"></script>
+    <script src="js/products.js?v=20260830-1"></script>
+    <script src="js/cart.js?v=20260830-1"></script>
+    <script src="js/wishlist.js?v=20260830-1"></script>
+    <script src="js/search.js?v=20260830-1"></script>
+    <script src="js/animation.js?v=20260830-1"></script>
+    <script src="js/contact.js?v=20260830-1"></script>
+    <script src="js/app.js?v=20260830-1"></script>
 </body>
 </html>

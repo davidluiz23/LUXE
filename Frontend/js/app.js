@@ -1,5 +1,47 @@
 // js/app.js - Main Application Script
 
+function escapeAppHtml(value) {
+    return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+}
+
+function getAppProductMoney(product, oldPrice = false) {
+    try {
+        const formatted = window.LuxeMoney?.forProduct?.(product, oldPrice);
+        if (formatted) return formatted;
+    } catch (_) {
+        // The local fallback keeps early/static rendering usable.
+    }
+
+    const usdValue = Number(oldPrice ? product.oldPrice : product.price);
+    const ngnValue = Number(oldPrice ? product.oldPriceNGN : product.priceNGN);
+    const usd = Number.isFinite(usdValue)
+        ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(usdValue)
+        : '';
+    const ngn = Number.isFinite(ngnValue)
+        ? new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(ngnValue)
+        : '';
+    return { usd, ngn, text: ngn || usd };
+}
+
+function renderAppProductPrice(product) {
+    const current = getAppProductMoney(product);
+    const previous = getAppProductMoney(product, true);
+    const primary = current.ngn || current.usd || current.text || 'Price unavailable';
+    const secondary = current.ngn && current.usd ? current.usd : '';
+    const oldPrimary = previous.ngn || previous.usd || '';
+
+    return `
+        <span class="product-current-price">${escapeAppHtml(primary)}</span>
+        ${secondary ? `<span class="product-price-secondary">${escapeAppHtml(secondary)}</span>` : ''}
+        ${oldPrimary ? `<span class="old-price">${escapeAppHtml(oldPrimary)}</span>` : ''}
+    `;
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
     // Make the page interactive immediately. Catalog requests can be slow on
     // mobile networks and must never leave the fixed loader blocking touches.
@@ -37,6 +79,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Back to top
     const backBtn = document.getElementById('backToTop');
     if (backBtn) {
+        backBtn.type = 'button';
+        backBtn.setAttribute('aria-label', 'Back to top');
         window.addEventListener('scroll', function() {
             if (window.scrollY > 500) {
                 backBtn.classList.add('visible');
@@ -67,10 +111,58 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Newsletter
     const newsletterForm = document.getElementById('newsletterForm');
     if (newsletterForm) {
-        newsletterForm.addEventListener('submit', function(e) {
+        newsletterForm.addEventListener('submit', async function(e) {
             e.preventDefault();
-            showNotification('Thank you for subscribing.', 'mail');
-            this.reset();
+            const emailInput = this.querySelector('input[type="email"]');
+            const submitButton = this.querySelector('button[type="submit"]');
+            let status = document.getElementById('newsletterStatus');
+            if (!status) {
+                status = document.createElement('p');
+                status.id = 'newsletterStatus';
+                status.className = 'newsletter-status';
+                status.setAttribute('role', 'status');
+                status.setAttribute('aria-live', 'polite');
+                this.insertAdjacentElement('afterend', status);
+            }
+
+            if (!emailInput || !emailInput.checkValidity()) {
+                emailInput?.reportValidity();
+                status.textContent = 'Enter a valid email address.';
+                status.classList.add('is-error');
+                return;
+            }
+
+            if (!window.LuxeNewsletter || typeof window.LuxeNewsletter.subscribe !== 'function') {
+                status.textContent = 'Subscriptions are unavailable right now. Please try again later.';
+                status.classList.add('is-error');
+                return;
+            }
+
+            const originalText = submitButton?.textContent || 'Join the list';
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.textContent = 'Joining...';
+            }
+            status.textContent = '';
+            status.classList.remove('is-error', 'is-success');
+
+            try {
+                const result = await window.LuxeNewsletter.subscribe(emailInput.value.trim());
+                if (result?.error) throw result.error;
+                this.reset();
+                status.textContent = 'You are on the list. Please check your inbox for any required confirmation.';
+                status.classList.add('is-success');
+                showNotification('Newsletter subscription received.', 'mail');
+            } catch (error) {
+                console.warn('[ALKEBULAN] Newsletter subscription failed:', error?.message || error);
+                status.textContent = 'We could not add you right now. Please try again later.';
+                status.classList.add('is-error');
+            } finally {
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = originalText;
+                }
+            }
         });
     }
 });
@@ -79,78 +171,91 @@ document.addEventListener('DOMContentLoaded', async function() {
 function renderProducts(products, grid) {
     window.finishProductGridLoading?.(grid);
     let html = '';
-    const wishlist = (typeof loadWishlist === 'function') ? loadWishlist() : [];
 
     products.forEach(function(product, productIndex) {
-        const inWishlist = wishlist.includes(product.id);
-        const heartColor = inWishlist ? 'style="color:#E74C3C;"' : '';
+        const productId = Number.parseInt(product.id, 10);
+        if (!Number.isFinite(productId)) return;
+        const safeName = escapeAppHtml(product.name || 'Product');
+        const safeBrand = escapeAppHtml(product.brand || '');
+        const safeCategory = escapeAppHtml(product.category || '');
+        const safeSubcategory = escapeAppHtml(product.subcategory || '');
+        const hasOptions = (Array.isArray(product.sizes) && product.sizes.length > 0)
+            || (Array.isArray(product.colors) && product.colors.length > 0);
 
         html += `
-            <div class="product-card" data-id="${product.id}">
+            <article class="product-card" data-id="${productId}">
                 <div class="product-image">
                     <img ${window.LuxeMedia.attributes(product.image, {
                         preset: 'card',
                         alt: product.name,
                         priority: productIndex === 0,
                     })}>
-                    ${product.brand ? `<span class="brand-badge">${product.brand}</span>` : ''}
+                    ${product.brand ? `<span class="brand-badge">${safeBrand}</span>` : ''}
                     ${product.discount && product.oldPrice ? `<span class="discount-badge">${Math.round((1 - product.price / product.oldPrice) * 100)}% OFF</span>` : ''}
-                    ${product.trending ? `<span class="trending-badge"><i class="fas fa-fire"></i> Trending</span>` : ''}
+                    ${product.trending ? `<span class="trending-badge"><i class="fas fa-fire" aria-hidden="true"></i> Trending</span>` : ''}
                     <div class="product-actions">
-                        <button class="add-cart" data-id="${product.id}">
-                            <i class="fas fa-shopping-bag"></i> Add
+                        <button type="button" class="add-cart" data-id="${productId}" data-has-options="${hasOptions}" aria-label="${hasOptions ? 'Choose options for' : 'Add'} ${safeName}">
+                            <i class="fas fa-shopping-bag" aria-hidden="true"></i> ${hasOptions ? 'Choose options' : 'Add'}
                         </button>
-                        <button class="wishlist-btn" data-id="${product.id}" ${heartColor}>
-                            <i class="fas fa-heart"></i>
+                        <button type="button" class="wishlist-btn" data-id="${productId}" aria-label="Save ${safeName} to wishlist" aria-pressed="false">
+                            <i class="fas fa-heart" aria-hidden="true"></i>
                         </button>
-                        <button class="quick-view" data-id="${product.id}">
-                            <i class="fas fa-eye"></i>
+                        <button type="button" class="quick-view" data-id="${productId}" aria-label="View ${safeName}">
+                            <i class="fas fa-eye" aria-hidden="true"></i>
                         </button>
                     </div>
                 </div>
                 <div class="product-info">
-                    ${product.brand ? `<div class="product-brand">${product.brand}</div>` : ''}
-                    <h4 class="product-name">${product.name}</h4>
-                    <p class="product-category">${product.category}${product.subcategory ? ' / ' + product.subcategory : ''}</p>
+                    ${product.brand ? `<div class="product-brand">${safeBrand}</div>` : ''}
+                    <h4 class="product-name"><a class="product-name-link" href="product.html?id=${productId}" style="color:inherit;text-decoration:none">${safeName}</a></h4>
+                    <p class="product-category">${safeCategory}${product.subcategory ? ' / ' + safeSubcategory : ''}</p>
                     <div class="product-price">
-                        $${product.price.toFixed(2)}
-                        ${product.oldPrice ? `<span class="old-price">$${product.oldPrice.toFixed(2)}</span>` : ''}
+                        ${renderAppProductPrice(product)}
                     </div>
                     ${product.rating ? `
-                        <div class="product-rating">
+                        <div class="product-rating" aria-label="Rated ${Math.max(0, Math.min(5, Number(product.rating) || 0)).toFixed(1)} out of 5">
                             ${window.LuxeIcons?.rating(product.rating, 'stars') || ''}
-                            <span class="rating-count">(${product.rating})</span>
+                            <span class="rating-count">${product.reviewCount !== null && product.reviewCount !== undefined
+                                ? `${Math.max(0, Number(product.reviewCount) || 0)} review${Number(product.reviewCount) === 1 ? '' : 's'}`
+                                : `${Math.max(0, Math.min(5, Number(product.rating) || 0)).toFixed(1)} / 5`}</span>
                         </div>
                     ` : ''}
                 </div>
-            </div>
+            </article>
         `;
     });
 
     grid.innerHTML = html;
     window.LuxeMedia.hydrate(grid);
+    window.syncWishlistButtons?.(grid);
 
     // ===== ATTACH EVENT LISTENERS =====
-    document.querySelectorAll('.product-card').forEach(function(card) {
+    grid.querySelectorAll('.product-card').forEach(function(card) {
         card.addEventListener('click', function(e) {
-            if (e.target.closest('button')) return;
+            if (e.target.closest('button, a')) return;
             var id = parseInt(this.dataset.id);
             window.location.href = 'product.html?id=' + id;
         });
     });
 
     // ===== ATTACH BUTTON EVENTS =====
-    document.querySelectorAll('.add-cart').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
+    grid.querySelectorAll('.add-cart').forEach(function(btn) {
+        btn.addEventListener('click', async function(e) {
             e.stopPropagation();
             var id = parseInt(this.dataset.id);
-            if (typeof addToCart === 'function') {
-                addToCart(id);
-            } else if (typeof window.addToCart === 'function') {
-                window.addToCart(id);
+            if (this.dataset.hasOptions === 'true') {
+                window.location.href = 'product.html?id=' + id;
+                return;
             }
+            var added = false;
+            if (typeof addToCart === 'function') {
+                added = await addToCart(id);
+            } else if (typeof window.addToCart === 'function') {
+                added = await window.addToCart(id);
+            }
+            if (added !== true) return;
             var original = this.innerHTML;
-            this.innerHTML = '<i class="fas fa-check"></i> Added!';
+            this.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i> Added!';
             this.style.background = '#27AE60';
             var self = this;
             setTimeout(function() {
@@ -160,7 +265,7 @@ function renderProducts(products, grid) {
         });
     });
 
-    document.querySelectorAll('.wishlist-btn').forEach(function(btn) {
+    grid.querySelectorAll('.wishlist-btn').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
             var id = parseInt(this.dataset.id);
@@ -172,7 +277,7 @@ function renderProducts(products, grid) {
         });
     });
 
-    document.querySelectorAll('.quick-view').forEach(function(btn) {
+    grid.querySelectorAll('.quick-view').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
             var id = parseInt(this.dataset.id);
@@ -190,6 +295,8 @@ function showNotification(message, type = 'check') {
 
     var notification = document.createElement('div');
     notification.className = 'notification-toast';
+    notification.setAttribute('role', 'status');
+    notification.setAttribute('aria-live', 'polite');
     const icon = document.createElement('span');
     icon.className = 'notification-toast-icon';
     icon.innerHTML = window.LuxeIcons?.svg(type) || '';

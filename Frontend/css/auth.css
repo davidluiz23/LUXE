@@ -618,3 +618,6 @@
 .verification-method-option small {
     color: #777;
 }
+body.auth-modal-open {
+    overflow: hidden;
+}

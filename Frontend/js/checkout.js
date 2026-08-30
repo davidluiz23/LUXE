@@ -1,6 +1,7 @@
 // Secure WhatsApp-first checkout. Prices are recalculated by PostgreSQL.
 let checkoutAttemptMemory = null;
 let appliedPromoCode = null;
+let checkoutQuoteGeneration = 0;
 let checkoutIdentity = {
   user: null,
   required: false,
@@ -21,14 +22,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   checkoutIdentityReady = loadCheckoutIdentity();
   await checkoutIdentityReady;
   loadCheckoutItems();
-  updateOrderTotals();
+  const initialQuote = await updateOrderTotals();
+  if (initialQuote.error && getCheckoutCartItems().length) {
+    showCheckoutError(`The secure order total could not be calculated: ${initialQuote.error.message}`);
+  }
 
   document.getElementById("applyPromoBtn")?.addEventListener("click", applyPromoCode);
   document.getElementById("promoCode")?.addEventListener("input", () => {
     if (!appliedPromoCode) return;
     appliedPromoCode = null;
     setPromoStatus("Code changed. Apply it again to update the total.");
-    updateOrderTotals();
+    void updateOrderTotals();
   });
 
   const form = document.getElementById("checkoutForm");
@@ -69,6 +73,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const whatsappWindow = provider === "whatsapp" ? window.open("about:blank", "_blank") : null;
     const button = form.querySelector(".checkout-btn");
+    setButtonState(button, true, "Confirming secure total…");
+    const quoteResult = await updateOrderTotals();
+    if (quoteResult.error || !quoteResult.data) {
+      whatsappWindow?.close();
+      setButtonState(button, false, "Place Order");
+      showCheckoutError(`The order total could not be confirmed: ${quoteResult.error?.message || "Please try again."}`);
+      return;
+    }
+
     setButtonState(button, true, "Saving secure order…");
 
     const normalizedPhone = window.LuxeWhatsApp?.normalizePhone(
@@ -84,7 +97,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const shippingAddress = {
       address: value("address"), city: value("city"), state: value("state"), zip: value("zip"),
     };
-    const items = cartItems.map((item) => ({ id: item.id, quantity: item.quantity }));
+    const items = cartItems.map((item) => ({
+      id: item.id,
+      quantity: item.quantity,
+      size: item.size || null,
+      color: item.color || null,
+    }));
     const idempotencyKey = getCheckoutIdempotencyKey({ items, shippingAddress, contact, provider, promoCode: appliedPromoCode });
     const { data: order, error } = await window.LuxeOrders.createOrder(
       items, shippingAddress, contact, provider, idempotencyKey, appliedPromoCode,
@@ -180,11 +198,14 @@ function configurePaymentOptions() {
 
 function value(id) { return document.getElementById(id)?.value.trim() || ""; }
 function getCheckoutCartItems() {
-  try { return window.loadCart ? window.loadCart() : JSON.parse(localStorage.getItem("luxe_cart") || "[]"); }
+  try {
+    if (window.getAvailableCartItems) return window.getAvailableCartItems({ purge: true });
+    return window.loadCart ? window.loadCart() : JSON.parse(localStorage.getItem("luxe_cart") || "[]");
+  }
   catch { return []; }
 }
 function getProduct(id) { return window.getProductById?.(id) || (window.products || []).find((p) => p.id === id); }
-function currency(amount) { return `$${Number(amount || 0).toFixed(2)}`; }
+function currency(amount) { return `${window.LuxeMoney?.formatUSD(amount) || `$${Number(amount || 0).toFixed(2)}`} USD`; }
 
 async function applyPromoCode() {
   const input = document.getElementById("promoCode");
@@ -192,7 +213,7 @@ async function applyPromoCode() {
   const code = String(input?.value || "").trim().toUpperCase();
   if (!code) {
     appliedPromoCode = null;
-    updateOrderTotals();
+    void updateOrderTotals();
     setPromoStatus("Enter a promo code.", "error");
     return;
   }
@@ -201,18 +222,18 @@ async function applyPromoCode() {
     setPromoStatus("Sign in before applying a promo code.", "error");
     return;
   }
-  const items = getCheckoutCartItems().map((item) => ({ id: item.id, quantity: item.quantity }));
-  if (!items.length) return setPromoStatus("Your cart is empty.", "error");
+  if (!getCheckoutCartItems().length) return setPromoStatus("Your cart is empty.", "error");
   if (button) { button.disabled = true; button.textContent = "Checking…"; }
-  const { data, error } = await window.LuxeOrders.quote(items, code);
-  if (button) { button.disabled = false; button.textContent = "Apply"; }
+  const { data, error } = await updateOrderTotals({ promoCode: code });
   if (error || !data?.promotionCode) {
     appliedPromoCode = null;
-    updateOrderTotals();
+    await updateOrderTotals();
+    if (button) { button.disabled = false; button.textContent = "Apply"; }
     setPromoStatus(error?.message || "Promo code could not be applied.", "error");
     return;
   }
   appliedPromoCode = data.promotionCode;
+  if (button) { button.disabled = false; button.textContent = "Apply"; }
   if (input) input.value = appliedPromoCode;
   renderOrderTotals(data);
   setPromoStatus(`${data.percentOff}% discount applied.`, "success");
@@ -236,19 +257,83 @@ function loadCheckoutItems() {
   container.innerHTML = items.map((item) => {
     const product = getProduct(item.id);
     if (!product) return "";
-    return `<div class="order-item"><img ${window.LuxeMedia.attributes(product.image, { preset: "compact", alt: product.name })}><div class="order-item-details"><h4>${escapeCheckoutHtml(product.name)}</h4><p>Qty: ${item.quantity} × ${currency(product.price)}</p></div><strong>${currency(product.price * item.quantity)}</strong></div>`;
+    const options = [
+      item.size ? `Size: ${escapeCheckoutHtml(item.size)}` : "",
+      item.color ? `Colour: ${escapeCheckoutHtml(item.color)}` : "",
+    ].filter(Boolean).join(" · ");
+    const localPrice = window.LuxeMoney?.formatNGN(product.priceNGN) || "";
+    return `<div class="order-item"><img ${window.LuxeMedia.attributes(product.image, { preset: "compact", alt: product.name })}><div class="order-item-details"><h4>${escapeCheckoutHtml(product.name)}</h4><p>Qty: ${Math.max(1, Math.min(99, Number(item.quantity) || 1))} × ${escapeCheckoutHtml(currency(product.price))}${localPrice ? ` <small>(${escapeCheckoutHtml(localPrice)})</small>` : ""}</p>${options ? `<p class="order-item-options">${options}</p>` : ""}</div><strong>${escapeCheckoutHtml(currency(product.price * item.quantity))}</strong></div>`;
   }).join("");
   window.LuxeMedia.hydrate(container);
 }
 
-function updateOrderTotals() {
-  const subtotal = getCheckoutCartItems().reduce((sum, item) => {
+async function updateOrderTotals({ promoCode = appliedPromoCode } = {}) {
+  const generation = ++checkoutQuoteGeneration;
+  const cartItems = getCheckoutCartItems();
+  const items = cartItems.map((item) => ({
+    id: item.id,
+    quantity: item.quantity,
+    size: item.size || null,
+    color: item.color || null,
+  }));
+  const localSubtotal = cartItems.reduce((sum, item) => {
     const product = getProduct(item.id);
-    return sum + (product ? product.price * item.quantity : 0);
+    return sum + (product ? Number(product.price) * Number(item.quantity) : 0);
   }, 0);
-  const shipping = subtotal ? (subtotal > 200 ? 0 : 15) : 0;
-  const tax = subtotal * 0.08;
-  renderOrderTotals({ subtotal, shipping, discount: 0, tax, total: subtotal + shipping + tax });
+
+  if (!items.length) {
+    renderOrderTotals({ subtotal: 0, shipping: 0, discount: 0, tax: 0, total: 0 });
+    return { data: null, error: { message: "Your cart is empty." } };
+  }
+
+  renderOrderTotalsPending(localSubtotal, !!promoCode);
+  if (!window.LuxeOrders?.quote) {
+    renderOrderTotalsUnavailable(localSubtotal);
+    return { data: null, error: { message: "The secure order service is unavailable." } };
+  }
+
+  const { data, error } = await window.LuxeOrders.quote(items, promoCode || null);
+  if (generation !== checkoutQuoteGeneration) {
+    return { data: null, error: { message: "A newer total is being calculated." }, stale: true };
+  }
+  if (error || !isValidOrderQuote(data)) {
+    renderOrderTotalsUnavailable(localSubtotal);
+    return {
+      data: null,
+      error: { message: error?.message || "The order service returned an invalid total." },
+    };
+  }
+
+  renderOrderTotals(data);
+  return { data, error: null };
+}
+
+function isValidOrderQuote(data) {
+  return !!data && ["subtotal", "shipping", "discount", "tax", "total"].every((key) => {
+    if (!Object.prototype.hasOwnProperty.call(data, key)) return false;
+    const amount = Number(data[key]);
+    return Number.isFinite(amount) && amount >= 0;
+  });
+}
+
+function renderOrderTotalsPending(subtotal, hasPromoCode = false) {
+  const subtotalElement = document.getElementById("checkoutSubtotal");
+  if (subtotalElement) subtotalElement.textContent = currency(subtotal);
+  const discountRow = document.getElementById("promoDiscountRow");
+  if (discountRow && !hasPromoCode) discountRow.hidden = true;
+  ["checkoutShipping", "checkoutTax", "checkoutTotal"].forEach((id) => {
+    const element = document.getElementById(id);
+    if (element) element.textContent = "Calculating…";
+  });
+}
+
+function renderOrderTotalsUnavailable(subtotal) {
+  const subtotalElement = document.getElementById("checkoutSubtotal");
+  if (subtotalElement) subtotalElement.textContent = currency(subtotal);
+  ["checkoutShipping", "checkoutTax", "checkoutTotal"].forEach((id) => {
+    const element = document.getElementById(id);
+    if (element) element.textContent = "Unavailable";
+  });
 }
 
 function renderOrderTotals(totals) {
@@ -328,7 +413,8 @@ function clearCheckoutAttempt() {
 function buildAdminWhatsAppUrl(order, cartItems, contact, address) {
   const items = cartItems.map((item) => {
     const product = getProduct(item.id);
-    return product ? `• ${product.name} ×${item.quantity} — ${currency(product.price * item.quantity)}` : "";
+    const options = [item.size ? `Size ${item.size}` : "", item.color ? `Colour ${item.color}` : ""].filter(Boolean).join(" / ");
+    return product ? `• ${product.name}${options ? ` (${options})` : ""} ×${item.quantity} — ${currency(product.price * item.quantity)}` : "";
   }).filter(Boolean).join("\n");
   const message = [
     `NEW ${checkoutBrandName().toUpperCase()} ORDER ${order.order_number}`, "", items, "",

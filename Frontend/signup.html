@@ -9,12 +9,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="css/variables.css">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/auth.css?v=20260827-2">
-    <link rel="stylesheet" href="css/responsive.css?v=20260828-1">
-    <link id="alkebulanLuxuryStyles" rel="stylesheet" href="css/luxury.css?v=20260828-2">
-    <script id="alkebulanLuxuryUi" src="js/luxury-ui.js?v=20260828-1" defer></script>
+    <link rel="stylesheet" href="css/variables.css?v=20260830-1">
+    <link rel="stylesheet" href="css/style.css?v=20260830-1">
+    <link rel="stylesheet" href="css/auth.css?v=20260830-1">
+    <link rel="stylesheet" href="css/responsive.css?v=20260830-1">
+    <link id="alkebulanLuxuryStyles" rel="stylesheet" href="css/luxury.css?v=20260830-1">
+    <script id="alkebulanLuxuryUi" src="js/luxury-ui.js?v=20260830-1" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 
@@ -79,9 +79,11 @@
                             <small class="auth-field-hint">We&rsquo;ll email you a six-digit verification code. It expires in 15 minutes.</small>
                         </div>
 
+                        <div id="signupCaptcha" class="signup-captcha" aria-label="Signup security check" hidden></div>
+
                         <div class="form-group checkbox-group">
                             <input type="checkbox" id="terms" required>
-                            <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+                            <label for="terms">I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms of Service</a> and acknowledge the <a href="privacy.html" target="_blank" rel="noopener">Privacy Notice</a></label>
                         </div>
 
                         <button type="submit" class="btn btn-primary auth-btn">Send Verification Code</button>
@@ -93,11 +95,11 @@
                 <div class="auth-image">
                     <div class="auth-image-content">
                         <h2>Welcome to ALKEBULAN</h2>
-                        <p>Join our community of style enthusiasts and get access to exclusive collections, early access to sales, and personalized recommendations.</p>
+                        <p>Create an account to keep your order history, saved pieces, and checkout details together.</p>
                         <div class="auth-benefits">
-                            <div><i class="fas fa-gift"></i> Welcome 15% off</div>
-                            <div><i class="fas fa-truck"></i> Free shipping on $200+</div>
-                            <div><i class="fas fa-star"></i> Early access to sales</div>
+                            <div><i class="fas fa-box" aria-hidden="true"></i> Order history and updates</div>
+                            <div><i class="fas fa-heart" aria-hidden="true"></i> Saved pieces</div>
+                            <div><i class="fas fa-lock" aria-hidden="true"></i> Protected account access</div>
                         </div>
                     </div>
                 </div>
@@ -110,11 +112,6 @@
             <div class="footer-col">
                 <h3>ALKEBULAN</h3>
                 <p>Premium clothing for the discerning.</p>
-                <div class="social-icons">
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-facebook"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                </div>
             </div>
             <div class="footer-col">
                 <h4>Quick Links</h4>
@@ -142,18 +139,18 @@
         <div class="footer-bottom"><p>&copy; 2026 ALKEBULAN. All rights reserved.</p></div>
     </footer>
 
-    <button id="backToTop" class="back-to-top"><i class="fas fa-arrow-up"></i></button>
+    <button type="button" id="backToTop" class="back-to-top" aria-label="Back to top"><i class="fas fa-arrow-up" aria-hidden="true"></i></button>
 
-    <script src="js/brand-config.js"></script>
-    <script src="js/icons.js"></script>
+    <script src="js/brand-config.js?v=20260830-1"></script>
+    <script src="js/icons.js?v=20260830-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
-    <script src="js/supabase-client.js?v=20260828-1"></script>
-    <script src="js/products.js?v=20260825-2"></script>
-    <script src="js/cart.js?v=20260828-1"></script>
-    <script src="js/wishlist.js?v=20260828-1"></script>
-    <script src="js/search.js?v=20260828-1"></script>
-    <script src="js/animation.js?v=20260828-1"></script>
-    <script src="js/app.js?v=20260828-1"></script>
-    <script src="js/auth.js?v=20260827-2"></script>
+    <script src="js/supabase-client.js?v=20260830-1"></script>
+    <script src="js/products.js?v=20260830-1"></script>
+    <script src="js/cart.js?v=20260830-1"></script>
+    <script src="js/wishlist.js?v=20260830-1"></script>
+    <script src="js/search.js?v=20260830-1"></script>
+    <script src="js/animation.js?v=20260830-1"></script>
+    <script src="js/app.js?v=20260830-1"></script>
+    <script src="js/auth.js?v=20260830-1"></script>
 </body>
 </html>

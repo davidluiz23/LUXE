@@ -1772,3 +1772,20 @@
         padding-top: 12px;
     }
 }
+
+.admin-orders-pagination {
+    display: flex;
+    justify-content: center;
+    padding-top: 22px;
+}
+
+.admin-orders-pagination[hidden] {
+    display: none;
+}
+
+.admin-orders-pagination .btn {
+    min-width: 180px;
+}
+body.admin-modal-open {
+    overflow: hidden;
+}

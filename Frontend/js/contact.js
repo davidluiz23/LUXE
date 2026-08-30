@@ -1,68 +1,99 @@
-// Contact Page Interactions - ALKEBULAN Store
+// Contact page interactions - ALKEBULAN Store
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Contact Form Handler
-    const contactForm = document.getElementById('contactForm');
-    const formAlert = document.getElementById('formAlert');
+document.addEventListener("DOMContentLoaded", () => {
+  const contactForm = document.getElementById("contactForm");
+  const formAlert = document.getElementById("formAlert");
 
-    if (contactForm) {
-        contactForm.addEventListener('submit', (e) => {
-            e.preventDefault();
+  function showFormAlert(message, type) {
+    if (!formAlert) return;
 
-            const name = document.getElementById('contactName').value.trim();
-            const email = document.getElementById('contactEmail').value.trim();
-            const message = document.getElementById('contactMessage').value.trim();
+    formAlert.textContent = message;
+    formAlert.className = `contact-form-alert ${type === "success" ? "is-success" : "is-error"}`;
+    formAlert.hidden = false;
+    formAlert.focus({ preventScroll: true });
+  }
 
-            if (!name || !email || !message) {
-                showFormAlert('Please fill in all required fields.', 'error');
-                return;
-            }
+  if (contactForm) {
+    contactForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
 
-            // Simulate form submission success
-            const submitBtn = contactForm.querySelector('.contact-submit-btn');
-            const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Sending Message...';
-            submitBtn.disabled = true;
+      if (!contactForm.checkValidity()) {
+        contactForm.reportValidity();
+        showFormAlert("Please complete the required fields with valid information.", "error");
+        return;
+      }
 
-            setTimeout(() => {
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-                contactForm.reset();
-                showFormAlert('Thank you! Your message has been sent successfully. We will reply within 24 hours.', 'success');
-            }, 1200);
-        });
-    }
+      const subjectSelect = document.getElementById("contactSubject");
+      const payload = {
+        name: document.getElementById("contactName")?.value.trim() || "",
+        email: document.getElementById("contactEmail")?.value.trim() || "",
+        subject: subjectSelect?.selectedOptions?.[0]?.textContent?.trim() || "General inquiry",
+        message: document.getElementById("contactMessage")?.value.trim() || "",
+      };
+      const submitButton = contactForm.querySelector(".contact-submit-btn");
+      const originalText = submitButton?.textContent || "Send Message";
 
-    function showFormAlert(msg, type) {
-        if (!formAlert) return;
-        formAlert.textContent = msg;
-        formAlert.style.display = 'block';
-        formAlert.style.padding = '14px 18px';
-        formAlert.style.borderRadius = '10px';
-        formAlert.style.marginBottom = '20px';
-        formAlert.style.fontSize = '0.9rem';
+      if (!window.LuxeContact || typeof window.LuxeContact.submit !== "function") {
+        showFormAlert(
+          "Messaging is unavailable right now. Please email hello@alkebulan.com or try again later.",
+          "error",
+        );
+        return;
+      }
 
-        if (type === 'success') {
-            formAlert.style.backgroundColor = '#d4edda';
-            formAlert.style.color = '#155724';
-            formAlert.style.border = '1px solid #c3e6cb';
-        } else {
-            formAlert.style.backgroundColor = '#f8d7da';
-            formAlert.style.color = '#721c24';
-            formAlert.style.border = '1px solid #f5c6cb';
+      if (submitButton) {
+        submitButton.textContent = "Sending message...";
+        submitButton.disabled = true;
+      }
+
+      try {
+        const result = await window.LuxeContact.submit(payload);
+        if (result?.error) throw result.error;
+
+        contactForm.reset();
+        showFormAlert(
+          "Your message has been received. Client services will reply as soon as possible.",
+          "success",
+        );
+      } catch (error) {
+        console.warn("[ALKEBULAN] Contact submission failed:", error?.message || error);
+        showFormAlert(
+          "We could not send your message right now. Please try again or email hello@alkebulan.com.",
+          "error",
+        );
+      } finally {
+        if (submitButton) {
+          submitButton.textContent = originalText;
+          submitButton.disabled = false;
         }
-    }
-
-    // FAQ Accordion Handler
-    const faqItems = document.querySelectorAll('.faq-item');
-    faqItems.forEach(item => {
-        const question = item.querySelector('.faq-question');
-        question.addEventListener('click', () => {
-            const isActive = item.classList.contains('active');
-            faqItems.forEach(otherItem => otherItem.classList.remove('active'));
-            if (!isActive) {
-                item.classList.add('active');
-            }
-        });
+      }
     });
+  }
+
+  const faqItems = Array.from(document.querySelectorAll(".faq-item"));
+
+  function setFaqState(item, expanded) {
+    const question = item.querySelector(".faq-question");
+    const answer = item.querySelector(".faq-answer");
+    item.classList.toggle("active", expanded);
+    question?.setAttribute("aria-expanded", String(expanded));
+    if (answer) answer.hidden = !expanded;
+  }
+
+  faqItems.forEach((item, index) => {
+    const question = item.querySelector(".faq-question");
+    const answer = item.querySelector(".faq-answer");
+    if (!question || !answer) return;
+
+    const answerId = answer.id || `contactFaqAnswer${index + 1}`;
+    answer.id = answerId;
+    question.setAttribute("aria-controls", answerId);
+    setFaqState(item, item.classList.contains("active"));
+
+    question.addEventListener("click", () => {
+      const shouldOpen = !item.classList.contains("active");
+      faqItems.forEach((otherItem) => setFaqState(otherItem, false));
+      if (shouldOpen) setFaqState(item, true);
+    });
+  });
 });

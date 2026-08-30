@@ -1,18 +1,5 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
-
-function getServiceKey(): string | null {
-  const legacy = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (legacy) return legacy;
-  const secretKeys = Deno.env.get("SUPABASE_SECRET_KEYS");
-  if (!secretKeys) return null;
-  try {
-    return Object.values(JSON.parse(secretKeys)).find(
-      (value) => typeof value === "string" && value.length > 20,
-    ) as string || null;
-  } catch {
-    return null;
-  }
-}
+import { createClient } from "npm:@supabase/supabase-js@2.112.4";
+import { getSupabaseServiceKey } from "../_shared/supabase-server.ts";
 
 function allowedOrigin(request: Request): string | null {
   const configured = (Deno.env.get("LUXE_ALLOWED_ORIGINS") || Deno.env.get("LUXE_SITE_URL") || "")
@@ -67,7 +54,7 @@ Deno.serve(async (request) => {
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const serviceKey = getServiceKey();
+  const serviceKey = getSupabaseServiceKey();
   const cloudName = String(Deno.env.get("CLOUDINARY_CLOUD_NAME") || "").trim();
   const apiKey = String(Deno.env.get("CLOUDINARY_API_KEY") || "").trim();
   const apiSecret = String(Deno.env.get("CLOUDINARY_API_SECRET") || "").trim();

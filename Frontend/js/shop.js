@@ -1,5 +1,79 @@
 // js/shop.js - Shop Page Filtering, Sorting, and Search
 
+function escapeShopHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function getShopProductMoney(product, oldPrice = false) {
+  try {
+    const formatted = window.LuxeMoney?.forProduct?.(product, oldPrice);
+    if (formatted) return formatted;
+  } catch (_) {
+    // Keep the static catalogue usable while shared helpers initialise.
+  }
+
+  const usdRaw = oldPrice ? product.oldPrice : product.price;
+  const ngnRaw = oldPrice ? product.oldPriceNGN : product.priceNGN;
+  const usdValue = usdRaw === null || usdRaw === "" || usdRaw === undefined ? NaN : Number(usdRaw);
+  const ngnValue = ngnRaw === null || ngnRaw === "" || ngnRaw === undefined ? NaN : Number(ngnRaw);
+  const usd = Number.isFinite(usdValue)
+    ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(usdValue)
+    : "";
+  const ngn = Number.isFinite(ngnValue)
+    ? new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN" }).format(ngnValue)
+    : "";
+  return { usd, ngn, text: ngn || usd };
+}
+
+function renderShopProductPrice(product) {
+  const current = getShopProductMoney(product);
+  const hasOldPrice = [product.oldPrice, product.oldPriceNGN].some(
+    (value) => value !== null && value !== undefined && value !== "",
+  );
+  const previous = hasOldPrice ? getShopProductMoney(product, true) : {};
+  const primary = current.ngn || current.usd || current.text || "Price unavailable";
+  const secondary = current.ngn && current.usd ? current.usd : "";
+  const oldPrimary = previous.ngn || previous.usd || "";
+
+  return `
+    <span class="product-current-price">${escapeShopHtml(primary)}</span>
+    ${secondary ? `<span class="product-price-secondary">${escapeShopHtml(secondary)}</span>` : ""}
+    ${oldPrimary ? `<span class="old-price">${escapeShopHtml(oldPrimary)}</span>` : ""}
+  `;
+}
+
+function canonicalShopColor(value) {
+  const normalized = String(value || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+  if (!normalized || normalized === "all") return normalized || "all";
+
+  const tokens = new Set(normalized.split(" "));
+  if (tokens.has("navy") || normalized === "midnight blue") return "navy";
+  if (tokens.has("black") || tokens.has("charcoal") || tokens.has("onyx")) return "black";
+  if (tokens.has("white") || tokens.has("ivory") || tokens.has("eggshell")) return "white";
+  if (["beige", "tan", "camel", "sand", "stone", "cream", "ecru", "khaki"]
+    .some((shade) => tokens.has(shade))) return "beige";
+  if (["olive", "military", "army", "forest", "green"]
+    .some((shade) => tokens.has(shade))) return "olive";
+  return normalized;
+}
+
+function shopProductMatchesColor(product, selectedColor) {
+  const target = canonicalShopColor(selectedColor);
+  if (!target || target === "all") return true;
+  return (Array.isArray(product.colors) ? product.colors : [])
+    .some((color) => canonicalShopColor(color) === target);
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   const PAGE_SIZE = 12;
   const grid = document.getElementById("productGrid");
@@ -25,13 +99,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     100,
     Math.ceil(Math.max(...catalog.map((product) => Number(product.price) || 0), 0) / 100) * 100,
   );
-  if (priceRange) {
-    priceRange.max = String(maxCatalogPrice);
-    priceRange.value = String(maxCatalogPrice);
-  }
-  if (priceValue) priceValue.textContent = `$${maxCatalogPrice}`;
   let searchQuery = String(pageParams.get("q") || "").trim();
   let currentPage = Math.max(1, Number.parseInt(pageParams.get("page") || "1", 10) || 1);
+
+  const minimumPrice = Math.max(0, Number.parseInt(priceRange?.min || "0", 10) || 0);
+  const requestedPrice = Number.parseInt(pageParams.get("price") || "", 10);
+  const initialMaxPrice = Number.isFinite(requestedPrice)
+    ? Math.min(maxCatalogPrice, Math.max(minimumPrice, requestedPrice))
+    : maxCatalogPrice;
+  if (priceRange) {
+    priceRange.max = String(maxCatalogPrice);
+    priceRange.value = String(initialMaxPrice);
+    priceRange.setAttribute("aria-valuetext", `Up to $${initialMaxPrice} USD`);
+  }
+  if (priceValue) priceValue.textContent = `$${initialMaxPrice} USD`;
 
   const requestedCategory = String(pageParams.get("category") || "").toLocaleLowerCase();
   const requestedFilter = categoryFilters.find((filter) => filter.dataset.category === requestedCategory);
@@ -43,6 +124,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (sortSelect && Array.from(sortSelect.options).some((option) => option.value === requestedSort)) {
     sortSelect.value = requestedSort;
   }
+  const requestedColor = canonicalShopColor(pageParams.get("color"));
+  const requestedColorDot = colorDots.find(
+    (dot) => canonicalShopColor(dot.dataset.color) === requestedColor,
+  );
+  if (requestedColorDot) {
+    colorDots.forEach((dot) => dot.classList.remove("active"));
+    requestedColorDot.classList.add("active");
+  }
 
   function renderQuerySummary() {
     const summary = document.getElementById("shopQuerySummary");
@@ -52,11 +141,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     text.textContent = searchQuery ? `“${searchQuery}”` : "";
   }
 
-  function syncUrl(selectedCategory, sortValue) {
+  function syncUrl(selectedCategory, sortValue, maxPrice, selectedColor) {
     const params = new URLSearchParams();
     if (selectedCategory !== "all") params.set("category", selectedCategory);
     if (searchQuery) params.set("q", searchQuery);
     if (sortValue !== "featured") params.set("sort", sortValue);
+    if (maxPrice < maxCatalogPrice) params.set("price", String(maxPrice));
+    if (selectedColor !== "all") params.set("color", selectedColor);
     if (currentPage > 1) params.set("page", String(currentPage));
     const query = params.toString();
     window.history.replaceState({}, "", `shop.html${query ? `?${query}` : ""}`);
@@ -119,10 +210,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const maxPrice = priceRange ? Number.parseInt(priceRange.value, 10) : maxCatalogPrice;
     results = results.filter((product) => Number(product.price) <= maxPrice);
-    const selectedColor = document.querySelector(".color-dot.active")?.dataset.color || "all";
+    const selectedColor = canonicalShopColor(
+      document.querySelector(".color-dot.active")?.dataset.color || "all",
+    );
     if (selectedColor !== "all") {
-      results = results.filter((product) =>
-        (product.colors || []).some((color) => String(color).toLocaleLowerCase() === selectedColor));
+      results = results.filter((product) => shopProductMatchesColor(product, selectedColor));
     }
     if (searchQuery) {
       const query = searchQuery.toLocaleLowerCase();
@@ -146,7 +238,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderShopProducts(pageProducts, grid);
     renderPagination(totalPages);
     renderQuerySummary();
-    syncUrl(selectedCategory, sortValue);
+    syncUrl(selectedCategory, sortValue, maxPrice, selectedColor);
 
     const resetButton = document.getElementById("resetFilters");
     if (resetButton) {
@@ -166,12 +258,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     applyFilters();
   }));
   priceRange?.addEventListener("input", (event) => {
-    if (priceValue) priceValue.textContent = `$${event.target.value}`;
+    if (priceValue) priceValue.textContent = `$${event.target.value} USD`;
+    priceRange.setAttribute("aria-valuetext", `Up to $${event.target.value} USD`);
     applyFilters();
   });
   colorDots.forEach((dot) => dot.addEventListener("click", () => {
-    colorDots.forEach((item) => item.classList.remove("active"));
+    colorDots.forEach((item) => {
+      item.classList.remove("active");
+      item.setAttribute("aria-pressed", "false");
+    });
     dot.classList.add("active");
+    dot.setAttribute("aria-pressed", "true");
     applyFilters();
   }));
   sortSelect?.addEventListener("change", () => applyFilters());
@@ -183,9 +280,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     categoryFilters.forEach((filter) => filter.classList.remove("active"));
     categoryFilters[0]?.classList.add("active");
     if (priceRange) priceRange.value = String(maxCatalogPrice);
-    if (priceValue) priceValue.textContent = `$${maxCatalogPrice}`;
-    colorDots.forEach((dot) => dot.classList.remove("active"));
+    if (priceValue) priceValue.textContent = `$${maxCatalogPrice} USD`;
+    priceRange?.setAttribute("aria-valuetext", `Up to $${maxCatalogPrice} USD`);
+    colorDots.forEach((dot) => {
+      dot.classList.remove("active");
+      dot.setAttribute("aria-pressed", "false");
+    });
     colorDots[0]?.classList.add("active");
+    colorDots[0]?.setAttribute("aria-pressed", "true");
     if (sortSelect) sortSelect.value = "featured";
     searchQuery = "";
     applyFilters();
@@ -194,22 +296,55 @@ document.addEventListener("DOMContentLoaded", async () => {
   const filterToggle = document.getElementById("filterToggle");
   const shopSidebar = document.getElementById("shopSidebar");
   const sidebarClose = document.getElementById("sidebarClose");
-  const closeFilterDrawer = () => {
+  const filterDrawerViewport = window.matchMedia("(max-width: 1020px)");
+  const syncFilterAccessibility = () => {
+    if (!shopSidebar) return;
+    const isDrawer = filterDrawerViewport.matches;
+    const isOpen = shopSidebar.classList.contains("active");
+    shopSidebar.setAttribute("aria-hidden", String(isDrawer && !isOpen));
+    if (isDrawer) {
+      shopSidebar.setAttribute("role", "dialog");
+      shopSidebar.setAttribute("aria-modal", "true");
+      shopSidebar.setAttribute("aria-label", "Product filters");
+    } else {
+      shopSidebar.removeAttribute("role");
+      shopSidebar.removeAttribute("aria-modal");
+      shopSidebar.removeAttribute("aria-label");
+    }
+  };
+  const closeFilterDrawer = ({ restoreFocus = false } = {}) => {
     shopSidebar?.classList.remove("active");
     document.body.classList.remove("filters-open");
     filterToggle?.setAttribute("aria-expanded", "false");
+    syncFilterAccessibility();
+    if (restoreFocus) filterToggle?.focus();
   };
   filterToggle?.addEventListener("click", () => {
     shopSidebar?.classList.add("active");
     document.body.classList.add("filters-open");
     filterToggle.setAttribute("aria-expanded", "true");
+    syncFilterAccessibility();
     sidebarClose?.focus();
   });
-  sidebarClose?.addEventListener("click", closeFilterDrawer);
+  sidebarClose?.addEventListener("click", () => closeFilterDrawer({ restoreFocus: true }));
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && shopSidebar?.classList.contains("active")) {
-      closeFilterDrawer();
-      filterToggle?.focus();
+    if (!shopSidebar?.classList.contains("active") || !filterDrawerViewport.matches) return;
+    if (event.key === "Escape") {
+      closeFilterDrawer({ restoreFocus: true });
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const focusable = Array.from(shopSidebar.querySelectorAll('a[href], button, input, select'))
+      .filter((element) => !element.hidden && !element.disabled);
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (!first || !last) return;
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
     }
   });
   document.addEventListener("click", (event) => {
@@ -217,7 +352,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (shopSidebar.contains(event.target) || filterToggle?.contains(event.target)) return;
     closeFilterDrawer();
   });
+  filterDrawerViewport.addEventListener("change", () => {
+    if (!filterDrawerViewport.matches) closeFilterDrawer();
+    syncFilterAccessibility();
+  });
 
+  colorDots.forEach((dot) => dot.setAttribute("aria-pressed", String(dot.classList.contains("active"))));
+  syncFilterAccessibility();
   applyFilters({ resetPage: false });
 });
 
@@ -227,13 +368,11 @@ function renderShopProducts(productsList, grid) {
 
   if (productsList.length === 0) {
     grid.innerHTML = `
-            <div style="grid-column: 1/-1; text-align: center; padding: 80px 0;">
-                <i class="fas fa-search" style="font-size: 3rem; color: #ddd; margin-bottom: 20px;"></i>
-                <h3 style="font-size: 1.5rem; margin-bottom: 10px;">No products found</h3>
-                <p style="color: #777777;">Try adjusting your filters or search terms</p>
-                <button onclick="location.href='shop.html'" class="btn btn-primary" style="margin-top: 20px;">
-                    <i class="fas fa-sync"></i> Reset Filters
-                </button>
+            <div class="catalog-empty-state" role="status">
+                <i class="fas fa-search" aria-hidden="true"></i>
+                <h3>No products found</h3>
+                <p>Try adjusting your filters or search terms.</p>
+                <a href="shop.html" class="btn btn-primary"><i class="fas fa-sync" aria-hidden="true"></i> Reset filters</a>
             </div>
         `;
     return;
@@ -241,8 +380,17 @@ function renderShopProducts(productsList, grid) {
 
   grid.innerHTML = productsList
     .map(
-      (product, index) => `
-        <div class="product-card" data-id="${product.id}" onclick="window.location.href='product.html?id=${product.id}'">
+      (product, index) => {
+        const productId = Number.parseInt(product.id, 10);
+        if (!Number.isFinite(productId)) return "";
+        const safeName = escapeShopHtml(product.name || "Product");
+        const safeBrand = escapeShopHtml(product.brand || "");
+        const safeCategory = escapeShopHtml(product.category || "");
+        const safeSubcategory = escapeShopHtml(product.subcategory || "");
+        const hasOptions = (Array.isArray(product.sizes) && product.sizes.length > 0)
+          || (Array.isArray(product.colors) && product.colors.length > 0);
+        return `
+        <article class="product-card" data-id="${productId}">
             <div class="product-image">
                 <img ${window.LuxeMedia.attributes(product.image, {
                   preset: "card",
@@ -250,47 +398,85 @@ function renderShopProducts(productsList, grid) {
                   priority: index === 0,
                 })}>
                 ${product.discount && product.oldPrice ? `<span class="discount-badge">${Math.round((1 - product.price / product.oldPrice) * 100)}% OFF</span>` : ""}
-                ${product.trending ? `<span class="trending-badge"><i class="fas fa-fire"></i> Trending</span>` : ""}
+                ${product.trending ? `<span class="trending-badge"><i class="fas fa-fire" aria-hidden="true"></i> Trending</span>` : ""}
                 <div class="product-actions">
-                    <button class="add-cart" onclick="event.stopPropagation(); if (typeof window.addToCart === 'function') window.addToCart(${product.id});">
-                        <i class="fas fa-shopping-bag"></i> Quick add
+                    <button type="button" class="add-cart" data-id="${productId}" data-has-options="${hasOptions}" aria-label="${hasOptions ? 'Choose options for' : 'Add'} ${safeName}">
+                        <i class="fas fa-shopping-bag" aria-hidden="true"></i> ${hasOptions ? 'Choose options' : 'Quick add'}
                     </button>
-                    <button class="wishlist-btn" onclick="event.stopPropagation(); if (typeof window.toggleWishlist === 'function') window.toggleWishlist(${product.id}, this); else if (typeof window.addToWishlist === 'function') window.addToWishlist(${product.id});">
-                        <i class="fas fa-heart"></i>
+                    <button type="button" class="wishlist-btn" data-id="${productId}" aria-label="Save ${safeName} to wishlist" aria-pressed="false">
+                        <i class="fas fa-heart" aria-hidden="true"></i>
                     </button>
-                    <button class="quick-view" onclick="event.stopPropagation(); window.location.href='product.html?id=${product.id}'">
-                        <i class="fas fa-eye"></i>
+                    <button type="button" class="quick-view" data-id="${productId}" aria-label="View ${safeName}">
+                        <i class="fas fa-eye" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>
             <div class="product-info">
-                ${product.brand ? `<p class="product-brand">${product.brand}</p>` : ""}
-                <h4 class="product-name">${product.name}</h4>
-                <p class="product-category">${product.category}${product.subcategory ? " / " + product.subcategory : ""}</p>
+                ${product.brand ? `<p class="product-brand">${safeBrand}</p>` : ""}
+                <h4 class="product-name"><a class="product-name-link" href="product.html?id=${productId}" style="color:inherit;text-decoration:none">${safeName}</a></h4>
+                <p class="product-category">${safeCategory}${product.subcategory ? " / " + safeSubcategory : ""}</p>
                 <div class="product-price">
-                    $${product.price.toFixed(2)}
-                    ${product.oldPrice ? `<span class="old-price">$${product.oldPrice.toFixed(2)}</span>` : ""}
+                    ${renderShopProductPrice(product)}
                 </div>
                 ${
                   product.rating
                     ? `
-                    <div class="product-rating">
+                    <div class="product-rating" aria-label="Rated ${Math.max(0, Math.min(5, Number(product.rating) || 0)).toFixed(1)} out of 5">
                         ${window.LuxeIcons?.rating(product.rating) || ""}
-                        <span class="rating-count">(${product.rating})</span>
+                        <span class="rating-count">${product.reviewCount !== null && product.reviewCount !== undefined
+                          ? `${Math.max(0, Number(product.reviewCount) || 0)} review${Number(product.reviewCount) === 1 ? "" : "s"}`
+                          : `${Math.max(0, Math.min(5, Number(product.rating) || 0)).toFixed(1)} / 5`}</span>
                     </div>
                 `
                     : ""
                 }
             </div>
-        </div>
-    `,
+        </article>
+    `;
+      },
     )
     .join("");
   window.LuxeMedia.hydrate(grid);
+  window.syncWishlistButtons?.(grid);
+  grid.querySelectorAll(".product-card").forEach((card) => {
+    const openProduct = () => {
+      window.location.href = `product.html?id=${Number.parseInt(card.dataset.id, 10)}`;
+    };
+    card.addEventListener("click", (event) => {
+      if (!event.target.closest("button, a")) openProduct();
+    });
+  });
+  grid.querySelectorAll(".add-cart").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const productId = Number.parseInt(button.dataset.id, 10);
+      if (button.dataset.hasOptions === "true") window.location.href = `product.html?id=${productId}`;
+      else window.addToCart?.(productId);
+    });
+  });
+  grid.querySelectorAll(".wishlist-btn").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const productId = Number.parseInt(button.dataset.id, 10);
+      if (typeof window.toggleWishlist === "function") window.toggleWishlist(productId, button);
+      else window.addToWishlist?.(productId);
+    });
+  });
+  grid.querySelectorAll(".quick-view").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      window.location.href = `product.html?id=${Number.parseInt(button.dataset.id, 10)}`;
+    });
+  });
 }
 
 function sortProducts(productsList, sortValue) {
   const sorted = [...productsList];
+  const createdTime = (product) => {
+    const value = product.createdAt || product.created_at || product.updatedAt || product.updated_at;
+    const parsed = value ? Date.parse(value) : NaN;
+    return Number.isFinite(parsed) ? parsed : Number(product.id) || 0;
+  };
 
   switch (sortValue) {
     case "price-low":
@@ -299,8 +485,10 @@ function sortProducts(productsList, sortValue) {
       return sorted.sort((a, b) => b.price - a.price);
     case "rating":
       return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    case "name":
+      return sorted.sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), undefined, { sensitivity: "base" }));
     case "newest":
-      return sorted;
+      return sorted.sort((a, b) => createdTime(b) - createdTime(a));
     case "featured":
     default:
       return sorted;

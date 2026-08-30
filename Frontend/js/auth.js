@@ -53,6 +53,45 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const signupForm = document.getElementById("signupForm");
+  const signupCaptcha = document.getElementById("signupCaptcha");
+  const turnstileSiteKey = String(window.LuxeBrand?.turnstileSiteKey || "").trim();
+  let signupCaptchaToken = "";
+  let signupCaptchaWidgetId = null;
+
+  if (signupForm && signupCaptcha && turnstileSiteKey) {
+    signupCaptcha.hidden = false;
+    const renderCaptcha = () => {
+      if (!window.turnstile || signupCaptchaWidgetId !== null) return;
+      signupCaptchaWidgetId = window.turnstile.render(signupCaptcha, {
+        sitekey: turnstileSiteKey,
+        theme: "light",
+        size: "flexible",
+        callback(token) {
+          signupCaptchaToken = token;
+        },
+        "expired-callback"() {
+          signupCaptchaToken = "";
+        },
+        "error-callback"() {
+          signupCaptchaToken = "";
+        },
+      });
+    };
+
+    if (window.turnstile) {
+      renderCaptcha();
+    } else {
+      const script = document.createElement("script");
+      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+      script.async = true;
+      script.defer = true;
+      script.addEventListener("load", renderCaptcha, { once: true });
+      script.addEventListener("error", () => {
+        showAuthError("The signup security check could not load. Please refresh and try again.");
+      }, { once: true });
+      document.head.appendChild(script);
+    }
+  }
 
   if (signupForm) {
     signupForm.addEventListener("submit", async (event) => {
@@ -69,6 +108,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!terms) {
         showAuthError("Please agree to the Terms of Service.");
+        return;
+      }
+
+      if (turnstileSiteKey && !signupCaptchaToken) {
+        showAuthError("Please complete the signup security check.");
         return;
       }
 
@@ -89,7 +133,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const { error } = await window.LuxeAuth.requestSignupVerification(
         fullName,
         email,
+        signupCaptchaToken || null,
       );
+
+      if (signupCaptchaWidgetId !== null && window.turnstile) {
+        window.turnstile.reset(signupCaptchaWidgetId);
+        signupCaptchaToken = "";
+      }
 
       if (submitButton) {
         submitButton.disabled = false;
@@ -187,6 +237,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const forgotSuccess = document.getElementById("forgotPasswordSuccess");
   const forgotError = document.getElementById("forgotPasswordError");
   const closeForgotButton = document.getElementById("closeForgotModal");
+  let forgotModalReturnFocus = null;
+
+  const closeForgotModal = () => {
+    if (!forgotModal?.classList.contains("active")) return;
+    forgotModal.classList.remove("active");
+    forgotModal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("auth-modal-open");
+    if (forgotModalReturnFocus instanceof HTMLElement) forgotModalReturnFocus.focus();
+  };
 
   if (forgotLink && forgotModal) {
     forgotLink.addEventListener("click", (event) => {
@@ -206,13 +265,39 @@ document.addEventListener("DOMContentLoaded", () => {
         forgotError.style.display = "none";
       }
 
+      forgotModalReturnFocus = document.activeElement;
       forgotModal.classList.add("active");
+      forgotModal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("auth-modal-open");
+      window.setTimeout(() => (forgotEmail || closeForgotButton)?.focus(), 0);
     });
   }
 
   if (closeForgotButton && forgotModal) {
-    closeForgotButton.addEventListener("click", () => {
-      forgotModal.classList.remove("active");
+    closeForgotButton.addEventListener("click", closeForgotModal);
+    forgotModal.addEventListener("click", (event) => {
+      if (event.target === forgotModal) closeForgotModal();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (!forgotModal.classList.contains("active")) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeForgotModal();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = Array.from(forgotModal.querySelectorAll('button, input, a[href]'))
+        .filter((element) => !element.hidden && !element.disabled && element.offsetParent !== null);
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     });
   }
 

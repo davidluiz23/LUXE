@@ -8,6 +8,9 @@
     skuPrefix: "ALK",
     isWorkingName: false,
     mark: "assets/brand/alkebulan-mark.svg",
+    // Public Cloudflare Turnstile site key. Leave blank in local development;
+    // set this together with TURNSTILE_SECRET_KEY in the Edge environment.
+    turnstileSiteKey: "",
   });
 
   const workingName = "LUXE";

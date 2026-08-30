@@ -1694,7 +1694,56 @@ const products = [
 // wired up in cart.js, wishlist.js, search.js, app.js, shop.js,
 // category.js, product.js, checkout.js).
 
-let activeProductsList = products; // synchronous fallback until fetch resolves
+const catalogBackendConfigured = !!(
+    window.LuxeProducts &&
+    window.isSupabaseConfigured &&
+    window.isSupabaseConfigured()
+);
+let activeProductsList = catalogBackendConfigured ? [] : products;
+
+window.LuxeCatalogStatus = {
+    state: catalogBackendConfigured ? 'loading' : 'offline',
+    source: catalogBackendConfigured ? 'supabase' : 'bundled',
+    message: catalogBackendConfigured
+        ? 'Loading the collection...'
+        : 'Offline catalog preview — the live catalog is not configured.',
+};
+
+function renderCatalogStatus() {
+    if (document.readyState === 'loading') return;
+    const status = window.LuxeCatalogStatus;
+    let banner = document.getElementById('catalogStatusBanner');
+    // Loading is already represented by the quiet, layout-stable product
+    // placeholders. Avoid pushing every page down with a refresh banner.
+    if (status.state === 'loading' || status.state === 'ready') {
+        banner?.remove();
+        return;
+    }
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'catalogStatusBanner';
+        banner.style.cssText = 'padding:10px 18px;text-align:center;background:#f4efe5;color:#2a261f;border-bottom:1px solid #d9cfbd;font:600 13px/1.4 Arial,sans-serif;letter-spacing:.02em;';
+        document.body.prepend(banner);
+    }
+    banner.setAttribute('role', status.state === 'unavailable' ? 'alert' : 'status');
+    banner.textContent = status.message;
+}
+
+function setCatalogStatus(state, source, message) {
+    Object.assign(window.LuxeCatalogStatus, { state, source, message });
+    if (typeof window.CustomEvent === 'function') {
+        window.dispatchEvent(new CustomEvent('luxe:catalog-status', {
+            detail: { ...window.LuxeCatalogStatus },
+        }));
+    }
+    renderCatalogStatus();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', renderCatalogStatus, { once: true });
+} else {
+    renderCatalogStatus();
+}
 
 function showProductGridLoading(grid, requestedCount = 8) {
     if (!grid) return;
@@ -1705,18 +1754,16 @@ function showProductGridLoading(grid, requestedCount = 8) {
 
     grid.classList.add('product-grid-loading');
     grid.setAttribute('aria-busy', 'true');
-    grid.innerHTML = Array.from({ length: count }, (_, index) => `
+    grid.innerHTML = `<span class="sr-only" role="status">Loading products</span>${Array.from({ length: count }, (_, index) => `
         <article class="product-card product-card-skeleton" aria-hidden="true" style="--skeleton-order:${index}">
-            <div class="product-image product-skeleton-image">
-                <span class="product-loading-indicator"><i aria-hidden="true"></i> Refreshing</span>
-            </div>
+            <div class="product-image product-skeleton-image"></div>
             <div class="product-info">
                 <span class="product-skeleton-line short"></span>
                 <span class="product-skeleton-line"></span>
                 <span class="product-skeleton-line medium"></span>
             </div>
         </article>
-    `).join('');
+    `).join('')}`;
 }
 
 function finishProductGridLoading(grid) {
@@ -1727,12 +1774,12 @@ function finishProductGridLoading(grid) {
 
 window.productsReady = (async function loadCatalog() {
     try {
-        if (window.LuxeProducts && window.isSupabaseConfigured && window.isSupabaseConfigured()) {
+        if (catalogBackendConfigured) {
             let timeoutId;
             const timeoutResult = new Promise((resolve) => {
                 timeoutId = setTimeout(() => resolve({
                     data: null,
-                    error: { message: 'Catalog refresh timed out. Showing the offline catalog.' },
+                    error: { message: 'The live catalog request timed out.' },
                 }), 12000);
             });
             const { data, error } = await Promise.race([
@@ -1742,16 +1789,22 @@ window.productsReady = (async function loadCatalog() {
             clearTimeout(timeoutId);
             if (!error && data && data.length) {
                 activeProductsList = data;
+                setCatalogStatus('ready', 'supabase', 'Live catalog loaded.');
             } else if (!error && data && data.length === 0) {
-                // Table exists but is empty (fresh install) — keep the
-                // bundled fallback list so the storefront isn't blank.
-                console.warn('ALKEBULAN: products table is empty — showing bundled fallback catalog. Use the admin panel to import it.');
+                activeProductsList = [];
+                setCatalogStatus('empty', 'supabase', 'No products are currently published.');
             } else if (error) {
-                console.warn('ALKEBULAN: could not load products from Supabase, showing offline fallback catalog.', error.message || error);
+                activeProductsList = [];
+                setCatalogStatus('unavailable', 'supabase', 'The live catalog is temporarily unavailable. Please try again shortly.');
+                console.warn('ALKEBULAN: could not load the live product catalog.', error.message || error);
             }
+        } else {
+            setCatalogStatus('offline', 'bundled', 'Offline catalog preview — the live catalog is not configured.');
         }
     } catch (e) {
-        console.warn('ALKEBULAN: product fetch failed, showing offline fallback catalog.', e);
+        activeProductsList = [];
+        setCatalogStatus('unavailable', 'supabase', 'The live catalog is temporarily unavailable. Please try again shortly.');
+        console.warn('ALKEBULAN: product fetch failed.', e);
     }
     return activeProductsList;
 })();

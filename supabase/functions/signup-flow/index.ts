@@ -1,15 +1,15 @@
 import {
   createClient,
   type SupabaseClient,
-} from "npm:@supabase/supabase-js@2";
+} from "npm:@supabase/supabase-js@2.112.4";
+import { getSupabaseServiceKey } from "../_shared/supabase-server.ts";
 
 type SignupAction = "request" | "check" | "complete";
 
 const TOKEN_TTL_MINUTES = 15;
 const CODE_TTL_MINUTES = 15;
-const RESEND_COOLDOWN_SECONDS = 60;
-const MAX_SENDS_PER_HOUR = 5;
 const MAX_CODE_ATTEMPTS = 5;
+const MAX_REQUEST_BYTES = 16_384;
 
 function json(
   body: Record<string, unknown>,
@@ -24,28 +24,11 @@ function json(
       "Access-Control-Allow-Headers":
         "authorization, x-client-info, apikey, content-type",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
       "Vary": "Origin",
     },
   });
-}
-
-function getServiceKey(): string | null {
-  const legacy = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (legacy) return legacy;
-
-  const secretKeys = Deno.env.get("SUPABASE_SECRET_KEYS");
-  if (!secretKeys) return null;
-
-  try {
-    const parsed = JSON.parse(secretKeys);
-    const values = Object.values(parsed);
-    const first = values.find(
-      (value) => typeof value === "string" && value.length > 20,
-    );
-    return typeof first === "string" ? first : null;
-  } catch {
-    return null;
-  }
 }
 
 function configuredOrigins(): string[] {
@@ -138,6 +121,29 @@ function brandName(): string {
   return (Deno.env.get("BRAND_NAME") || "ALKEBULAN").trim().slice(0, 80) || "ALKEBULAN";
 }
 
+async function verifySignupCaptcha(token: unknown): Promise<boolean> {
+  const secret = Deno.env.get("TURNSTILE_SECRET_KEY");
+  if (!secret) return Deno.env.get("REQUIRE_SIGNUP_CAPTCHA") !== "true";
+  if (typeof token !== "string" || token.length < 10 || token.length > 4096) return false;
+
+  try {
+    const response = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ secret, response: token }),
+        signal: AbortSignal.timeout(8_000),
+      },
+    );
+    const payload = await response.json().catch(() => ({}));
+    return response.ok && payload?.success === true;
+  } catch (error) {
+    console.error("[signup-flow] CAPTCHA verification failed:", error);
+    return false;
+  }
+}
+
 function genericRequestSuccess(origin: string) {
   return json(
     {
@@ -179,16 +185,18 @@ async function sendVerificationEmail(
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 
-  const response = await fetch(
-    "https://api.brevo.com/v3/smtp/email",
-    {
+  let response: Response;
+  try {
+    response = await fetch(
+      "https://api.brevo.com/v3/smtp/email",
+      {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
         "api-key": apiKey,
       },
-      body: JSON.stringify({
+        body: JSON.stringify({
         sender: {
           name: senderName,
           email: senderEmail,
@@ -224,9 +232,14 @@ async function sendVerificationEmail(
           `Or open this secure link:\n${verificationUrl}\n\n` +
           `Your account has not been created yet. The code and secure link expire in ${TOKEN_TTL_MINUTES} minutes.`,
         tags: ["luxe-signup-verification"],
-      }),
-    },
-  );
+        }),
+        signal: AbortSignal.timeout(12_000),
+      },
+    );
+  } catch (error) {
+    console.error("[signup-flow] Brevo request failed:", error);
+    return false;
+  }
 
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
@@ -282,8 +295,13 @@ Deno.serve(async (request) => {
     return json({ error: "method_not_allowed" }, 405, origin);
   }
 
+  const contentLength = Number(request.headers.get("content-length") || 0);
+  if (contentLength > MAX_REQUEST_BYTES) {
+    return json({ error: "request_too_large" }, 413, origin);
+  }
+
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const serviceKey = getServiceKey();
+  const serviceKey = getSupabaseServiceKey();
   const siteUrl = primarySiteUrl();
 
   if (!supabaseUrl || !serviceKey || !siteUrl) {
@@ -300,7 +318,16 @@ Deno.serve(async (request) => {
     },
   });
 
-  const body = await request.json().catch(() => ({}));
+  const rawBody = await request.text();
+  if (rawBody.length > MAX_REQUEST_BYTES) {
+    return json({ error: "request_too_large" }, 413, origin);
+  }
+  let body: Record<string, unknown>;
+  try {
+    body = JSON.parse(rawBody || "{}");
+  } catch {
+    return json({ error: "invalid_json" }, 400, origin);
+  }
   const action = body?.action as SignupAction;
 
   if (action === "request") {
@@ -309,10 +336,15 @@ Deno.serve(async (request) => {
 
     if (
       !validEmail(email) ||
+      email.length > 254 ||
       fullName.length < 2 ||
       fullName.length > 100
     ) {
       return json({ error: "invalid_signup_details" }, 400, origin);
+    }
+
+    if (!await verifySignupCaptcha(body?.captchaToken)) {
+      return json({ error: "captcha_required" }, 400, origin);
     }
 
     // Opportunistic cleanup keeps fake/uncompleted registrations temporary.
@@ -339,61 +371,7 @@ Deno.serve(async (request) => {
       return genericRequestSuccess(origin);
     }
 
-    const { data: currentPending, error: pendingError } =
-      await service
-        .from("pending_signups")
-        .select(
-          "email,last_sent_at,send_count,window_started_at",
-        )
-        .eq("email", email)
-        .maybeSingle();
-
-    if (pendingError) {
-      console.error(
-        "[signup-flow] Pending signup lookup failed:",
-        pendingError.message,
-      );
-      return json({ error: "service_unavailable" }, 503, origin);
-    }
-
     const now = Date.now();
-
-    if (currentPending?.last_sent_at) {
-      const lastSent =
-        new Date(currentPending.last_sent_at).getTime();
-
-      if (
-        Number.isFinite(lastSent) &&
-        now - lastSent < RESEND_COOLDOWN_SECONDS * 1000
-      ) {
-        return genericRequestSuccess(origin);
-      }
-    }
-
-    let sendCount = 1;
-    let windowStartedAt = new Date(now).toISOString();
-
-    if (currentPending?.window_started_at) {
-      const windowStart =
-        new Date(currentPending.window_started_at).getTime();
-
-      if (
-        Number.isFinite(windowStart) &&
-        now - windowStart < 60 * 60 * 1000
-      ) {
-        if (
-          Number(currentPending.send_count || 0) >=
-          MAX_SENDS_PER_HOUR
-        ) {
-          return genericRequestSuccess(origin);
-        }
-
-        sendCount =
-          Number(currentPending.send_count || 0) + 1;
-        windowStartedAt = currentPending.window_started_at;
-      }
-    }
-
     const token = randomToken();
     const verificationCode = randomCode();
     const tokenHash = await sha256Hex(token);
@@ -405,22 +383,17 @@ Deno.serve(async (request) => {
       now + CODE_TTL_MINUTES * 60 * 1000,
     ).toISOString();
 
-    const { error: upsertError } =
-      await service.from("pending_signups").upsert(
-        {
-          email,
-          full_name: fullName,
-          token_hash: tokenHash,
-          code_hash: codeHash,
-          code_expires_at: codeExpiresAt,
-          failed_code_attempts: 0,
-          expires_at: expiresAt,
-          last_sent_at: new Date(now).toISOString(),
-          send_count: sendCount,
-          window_started_at: windowStartedAt,
-        },
-        { onConflict: "email" },
-      );
+    const { data: reservation, error: upsertError } = await service.rpc(
+      "service_store_pending_signup_v1",
+      {
+        p_email: email,
+        p_full_name: fullName,
+        p_token_hash: tokenHash,
+        p_code_hash: codeHash,
+        p_expires_at: expiresAt,
+        p_code_expires_at: codeExpiresAt,
+      },
+    );
 
     if (upsertError) {
       console.error(
@@ -429,6 +402,7 @@ Deno.serve(async (request) => {
       );
       return json({ error: "service_unavailable" }, 503, origin);
     }
+    if (reservation?.allowed !== true) return genericRequestSuccess(origin);
 
     const verificationUrl =
       new URL("verify-signup.html", siteUrl);
@@ -443,10 +417,13 @@ Deno.serve(async (request) => {
     );
 
     if (!sent) {
-      // Let the same user retry instead of leaving a dead token behind.
+      // Invalidate the unsent token while retaining its rate-limit counters.
       await service
         .from("pending_signups")
-        .delete()
+        .update({
+          expires_at: new Date().toISOString(),
+          code_expires_at: new Date().toISOString(),
+        })
         .eq("email", email)
         .eq("token_hash", tokenHash);
     }
@@ -525,7 +502,10 @@ Deno.serve(async (request) => {
 
     let completionQuery = service
       .from("pending_signups")
-      .select("email,full_name,expires_at,code_expires_at");
+      .delete()
+      .select(
+        "email,full_name,token_hash,code_hash,expires_at,code_expires_at,last_sent_at,send_count,window_started_at,created_at,failed_code_attempts",
+      );
 
     if (hasToken) {
       completionQuery = completionQuery.eq(
@@ -574,21 +554,17 @@ Deno.serve(async (request) => {
         createError?.message || "Unknown error",
       );
 
-      return json(
-        {
-          error:
-            createError?.message ||
-            "Could not create account.",
-        },
-        400,
-        origin,
-      );
+      const { error: restoreError } = await service
+        .from("pending_signups")
+        .upsert(pending, { onConflict: "email" });
+      if (restoreError) {
+        console.error(
+          "[signup-flow] Could not restore signup claim:",
+          restoreError.message,
+        );
+      }
+      return json({ error: "account_creation_failed" }, 400, origin);
     }
-
-    await service
-      .from("pending_signups")
-      .delete()
-      .eq("email", pending.email);
 
     return json(
       {

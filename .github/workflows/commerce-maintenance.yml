@@ -1,0 +1,34 @@
+name: Commerce maintenance
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: commerce-maintenance
+  cancel-in-progress: true
+
+jobs:
+  release-and-clean:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_PROJECT_URL: ${{ secrets.SUPABASE_PROJECT_URL }}
+      COMMERCE_MAINTENANCE_SECRET: ${{ secrets.COMMERCE_MAINTENANCE_SECRET }}
+    steps:
+      - name: Release expired reservations and clean replaced media
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${SUPABASE_PROJECT_URL}" || -z "${COMMERCE_MAINTENANCE_SECRET}" ]]; then
+            echo "::notice::Commerce maintenance is inactive until both repository secrets are configured."
+            exit 0
+          fi
+          curl --fail --silent --show-error --retry 2 \
+            --request POST \
+            --header "x-maintenance-secret: ${COMMERCE_MAINTENANCE_SECRET}" \
+            "${SUPABASE_PROJECT_URL%/}/functions/v1/commerce-maintenance"

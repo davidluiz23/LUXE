@@ -64,9 +64,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const sidebarAvatar = document.getElementById('sidebarAvatar');
         const profilePreview = document.getElementById('profileAvatarPreview');
         [sidebarAvatar, profilePreview].filter(Boolean).forEach(container => {
-            if (safeHttpUrl(url)) {
+            if (safeImageUrl(url)) {
                 const image = document.createElement('img');
-                image.src = safeHttpUrl(url);
+                image.src = safeImageUrl(url);
                 image.alt = '';
                 container.replaceChildren(image);
             } else {
@@ -428,10 +428,15 @@ function renderOrderCard(order) {
 
     const itemsHtml = items.map(item => `
         <div class="order-line-item">
-            <img src="${escapeDashboardHtml(safeHttpUrl(item.image_url) || 'https://via.placeholder.com/48')}" alt="${escapeDashboardHtml(item.product_name)}">
-            <span class="item-name">${escapeDashboardHtml(item.product_name)}</span>
+            <img src="${escapeDashboardHtml(safeImageUrl(item.image_url) || safeImageUrl('assets/brand/product-placeholder.svg'))}" alt="${escapeDashboardHtml(item.product_name)}">
+            <span class="item-name">${escapeDashboardHtml(item.product_name)}${item.selected_size || item.selected_color
+                ? `<small>${[
+                    item.selected_size ? `Size: ${escapeDashboardHtml(item.selected_size)}` : '',
+                    item.selected_color ? `Colour: ${escapeDashboardHtml(item.selected_color)}` : '',
+                ].filter(Boolean).join(' · ')}</small>`
+                : ''}</span>
             <span class="item-qty">x${item.quantity}</span>
-            <span class="item-price">$${Number(item.price).toFixed(2)}</span>
+            <span class="item-price">$${Number(item.price).toFixed(2)} USD</span>
         </div>
     `).join('');
 
@@ -455,8 +460,8 @@ function renderOrderCard(order) {
                 ${itemsHtml}
             </div>
             <div class="order-card-footer">
-                <span>ETA: ${eta}${safeHttpUrl(order.waybill_url) ? ` · <a href="${escapeDashboardHtml(safeHttpUrl(order.waybill_url))}" target="_blank" rel="noopener">Track parcel</a>` : ''}${Number(order.discount_amount || 0) > 0 ? ` · Promo ${escapeDashboardHtml(order.promotion_code || '')} saved $${Number(order.discount_amount).toFixed(2)}` : ''}</span>
-                <strong>Total: $${Number(order.total).toFixed(2)}</strong>
+                <span>ETA: ${eta}${safeTrackingUrl(order.waybill_url) ? ` · <a href="${escapeDashboardHtml(safeTrackingUrl(order.waybill_url))}" target="_blank" rel="noopener">Track parcel</a>` : ''}${Number(order.discount_amount || 0) > 0 ? ` · Promo ${escapeDashboardHtml(order.promotion_code || '')} saved $${Number(order.discount_amount).toFixed(2)} USD` : ''}</span>
+                <strong>Total: $${Number(order.total).toFixed(2)} USD</strong>
             </div>
         </div>
     `;
@@ -469,10 +474,18 @@ function setNotificationBadge(count) {
     badge.hidden = count < 1;
 }
 
-function safeHttpUrl(value) {
+function safeImageUrl(value) {
+    try {
+        const url = new URL(value, document.baseURI);
+        const isSameOriginHttp = url.protocol === 'http:' && url.origin === window.location.origin;
+        return url.protocol === 'https:' || isSameOriginHttp ? url.href : '';
+    } catch { return ''; }
+}
+
+function safeTrackingUrl(value) {
     try {
         const url = new URL(value);
-        return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+        return url.protocol === 'https:' ? url.href : '';
     } catch { return ''; }
 }
 
@@ -487,7 +500,7 @@ function whatsappVerificationMessage(code, error) {
     const messages = {
         verification_not_configured: `WhatsApp verification has not been enabled by ${window.LuxeBrand?.name || 'ALKEBULAN'} yet.`,
         invalid_phone: 'Enter a valid WhatsApp number with its country code.',
-        number_unavailable: 'That WhatsApp number is already linked to another account.',
+        number_unavailable: 'That number could not be verified. Check it and try again, or contact support.',
         too_many_requests: 'Too many codes were requested. Please try again later.',
         resend_too_soon: 'Please wait a minute before requesting another code.',
         message_not_sent: 'WhatsApp could not deliver the code. Check the number and try again.',

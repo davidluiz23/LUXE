@@ -1,17 +1,35 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.112.4";
+import { getSupabaseServiceKey } from "../_shared/supabase-server.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Content-Type": "application/json",
-};
+function allowedOrigin(request: Request): string | null {
+  const configured = (
+    Deno.env.get("LUXE_ALLOWED_ORIGINS") || Deno.env.get("LUXE_SITE_URL") || ""
+  ).split(",").map((value) => value.trim()).filter(Boolean).map((value) => {
+    try { return new URL(value).origin; } catch { return ""; }
+  }).filter(Boolean);
+  const origin = request.headers.get("origin");
+  if (!configured.length) return null;
+  if (!origin) return configured[0];
+  return configured.includes(origin) ? origin : null;
+}
 
-const genericResponse = () =>
+function responseHeaders(origin: string) {
+  return {
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Content-Type": "application/json",
+    "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff",
+    "Vary": "Origin",
+  };
+}
+
+const genericResponse = (origin: string, status = 200) =>
   new Response(JSON.stringify({ ok: true }), {
-    status: 200,
-    headers: corsHeaders,
+    status,
+    headers: responseHeaders(origin),
   });
 
 function safeRedirect(
@@ -41,29 +59,35 @@ function safeRedirect(
 }
 
 Deno.serve(async (request) => {
+  const origin = allowedOrigin(request);
+  if (!origin) return new Response("Origin not allowed", { status: 403 });
   if (request.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: responseHeaders(origin) });
   }
 
   if (request.method !== "POST") {
-    return genericResponse();
+    return genericResponse(origin, 405);
   }
 
+  const contentLength = Number(request.headers.get("content-length") || 0);
+  if (contentLength > 4096) return genericResponse(origin, 413);
+
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const serviceRoleKey =
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const anonKey =
-    Deno.env.get("SUPABASE_ANON_KEY");
+    const serviceRoleKey = getSupabaseServiceKey();
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ||
+    Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
 
   if (!supabaseUrl || !serviceRoleKey || !anonKey) {
     console.error(
       "[password-reset] Missing Supabase environment variables.",
     );
-    return genericResponse();
+    return genericResponse(origin);
   }
 
   try {
-    const body = await request.json().catch(() => ({}));
+    const rawBody = await request.text();
+    if (rawBody.length > 4096) return genericResponse(origin, 413);
+    const body = JSON.parse(rawBody || "{}") as Record<string, unknown>;
 
     const email =
       typeof body?.email === "string"
@@ -79,8 +103,8 @@ Deno.serve(async (request) => {
     );
 
     // Never reveal malformed/not-found/wrong-portal information.
-    if (!email || !redirectTo) {
-      return genericResponse();
+    if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !redirectTo) {
+      return genericResponse(origin);
     }
 
     const serviceClient = createClient(
@@ -105,7 +129,7 @@ Deno.serve(async (request) => {
         "[password-reset] Account type lookup failed:",
         typeError.message,
       );
-      return genericResponse();
+      return genericResponse(origin);
     }
 
     const eligible =
@@ -114,7 +138,7 @@ Deno.serve(async (request) => {
         accountType === "customer");
 
     if (!eligible) {
-      return genericResponse();
+      return genericResponse(origin);
     }
 
     // Use the public Auth client only after the server-side account
@@ -144,9 +168,9 @@ Deno.serve(async (request) => {
       );
     }
 
-    return genericResponse();
+    return genericResponse(origin);
   } catch (error) {
     console.error("[password-reset] Unexpected error:", error);
-    return genericResponse();
+    return genericResponse(origin);
   }
 });

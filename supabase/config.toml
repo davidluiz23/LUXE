@@ -402,6 +402,18 @@ verify_jwt = true
 [functions.cloudinary-upload-signature]
 verify_jwt = true
 
+[functions.signup-flow]
+verify_jwt = true
+
+[functions.password-reset]
+verify_jwt = true
+
+[functions.order-notifications]
+verify_jwt = true
+
+[functions.commerce-maintenance]
+verify_jwt = false
+
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 

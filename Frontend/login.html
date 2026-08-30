@@ -7,12 +7,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/variables.css">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/auth.css">
-    <link rel="stylesheet" href="css/responsive.css?v=20260828-1">
-    <link id="alkebulanLuxuryStyles" rel="stylesheet" href="css/luxury.css?v=20260828-2">
-    <script id="alkebulanLuxuryUi" src="js/luxury-ui.js?v=20260828-1" defer></script>
+    <link rel="stylesheet" href="css/variables.css?v=20260830-1">
+    <link rel="stylesheet" href="css/style.css?v=20260830-1">
+    <link rel="stylesheet" href="css/auth.css?v=20260830-1">
+    <link rel="stylesheet" href="css/responsive.css?v=20260830-1">
+    <link id="alkebulanLuxuryStyles" rel="stylesheet" href="css/luxury.css?v=20260830-1">
+    <script id="alkebulanLuxuryUi" src="js/luxury-ui.js?v=20260830-1" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
@@ -127,11 +127,6 @@
             <div class="footer-col">
                 <h3>ALKEBULAN</h3>
                 <p>Premium clothing for the discerning.</p>
-                <div class="social-icons">
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-facebook"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                </div>
             </div>
             <div class="footer-col">
                 <h4>Quick Links</h4>
@@ -159,14 +154,14 @@
         <div class="footer-bottom"><p>&copy; 2026 ALKEBULAN. All rights reserved.</p></div>
     </footer>
 
-    <button id="backToTop" class="back-to-top"><i class="fas fa-arrow-up"></i></button>
+    <button type="button" id="backToTop" class="back-to-top" aria-label="Back to top"><i class="fas fa-arrow-up" aria-hidden="true"></i></button>
 
     <!-- ============ FORGOT PASSWORD MODAL ============ -->
-    <div id="forgotPasswordModal" class="otp-modal">
-        <div class="otp-modal-content">
-            <button type="button" id="closeForgotModal" class="otp-close">&times;</button>
+    <div id="forgotPasswordModal" class="otp-modal" role="dialog" aria-modal="true" aria-labelledby="forgotPasswordTitle" aria-hidden="true">
+        <div class="otp-modal-content" tabindex="-1">
+            <button type="button" id="closeForgotModal" class="otp-close" aria-label="Close password reset dialog">&times;</button>
             <div class="otp-icon"><i class="fas fa-key"></i></div>
-            <h2>Reset Your Password</h2>
+            <h2 id="forgotPasswordTitle">Reset Your Password</h2>
             <p>Enter the email on your account and we'll send you a link to set a new password.</p>
             <form id="forgotPasswordForm" class="auth-form" style="text-align:left;">
                 <div class="form-group">
@@ -182,16 +177,16 @@
         </div>
     </div>
 
-    <script src="js/brand-config.js"></script>
-    <script src="js/icons.js"></script>
+    <script src="js/brand-config.js?v=20260830-1"></script>
+    <script src="js/icons.js?v=20260830-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
-    <script src="js/supabase-client.js?v=20260828-1"></script>
-    <script src="js/products.js?v=20260825-2"></script>
-    <script src="js/cart.js?v=20260828-1"></script>
-    <script src="js/wishlist.js?v=20260828-1"></script>
-    <script src="js/search.js?v=20260828-1"></script>
-    <script src="js/animation.js?v=20260828-1"></script>
-    <script src="js/app.js?v=20260828-1"></script>
-    <script src="js/auth.js?v=20260827-4"></script>
+    <script src="js/supabase-client.js?v=20260830-1"></script>
+    <script src="js/products.js?v=20260830-1"></script>
+    <script src="js/cart.js?v=20260830-1"></script>
+    <script src="js/wishlist.js?v=20260830-1"></script>
+    <script src="js/search.js?v=20260830-1"></script>
+    <script src="js/animation.js?v=20260830-1"></script>
+    <script src="js/app.js?v=20260830-1"></script>
+    <script src="js/auth.js?v=20260830-1"></script>
 </body>
 </html>

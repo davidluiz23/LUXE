@@ -91,7 +91,7 @@ const LuxeAuth = {
     return !!supabaseClient;
   },
 
-  async requestSignupVerification(fullName, email) {
+  async requestSignupVerification(fullName, email, captchaToken = null) {
     if (!supabaseClient) {
       return {
         data: null,
@@ -105,6 +105,7 @@ const LuxeAuth = {
           action: "request",
           fullName,
           email,
+          captchaToken,
         },
       });
     } catch (error) {
@@ -541,6 +542,101 @@ const LuxeMetrics = {
   },
 };
 
+// Storefront money formatting is intentionally display-only. Orders and
+// quotes continue to send product IDs and let PostgreSQL calculate the
+// authoritative USD totals; NGN is shown as the catalog's local-price aid.
+const LuxeMoney = {
+  _format(value, currency, locale, fractionDigits) {
+    if (value === null || value === undefined || value === "") return "";
+    const amount = Number(value);
+    if (!Number.isFinite(amount)) return "";
+    try {
+      return new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency,
+        minimumFractionDigits: fractionDigits,
+        maximumFractionDigits: fractionDigits,
+      }).format(amount);
+    } catch {
+      const symbol = currency === "NGN" ? "₦" : "$";
+      return `${symbol}${amount.toFixed(fractionDigits)}`;
+    }
+  },
+
+  formatUSD(value) {
+    return this._format(value, "USD", "en-US", 2);
+  },
+
+  formatNGN(value) {
+    return this._format(value, "NGN", "en-NG", 0);
+  },
+
+  forProduct(product, oldPrice = false) {
+    const usdValue = oldPrice
+      ? product?.oldPriceUSD ?? product?.oldPrice
+      : product?.priceUSD ?? product?.price;
+    const ngnValue = oldPrice ? product?.oldPriceNGN : product?.priceNGN;
+    const usd = this.formatUSD(usdValue);
+    const ngn = this.formatNGN(ngnValue);
+    return {
+      usd,
+      ngn,
+      text: [usd, ngn].filter(Boolean).join(" / "),
+    };
+  },
+};
+
+const LuxeContact = {
+  async submit(payload = {}) {
+    if (!supabaseClient) {
+      return { data: null, error: { message: "Contact service is not configured." } };
+    }
+    const values = {
+      name: String(payload.name || "").trim().slice(0, 120),
+      email: String(payload.email || "").trim().toLowerCase().slice(0, 254),
+      phone: String(payload.phone || "").trim().slice(0, 40),
+      subject: String(payload.subject || "").trim().slice(0, 180),
+      message: String(payload.message || "").trim().slice(0, 5000),
+    };
+    if (!values.name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email) || !values.message) {
+      return { data: null, error: { message: "Enter your name, a valid email address, and a message." } };
+    }
+    try {
+      const { data, error } = await supabaseClient.rpc("submit_contact_message", {
+        p_name: values.name,
+        p_email: values.email,
+        p_phone: values.phone || null,
+        p_subject: values.subject || null,
+        p_message: values.message,
+      });
+      return { data: data || null, error };
+    } catch (error) {
+      return { data: null, error: { message: error?.message || "Unable to send your message." } };
+    }
+  },
+};
+
+const LuxeNewsletter = {
+  async subscribe(email, source = "storefront") {
+    if (!supabaseClient) {
+      return { data: null, error: { message: "Newsletter service is not configured." } };
+    }
+    const normalizedEmail = String(email || "").trim().toLowerCase().slice(0, 254);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      return { data: null, error: { message: "Enter a valid email address." } };
+    }
+    try {
+      const { data, error } = await supabaseClient.rpc("subscribe_newsletter", {
+        p_email: normalizedEmail,
+        p_source: String(source || "storefront").trim().slice(0, 80) || "storefront",
+      });
+      return { data: data || null, error };
+    } catch (error) {
+      return { data: null, error: { message: error?.message || "Unable to subscribe right now." } };
+    }
+  },
+};
+
 const LuxeWhatsApp = {
   async _invoke(body) {
     if (!supabaseClient) {
@@ -600,6 +696,8 @@ const LuxeOrders = {
       const rpcItems = items.map((item) => ({
         product_id: Number(item.product_id ?? item.id),
         quantity: Number(item.quantity),
+        size: String(item.size || "").trim().slice(0, 80) || null,
+        color: String(item.color || "").trim().slice(0, 80) || null,
       }));
 
       const invalidItem = rpcItems.some(
@@ -607,7 +705,8 @@ const LuxeOrders = {
           !Number.isInteger(item.product_id) ||
           item.product_id <= 0 ||
           !Number.isInteger(item.quantity) ||
-          item.quantity <= 0,
+          item.quantity <= 0 ||
+          item.quantity > 99,
       );
 
       if (invalidItem) {
@@ -646,7 +745,16 @@ const LuxeOrders = {
     const rpcItems = (items || []).map((item) => ({
       product_id: Number(item.product_id ?? item.id),
       quantity: Number(item.quantity),
+      size: String(item.size || "").trim().slice(0, 80) || null,
+      color: String(item.color || "").trim().slice(0, 80) || null,
     }));
+    const invalidItem = rpcItems.some((item) =>
+      !Number.isInteger(item.product_id) || item.product_id <= 0 ||
+      !Number.isInteger(item.quantity) || item.quantity <= 0 || item.quantity > 99
+    );
+    if (invalidItem) {
+      return { data: null, error: { message: "Your cart contains invalid items." } };
+    }
     try {
       return await supabaseClient.rpc("order_quote_secure_v1", {
         p_items: rpcItems,
@@ -687,6 +795,76 @@ const LuxeOrders = {
       .eq("payment_reference", reference)
       .maybeSingle();
     return error ? null : data;
+  },
+
+  async getAdminOrdersPage({ search = "", status = null, limit = 40, cursor = null } = {}) {
+    if (!supabaseClient) {
+      return {
+        data: { orders: [], hasMore: false, nextCursor: null },
+        error: { message: "Backend not configured." },
+      };
+    }
+
+    const safeSearch = String(search || "").trim().slice(0, 120);
+    const safeLimit = Math.max(1, Math.min(100, Math.trunc(Number(limit) || 40)));
+    const beforeCreatedAt = cursor?.createdAt || null;
+    const beforeId = cursor?.id || null;
+
+    try {
+      const result = await supabaseClient.rpc("admin_list_orders_v3", {
+        p_search: safeSearch,
+        p_status: status || null,
+        p_limit: safeLimit,
+        p_before_created_at: beforeCreatedAt,
+        p_before_id: beforeId,
+      });
+
+      if (!result.error) {
+        const payload = result.data || {};
+        return {
+          data: {
+            orders: Array.isArray(payload.orders) ? payload.orders : [],
+            hasMore: payload.hasMore === true,
+            nextCursor: payload.nextCursor || null,
+          },
+          error: null,
+        };
+      }
+
+      const functionMissing = result.error.code === "PGRST202" ||
+        String(result.error.message || "").includes("admin_list_orders_v3");
+      if (!functionMissing) {
+        return {
+          data: { orders: [], hasMore: false, nextCursor: null },
+          error: result.error,
+        };
+      }
+
+      // Safe rollout fallback while the cursor migration reaches production.
+      // Legacy RPCs are unpaged, so only use them for the first request.
+      if (beforeCreatedAt || beforeId) {
+        return {
+          data: { orders: [], hasMore: false, nextCursor: null },
+          error: null,
+        };
+      }
+      const legacy = safeSearch
+        ? await this.searchAdminOrders(safeSearch)
+        : await this.getAdminOrders();
+      return {
+        data: {
+          orders: legacy.data || [],
+          hasMore: false,
+          nextCursor: null,
+        },
+        error: legacy.error || null,
+      };
+    } catch (error) {
+      return {
+        data: { orders: [], hasMore: false, nextCursor: null },
+        error: { message: error?.message || "Unable to load orders." },
+      };
+    }
   },
 
   async getAdminOrders() {
@@ -1282,6 +1460,7 @@ const LuxePromotions = {
 
 const LuxeMedia = {
   PRODUCT_ASPECT_RATIO: 4 / 5,
+  PLACEHOLDER_PATH: "assets/brand/product-placeholder.svg",
   MAX_PRODUCT_BYTES: 40 * 1024 * 1024,
   MAX_PRODUCT_PIXELS: 100 * 1000 * 1000,
   RECOMMENDED_WIDTH: 1200,
@@ -1295,6 +1474,7 @@ const LuxeMedia = {
     "image/heif",
   ]),
   ALLOWED_IMAGE_EXTENSIONS: new Set(["jpg", "jpeg", "png", "webp", "avif", "heic", "heif"]),
+  _uploadMetadata: new Map(),
   PRESETS: {
     card: {
       widths: [240, 360, 480, 640, 800, 1000],
@@ -1350,6 +1530,35 @@ const LuxeMedia = {
       .replaceAll(">", "&gt;");
   },
 
+  placeholderUrl() {
+    try {
+      return new URL(this.PLACEHOLDER_PATH, document.baseURI).href;
+    } catch {
+      return this.PLACEHOLDER_PATH;
+    }
+  },
+
+  rememberUpload(url, media = {}) {
+    const safe = this.safeImageUrl(url);
+    const publicId = String(media.publicId || media.public_id || "").trim();
+    if (!safe || !publicId) return null;
+    const normalized = {
+      publicId,
+      width: Number(media.width) || null,
+      height: Number(media.height) || null,
+      bytes: Number(media.bytes) || null,
+      format: String(media.format || "").trim() || null,
+      originalFilename: String(media.originalFilename || media.original_filename || "").trim() || null,
+    };
+    this._uploadMetadata.set(safe, normalized);
+    return normalized;
+  },
+
+  metadataFor(url) {
+    const safe = this.safeImageUrl(url);
+    return safe ? this._uploadMetadata.get(safe) || null : null;
+  },
+
   safeImageUrl(value, { allowLocalPreview = false } = {}) {
     const candidate = String(value || "").trim();
     if (!candidate) return "";
@@ -1376,6 +1585,26 @@ const LuxeMedia = {
       );
     } catch {
       return false;
+    }
+  },
+
+  publicIdFromUrl(value) {
+    const safe = this.safeImageUrl(value);
+    if (!safe || !this.isCloudinaryUrl(safe)) return "";
+    try {
+      const segments = new URL(safe).pathname.split("/").filter(Boolean);
+      const uploadIndex = segments.indexOf("upload");
+      const versionIndex = segments.findIndex((segment, index) => index > uploadIndex && /^v\d+$/.test(segment));
+      if (uploadIndex < 0 || versionIndex < 0 || versionIndex >= segments.length - 1) return "";
+      const encodedPath = segments.slice(versionIndex + 1).join("/").replace(/\.[a-z0-9]+$/i, "");
+      const publicId = decodeURIComponent(encodedPath).trim();
+      return publicId &&
+        /^[A-Za-z0-9][A-Za-z0-9_./-]{0,254}$/.test(publicId) &&
+        !/(^|\/)\.\.(\/|$)/.test(publicId)
+        ? publicId
+        : "";
+    } catch {
+      return "";
     }
   },
 
@@ -1451,8 +1680,9 @@ const LuxeMedia = {
     const media = this.responsive(value, options);
     const escape = (item) => this.escapeAttribute(item);
     const priority = !!options.priority;
+    const displaySource = media.src || this.placeholderUrl();
     const attributes = [
-      `src="${escape(media.src)}"`,
+      `src="${escape(displaySource)}"`,
       media.srcset ? `srcset="${escape(media.srcset)}"` : "",
       media.srcset ? `sizes="${escape(media.sizes)}"` : "",
       `alt="${escape(options.alt || "")}"`,
@@ -1462,6 +1692,7 @@ const LuxeMedia = {
       `decoding="async"`,
       priority ? `fetchpriority="high"` : `fetchpriority="auto"`,
       `data-luxe-original="${escape(media.original)}"`,
+      `data-luxe-placeholder="${escape(this.placeholderUrl())}"`,
       options.className ? `class="${escape(options.className)}"` : "",
     ];
     return attributes.filter(Boolean).join(" ");
@@ -1470,7 +1701,7 @@ const LuxeMedia = {
   apply(image, value, options = {}) {
     if (!image) return null;
     const media = this.responsive(value, { ...options, allowLocalPreview: true });
-    image.src = media.src;
+    image.src = media.src || this.placeholderUrl();
     if (media.srcset) {
       image.srcset = media.srcset;
       image.sizes = media.sizes;
@@ -1485,6 +1716,9 @@ const LuxeMedia = {
     image.fetchPriority = options.priority ? "high" : "auto";
     if (options.alt !== undefined) image.alt = String(options.alt || "");
     image.dataset.luxeOriginal = media.original;
+    image.dataset.luxePlaceholder = this.placeholderUrl();
+    delete image.dataset.luxeOriginalFallbackUsed;
+    delete image.dataset.luxePlaceholderUsed;
     this.bindFallback(image);
     return media;
   },
@@ -1494,11 +1728,19 @@ const LuxeMedia = {
     image.dataset.luxeFallbackBound = "true";
     image.addEventListener("error", () => {
       const original = this.safeImageUrl(image.dataset.luxeOriginal, { allowLocalPreview: true });
-      if (!original || image.src === original || image.dataset.luxeFallbackUsed === "true") return;
-      image.dataset.luxeFallbackUsed = "true";
       image.removeAttribute("srcset");
       image.removeAttribute("sizes");
-      image.src = original;
+      const current = this.safeImageUrl(image.currentSrc || image.src, { allowLocalPreview: true });
+      if (original && current !== original && image.dataset.luxeOriginalFallbackUsed !== "true") {
+        image.dataset.luxeOriginalFallbackUsed = "true";
+        image.src = original;
+        return;
+      }
+      const placeholder = image.dataset.luxePlaceholder || this.placeholderUrl();
+      if (placeholder && current !== placeholder && image.dataset.luxePlaceholderUsed !== "true") {
+        image.dataset.luxePlaceholderUsed = "true";
+        image.src = placeholder;
+      }
     });
   },
 
@@ -1692,18 +1934,17 @@ const LuxeStorage = {
           error: { message: payload?.error?.message || "Cloudinary could not upload this image." },
         };
       }
-      return {
-        url: payload.secure_url,
-        media: {
-          publicId: payload.public_id || "",
-          width: Number(payload.width) || inspection.data?.width || null,
-          height: Number(payload.height) || inspection.data?.height || null,
-          bytes: Number(payload.bytes) || file.size,
-          format: payload.format || inspection.data?.format || "",
-          originalFilename: payload.original_filename || file.name,
-        },
-        error: null,
+      const media = {
+        publicId: payload.public_id || "",
+        public_id: payload.public_id || "",
+        width: Number(payload.width) || inspection.data?.width || null,
+        height: Number(payload.height) || inspection.data?.height || null,
+        bytes: Number(payload.bytes) || file.size,
+        format: payload.format || inspection.data?.format || "",
+        originalFilename: payload.original_filename || file.name,
       };
+      LuxeMedia.rememberUpload(payload.secure_url, media);
+      return { url: payload.secure_url, media, error: null };
     } catch (error) {
       console.error("[ALKEBULAN] Cloudinary upload error:", error);
       return {
@@ -1724,7 +1965,7 @@ const LuxeStorage = {
 
 const LuxeProducts = {
   _fromRow(row) {
-    return {
+    const product = {
       id: Number(row.id),
       name: row.name,
       brand: row.brand,
@@ -1749,15 +1990,29 @@ const LuxeProducts = {
           ? Number(row.old_price_ngn)
           : null,
       image: row.image,
+      imagePublicId: row.image_public_id || "",
       hoverImage: row.hover_image || "",
+      hoverImagePublicId: row.hover_image_public_id || "",
       rating: Number(row.rating),
+      reviewCount:
+        row.review_count !== null && row.review_count !== undefined
+          ? Math.max(0, Number(row.review_count) || 0)
+          : null,
       discount: !!row.discount,
       description: row.description || "",
       sizes: row.sizes || [],
       colors: row.colors || [],
       inStock: !!row.in_stock,
+      stockQuantity: row.stock_quantity !== null && row.stock_quantity !== undefined
+        ? Math.max(0, Math.trunc(Number(row.stock_quantity) || 0))
+        : (row.in_stock ? 1 : 0),
       tags: row.tags || [],
+      createdAt: row.created_at || null,
+      updatedAt: row.updated_at || null,
     };
+    LuxeMedia.rememberUpload(product.image, { publicId: product.imagePublicId });
+    LuxeMedia.rememberUpload(product.hoverImage, { publicId: product.hoverImagePublicId });
+    return product;
   },
 
   _toRow(product) {
@@ -1776,6 +2031,15 @@ const LuxeProducts = {
         ? Number.parseFloat(product.oldPriceNGN)
         : null;
 
+    const image = String(product.image || "").trim();
+    const hoverImage = String(product.hoverImage || "").trim();
+    const imagePublicId = String(
+      product.imagePublicId || LuxeMedia.metadataFor(image)?.publicId || "",
+    ).trim();
+    const hoverImagePublicId = String(
+      product.hoverImagePublicId || LuxeMedia.metadataFor(hoverImage)?.publicId || "",
+    ).trim();
+
     return {
       name: String(product.name || "Untitled Product").trim(),
       brand: String(product.brand || window.LuxeBrand?.name || "ALKEBULAN").trim(),
@@ -1785,8 +2049,10 @@ const LuxeProducts = {
       price_ngn: Number.isFinite(priceNGN) ? priceNGN : null,
       old_price: Number.isFinite(oldPrice) ? oldPrice : null,
       old_price_ngn: Number.isFinite(oldPriceNGN) ? oldPriceNGN : null,
-      image: String(product.image || "").trim(),
-      hover_image: String(product.hoverImage || "").trim(),
+      image,
+      image_public_id: imagePublicId || null,
+      hover_image: hoverImage,
+      hover_image_public_id: hoverImagePublicId || null,
       rating: Number.parseFloat(product.rating) || 5.0,
       discount: Boolean(
         (Number.isFinite(oldPrice) &&
@@ -1807,7 +2073,12 @@ const LuxeProducts = {
             .split(",")
             .map((value) => value.trim())
             .filter(Boolean),
-      in_stock: product.inStock !== undefined ? !!product.inStock : true,
+      stock_quantity: product.stockQuantity !== undefined && product.stockQuantity !== null
+        ? Math.min(1000000, Math.max(0, Math.trunc(Number(product.stockQuantity) || 0)))
+        : (product.inStock === false ? 0 : 1),
+      in_stock: product.stockQuantity !== undefined
+        ? Number(product.stockQuantity) > 0
+        : (product.inStock !== undefined ? !!product.inStock : true),
       tags: Array.isArray(product.tags)
         ? product.tags
             .map((tag) => String(tag).trim().toLowerCase())
@@ -2190,10 +2461,7 @@ async function syncAdminNavigation() {
 }
 
 function safeNavigationImage(value) {
-  try {
-    const url = new URL(value);
-    return ["http:", "https:"].includes(url.protocol) ? url.href : "";
-  } catch { return ""; }
+  return LuxeMedia.safeImageUrl(value);
 }
 
 function renderAccountControls(user, profile) {
@@ -2319,6 +2587,9 @@ if (typeof window !== "undefined") {
   window.LuxeProfile = LuxeProfile;
   window.LuxeCommerce = LuxeCommerce;
   window.LuxeMetrics = LuxeMetrics;
+  window.LuxeMoney = LuxeMoney;
+  window.LuxeContact = LuxeContact;
+  window.LuxeNewsletter = LuxeNewsletter;
   window.LuxeWhatsApp = LuxeWhatsApp;
   window.LuxeOrders = LuxeOrders;
   window.LuxeNotifications = LuxeNotifications;
