@@ -50,8 +50,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-function escapeHtmlBanner(str) {
-    return String(str || '').replace(/[&<>"']/g, (c) => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    }[c]));
-}
+function escapeHtmlBanner(value) { return window.LuxeUtils.escapeHtml(value); }

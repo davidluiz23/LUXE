@@ -2302,19 +2302,9 @@ function formatBytes(bytes) {
   return `${(value / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function escapeAdminHtml(value) {
-  return String(value || "").replace(/[&<>"']/g, (character) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;",
-  })[character]);
-}
+function escapeAdminHtml(value) { return window.LuxeUtils.escapeHtml(value); }
 
-function escapeAttr(value) {
-  return escapeAdminHtml(value);
-}
+function escapeAttr(value) { return window.LuxeUtils.escapeAttr(value); }
 
 function formatProductReference(productId) {
   const value = String(productId ?? "").trim();

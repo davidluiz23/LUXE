@@ -475,5 +475,5 @@ function prefillSavedAddress() {
   } catch { /* Ignore malformed legacy local storage. */ }
 }
 
-function escapeCheckoutHtml(value) { const div = document.createElement("div"); div.textContent = String(value || ""); return div.innerHTML; }
-function escapeCheckoutAttr(value) { return escapeCheckoutHtml(value).replace(/`/g, "&#96;"); }
+function escapeCheckoutHtml(value) { return window.LuxeUtils.escapeHtml(value); }
+function escapeCheckoutAttr(value) { return window.LuxeUtils.escapeAttr(value); }

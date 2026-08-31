@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" class="alkebulan-site">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="js/utils.js?v=20260830-2"></script>
+    <title>Signing In | ALKEBULAN</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/variables.css?v=20260830-1">
+    <link rel="stylesheet" href="css/style.css?v=20260830-1">
+    <link rel="stylesheet" href="css/auth.css?v=20260831-1">
+</head>
+<body class="oauth-callback-page">
+    <main class="oauth-callback-shell">
+        <section class="oauth-callback-card" aria-labelledby="oauthCallbackTitle" aria-live="polite">
+            <div id="oauthCallbackSpinner" class="loader-spinner" aria-hidden="true"></div>
+            <p class="login-eyebrow">Secure account access</p>
+            <h1 id="oauthCallbackTitle">Finishing your Google sign-in</h1>
+            <p id="oauthCallbackStatus">Please wait while we securely connect your ALKEBULAN account.</p>
+            <a id="oauthCallbackAction" class="btn btn-primary" href="login.html" hidden>Return to sign in</a>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
+    <script src="js/supabase-client.js?v=20260831-1"></script>
+    <script src="js/auth-callback.js?v=20260831-1"></script>
+</body>
+</html>

@@ -511,8 +511,4 @@ function whatsappVerificationMessage(code, error) {
     return messages[code] || error?.message || 'WhatsApp verification could not be completed.';
 }
 
-function escapeDashboardHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str == null ? '' : String(str);
-    return div.innerHTML;
-}
+function escapeDashboardHtml(value) { return window.LuxeUtils.escapeHtml(value); }

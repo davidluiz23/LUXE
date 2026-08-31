@@ -252,11 +252,7 @@ function updateCartCount() {
     document.querySelectorAll('.cart-count').forEach((badge) => { badge.textContent = count; });
 }
 
-function escapeCartHtml(value) {
-    return String(value ?? '').replace(/[&<>"']/g, (character) => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-    })[character]);
-}
+function escapeCartHtml(value) { return window.LuxeUtils.escapeHtml(value); }
 
 function productMoney(product, oldPrice = false) {
     const fallbackValue = Number(oldPrice ? product?.oldPrice : product?.price || 0);

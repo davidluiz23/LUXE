@@ -33,6 +33,11 @@ function safeAuthReturnPath(path) {
   return path === "checkout.html" ? path : "index.html";
 }
 
+function oauthCallbackUrl(returnPath) {
+  const destination = safeAuthReturnPath(returnPath);
+  return pageUrl(`auth-callback.html?returnTo=${encodeURIComponent(destination)}`);
+}
+
 function syncStorefrontSessionCache(user, profile = null) {
   if (typeof window === "undefined") return;
 
@@ -261,9 +266,8 @@ const LuxeAuth = {
       return await supabaseClient.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: pageUrl(safeAuthReturnPath(returnPath)),
+          redirectTo: oauthCallbackUrl(returnPath),
           queryParams: {
-            access_type: "offline",
             prompt: "select_account",
           },
         },
@@ -1523,11 +1527,7 @@ const LuxeMedia = {
   },
 
   escapeAttribute(value) {
-    return String(value ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;");
+    return window.LuxeUtils.escapeAttr(value);
   },
 
   placeholderUrl() {

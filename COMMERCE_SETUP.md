@@ -114,6 +114,34 @@ The Edge Function always verifies the widget token server-side. The browser
 widget alone is not treated as proof and its token is reset after each signup
 attempt.
 
+## Google account access
+
+The storefront uses Supabase Auth as the OAuth broker. Google client secrets
+belong in the Google and Supabase dashboards and must never be added to
+`Frontend/js` or committed to this repository.
+
+1. In Google Auth Platform, configure the app branding and audience. While the
+   app is in testing, add every tester's Google account to the test-user list.
+2. Under **Data Access**, keep only `openid`, `userinfo.email`, and
+   `userinfo.profile` for account access.
+3. Create a **Web application** OAuth client. Add this authorized JavaScript
+   origin: `https://luxe-nine-rust.vercel.app`.
+4. Add this exact authorized redirect URI (this is Supabase's callback, not a
+   storefront page):
+   `https://usqnacxmcbewifgmrtjs.supabase.co/auth/v1/callback`
+5. In Supabase Dashboard, open **Authentication > Sign In / Providers > Google**,
+   enable Google, paste the Google Client ID and Client Secret, then save.
+6. Under **Authentication > URL Configuration**, keep the production Site URL
+   and redirect wildcard listed in the Production URLs section below.
+7. Deploy the latest database migration so Google display names and profile
+   photos are copied into `public.profiles`: `supabase db push`.
+
+For local browser testing, add the local origin to the Google web client's
+authorized JavaScript origins and add the exact local
+`auth-callback.html?returnTo=...` URLs (or an appropriate localhost wildcard)
+to Supabase's redirect allow list. Serve `Frontend` over HTTP; OAuth cannot
+return to pages opened directly with `file://`.
+
 ## WhatsApp Cloud API
 
 Configure `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, and

@@ -1,13 +1,6 @@
 // js/shop.js - Shop Page Filtering, Sorting, and Search
 
-function escapeShopHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
+function escapeShopHtml(value) { return window.LuxeUtils.escapeHtml(value); }
 
 function getShopProductMoney(product, oldPrice = false) {
   try {

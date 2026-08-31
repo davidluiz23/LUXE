@@ -56,11 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderRelatedProducts(product);
 });
 
-function escapeProductHtml(value) {
-    return String(value ?? '').replace(/[&<>"']/g, character => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    })[character]);
-}
+function escapeProductHtml(value) { return window.LuxeUtils.escapeHtml(value); }
 
 function safeProductColor(value) {
     const aliases = {

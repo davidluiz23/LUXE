@@ -1,13 +1,6 @@
 // js/category.js - Category Pages (Men / Women)
 
-function escapeCategoryHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
+function escapeCategoryHtml(value) { return window.LuxeUtils.escapeHtml(value); }
 
 function getCategoryProductMoney(product, oldPrice = false) {
   try {

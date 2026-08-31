@@ -131,11 +131,7 @@ function updateWishlistCount() {
     });
 }
 
-function escapeWishlistHtml(value) {
-    return String(value ?? '').replace(/[&<>"']/g, (character) => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-    })[character]);
-}
+function escapeWishlistHtml(value) { return window.LuxeUtils.escapeHtml(value); }
 
 function wishlistMoney(product, oldPrice = false) {
     const fallbackValue = oldPrice ? product?.oldPrice : product?.price;

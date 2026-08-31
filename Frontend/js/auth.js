@@ -19,7 +19,10 @@ document.addEventListener("DOMContentLoaded", () => {
         JSON.stringify({
           id: user.id,
           email: user.email,
-          fullName: user.user_metadata?.full_name || "",
+          fullName:
+            user.user_metadata?.full_name ||
+            user.user_metadata?.name ||
+            "",
         }),
       );
       localStorage.setItem("luxe_logged_in", "true");
@@ -169,12 +172,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (googleSignInButton) {
     googleSignInButton.addEventListener("click", async () => {
+      if (
+        googleSignInButton.dataset.requiresTerms === "true" &&
+        !document.getElementById("terms")?.checked
+      ) {
+        showAuthError(
+          "Please agree to the Terms of Service and acknowledge the Privacy Notice.",
+        );
+        document.getElementById("terms")?.focus();
+        return;
+      }
+
       if (!window.LuxeAuth || !window.LuxeAuth.isReady()) {
         showAuthError("Account service is unavailable right now.");
         return;
       }
 
       const label = googleSignInButton.querySelector("span");
+      const idleLabel = label?.textContent || "Continue with Google";
       googleSignInButton.disabled = true;
       googleSignInButton.classList.add("is-loading");
       if (label) label.textContent = "Connecting to Google...";
@@ -184,7 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (error) {
         googleSignInButton.disabled = false;
         googleSignInButton.classList.remove("is-loading");
-        if (label) label.textContent = "Continue with Google";
+        if (label) label.textContent = idleLabel;
         showAuthError(
           error.message || "Google sign-in could not be started. Please try again.",
         );

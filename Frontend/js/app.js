@@ -1,13 +1,6 @@
 // js/app.js - Main Application Script
 
-function escapeAppHtml(value) {
-    return String(value ?? '')
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
-}
+function escapeAppHtml(value) { return window.LuxeUtils.escapeHtml(value); }
 
 function getAppProductMoney(product, oldPrice = false) {
     try {
