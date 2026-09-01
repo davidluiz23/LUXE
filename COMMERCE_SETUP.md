@@ -177,10 +177,13 @@ dashboard. General WhatsApp updates also require a verified number. These
 preferences are separate from the consent captured for transactional order
 messages.
 
-For optional email delivery, create a Resend API key, verify a domain, then set
-`RESEND_API_KEY` and `EMAIL_FROM`. For optional WhatsApp delivery, approve a
-template with body parameters in this order: customer name, update title, update
-message; set its name as `WHATSAPP_ADMIN_CUSTOMER_MESSAGE_TEMPLATE`.
+For optional email delivery, verify a sender address or domain in Brevo, then set
+`BREVO_API_KEY`, `BREVO_SENDER_EMAIL`, and `BREVO_SENDER_NAME` as Supabase Edge
+Function secrets. The same Brevo settings are shared with `signup-flow`; do not
+store the API key in a public database table or frontend file. For optional
+WhatsApp delivery, approve a template with body parameters in this order:
+customer name, update title, update message; set its name as
+`WHATSAPP_ADMIN_CUSTOMER_MESSAGE_TEMPLATE`.
 
 The `admin-messaging` function checks the authenticated admin role, keeps
 provider credentials server-side, rate-limits each admin to 20 targeted messages

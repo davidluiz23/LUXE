@@ -45,43 +45,49 @@ async function sendEmail(
 ): Promise<DeliveryResult> {
   if (!optedIn) return { status: "not_opted_in" };
   if (!email) return { status: "unavailable" };
-  const apiKey = Deno.env.get("RESEND_API_KEY");
-  const from = Deno.env.get("EMAIL_FROM");
-  if (!apiKey || !from) return { status: "not_configured" };
-
   const brand = (Deno.env.get("BRAND_NAME") || "ALKEBULAN").trim().slice(0, 80) || "ALKEBULAN";
+  const apiKey = (Deno.env.get("BREVO_API_KEY") || "").trim();
+  const senderEmail = (Deno.env.get("BREVO_SENDER_EMAIL") || "").trim();
+  const senderName = (Deno.env.get("BREVO_SENDER_NAME") || brand).trim().slice(0, 80) || brand;
+  if (!apiKey || !senderEmail) return { status: "not_configured" };
+
   const safeBrand = escapeHtml(brand);
   const safeName = escapeHtml(name);
   const safeTitle = escapeHtml(title);
   const safeMessage = escapeHtml(message).replace(/\n/g, "<br>");
   let response: Response;
   try {
-    response = await fetch("https://api.resend.com/emails", {
+    response = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${apiKey}`,
+        "api-key": apiKey,
+        "Accept": "application/json",
         "Content-Type": "application/json",
-        "Idempotency-Key": `luxe-admin-message-${deliveryId}`,
       },
       body: JSON.stringify({
-        from,
-        to: [email],
+        sender: {
+          name: senderName,
+          email: senderEmail,
+        },
+        to: [{ name, email }],
         subject: `${brand}: ${title}`,
-        text: `Hello ${name},\n\n${message}\n\n${brand} Customer Care`,
-        html: `<div style="font-family:Arial,sans-serif;line-height:1.65;color:#1b1b1b"><p>Hello ${safeName},</p><h2 style="font-size:20px">${safeTitle}</h2><p>${safeMessage}</p><p style="color:#777">${safeBrand} Customer Care</p></div>`,
+        textContent: `Hello ${name},\n\n${message}\n\n${brand} Customer Care`,
+        htmlContent: `<div style="font-family:Arial,sans-serif;line-height:1.65;color:#1b1b1b"><p>Hello ${safeName},</p><h2 style="font-size:20px">${safeTitle}</h2><p>${safeMessage}</p><p style="color:#777">${safeBrand} Customer Care</p></div>`,
+        headers: { idempotencyKey: deliveryId },
+        tags: ["luxe-admin-message"],
       }),
       signal: AbortSignal.timeout(10000),
     });
   } catch (error) {
-    console.error("[admin-messaging] Resend request failed:", error);
+    console.error("[admin-messaging] Brevo request failed:", error);
     return { status: "failed" };
   }
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
-    console.error("[admin-messaging] Resend failed:", response.status, payload);
+    console.error("[admin-messaging] Brevo failed:", response.status, payload);
     return { status: "failed" };
   }
-  return { status: "sent", reference: String(payload.id || "") };
+  return { status: "sent", reference: String(payload.messageId || "") };
 }
 
 async function sendWhatsApp(
