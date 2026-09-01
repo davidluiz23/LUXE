@@ -1,6 +1,7 @@
-// Public storefront switches only. Never place Paystack or WhatsApp secrets here.
+// Public storefront switches only. The payment gateway is authoritative for the
+// admin WhatsApp destination; never duplicate that operational number here.
 window.LUXE_PAYMENT_OVERRIDES = {
-  adminWhatsApp: "2348103463852",
+  adminWhatsApp: null,
   activeProvider: "whatsapp",
   providers: {
     whatsapp: { enabled: true },

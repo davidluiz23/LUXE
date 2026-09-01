@@ -9,6 +9,8 @@ let checkoutIdentity = {
   verifiedPhone: null,
 };
 let checkoutIdentityReady = Promise.resolve(checkoutIdentity);
+let checkoutPaymentConfig = null;
+let checkoutPaymentConfigReady = Promise.resolve(null);
 const checkoutBrandName = () => window.LuxeBrand?.name || "ALKEBULAN";
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -17,6 +19,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const loader = document.getElementById("loader");
   if (loader) setTimeout(() => { loader.style.display = "none"; }, 250);
 
+  checkoutPaymentConfigReady = loadPaymentConfig();
+  checkoutPaymentConfig = await checkoutPaymentConfigReady;
   configurePaymentOptions();
   prefillSavedAddress();
   checkoutIdentityReady = loadCheckoutIdentity();
@@ -67,9 +71,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
-    const provider = document.querySelector('input[name="payment"]:checked')?.value || "whatsapp";
-    const providerConfig = window.LuxePaymentConfig?.providers?.[provider];
+    const paymentConfig = await checkoutPaymentConfigReady;
+    const provider = document.querySelector('input[name="payment"]:checked:not(:disabled)')?.value;
+    if (!provider) return showCheckoutError("No order method is currently available. Please try again shortly.");
+    const providerConfig = paymentConfig?.providers?.[provider];
     if (!providerConfig?.enabled) return showCheckoutError("That payment option is not available yet.");
+    if (provider === "whatsapp" && !getAdminWhatsAppNumber(paymentConfig)) {
+      return showCheckoutError("WhatsApp ordering is temporarily unavailable. Please try again shortly.");
+    }
 
     const whatsappWindow = provider === "whatsapp" ? window.open("about:blank", "_blank") : null;
     const button = form.querySelector(".checkout-btn");
@@ -115,8 +124,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    const chatUrl = buildAdminWhatsAppUrl(order, cartItems, contact, shippingAddress);
-    if (provider === "whatsapp" && whatsappWindow) whatsappWindow.location.href = chatUrl;
+    const chatUrl = buildAdminWhatsAppUrl(order, cartItems, contact, shippingAddress, paymentConfig);
+    if (provider === "whatsapp" && whatsappWindow && chatUrl) {
+      whatsappWindow.location.href = chatUrl;
+    } else if (provider === "whatsapp") {
+      whatsappWindow?.close();
+    }
 
     const notificationPromise = window.LuxeOrders
       .sendWhatsAppNotifications("order_created", order.id)
@@ -128,8 +141,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (provider !== "whatsapp") {
       // Do not navigate away until the server has accepted the admin/customer
       // notification job; otherwise the browser can abort it mid-request.
+      const beginPayment = window.LuxePaymentProviders?.begin;
       const [payment] = await Promise.all([
-        window.LuxePaymentProviders.begin(provider, order),
+        typeof beginPayment === "function"
+          ? beginPayment(provider, order)
+          : Promise.resolve({ ok: false, error: "Secure payments are temporarily unavailable." }),
         notificationPromise,
       ]);
       if (!payment.ok) {
@@ -146,7 +162,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.saveCart?.([]);
     localStorage.removeItem("luxe_cart");
     window.updateCartCount?.();
-    renderOrderSuccess(order, chatUrl, !!whatsappWindow);
+    renderOrderSuccess(order, chatUrl, !!(whatsappWindow && chatUrl));
   });
 });
 
@@ -187,13 +203,43 @@ async function loadCheckoutIdentity() {
   return checkoutIdentity;
 }
 
+async function loadPaymentConfig() {
+  try {
+    const config = window.LuxePaymentConfigReady
+      ? await window.LuxePaymentConfigReady
+      : window.LuxePaymentConfig;
+    return config && typeof config === "object" ? config : null;
+  } catch (error) {
+    console.warn("[ALKEBULAN] Payment configuration is unavailable:", error);
+    return null;
+  }
+}
+
+function getAdminWhatsAppNumber(config = checkoutPaymentConfig) {
+  const digits = String(config?.adminWhatsApp || "").replace(/\D/g, "");
+  return /^[1-9]\d{6,14}$/.test(digits) ? digits : null;
+}
+
 function configurePaymentOptions() {
-  const enabled = !!window.LuxePaymentConfig?.providers?.paystack?.enabled;
-  const radio = document.getElementById("paystackPayment");
-  const option = document.getElementById("paystackOption");
-  if (radio) radio.disabled = !enabled;
-  option?.classList.toggle("is-disabled", !enabled);
-  if (enabled) option?.querySelector("em")?.remove();
+  const options = [
+    { provider: "whatsapp", radio: document.getElementById("whatsappOrder") },
+    { provider: "paystack", radio: document.getElementById("paystackPayment") },
+  ];
+  options.forEach(({ provider, radio }) => {
+    const configured = !!checkoutPaymentConfig?.providers?.[provider]?.enabled;
+    const enabled = configured && (provider !== "whatsapp" || !!getAdminWhatsAppNumber());
+    if (!radio) return;
+    radio.disabled = !enabled;
+    if (!enabled) radio.checked = false;
+    const option = radio.closest(".checkout-provider-option");
+    option?.classList.toggle("is-disabled", !enabled);
+    if (provider === "paystack" && enabled) option?.querySelector("em")?.remove();
+  });
+
+  const enabledOptions = options.filter(({ radio }) => radio && !radio.disabled);
+  const preferred = enabledOptions.find(({ provider }) => provider === checkoutPaymentConfig?.activeProvider)
+    || enabledOptions[0];
+  if (preferred?.radio) preferred.radio.checked = true;
 }
 
 function value(id) { return document.getElementById(id)?.value.trim() || ""; }
@@ -235,7 +281,6 @@ async function applyPromoCode() {
   appliedPromoCode = data.promotionCode;
   if (button) { button.disabled = false; button.textContent = "Apply"; }
   if (input) input.value = appliedPromoCode;
-  renderOrderTotals(data);
   setPromoStatus(`${data.percentOff}% discount applied.`, "success");
 }
 
@@ -304,7 +349,12 @@ async function updateOrderTotals({ promoCode = appliedPromoCode } = {}) {
     };
   }
 
-  renderOrderTotals(data);
+  if (!renderOrderTotals(data)) {
+    return {
+      data: null,
+      error: { message: "The checkout summary is unavailable. Please reload the page and try again." },
+    };
+  }
   return { data, error: null };
 }
 
@@ -337,15 +387,31 @@ function renderOrderTotalsUnavailable(subtotal) {
 }
 
 function renderOrderTotals(totals) {
-  const discount = Number(totals.discount || 0);
-  document.getElementById("checkoutSubtotal").textContent = currency(totals.subtotal);
-  document.getElementById("checkoutShipping").textContent = Number(totals.shipping) ? currency(totals.shipping) : "Free";
-  document.getElementById("checkoutTax").textContent = currency(totals.tax);
-  document.getElementById("checkoutTotal").textContent = currency(totals.total);
+  const elements = {
+    subtotal: document.getElementById("checkoutSubtotal"),
+    shipping: document.getElementById("checkoutShipping"),
+    tax: document.getElementById("checkoutTax"),
+    total: document.getElementById("checkoutTotal"),
+  };
+  const discount = Number(totals?.discount || 0);
+  if (elements.subtotal) elements.subtotal.textContent = currency(totals?.subtotal);
+  if (elements.shipping) {
+    elements.shipping.textContent = Number(totals?.shipping) ? currency(totals.shipping) : "Free";
+  }
+  if (elements.tax) elements.tax.textContent = currency(totals?.tax);
+  if (elements.total) elements.total.textContent = currency(totals?.total);
   const row = document.getElementById("promoDiscountRow");
   if (row) row.hidden = discount <= 0;
   const valueElement = document.getElementById("checkoutDiscount");
   if (valueElement) valueElement.textContent = `-${currency(discount)}`;
+  const missing = Object.entries(elements)
+    .filter(([, element]) => !element)
+    .map(([name]) => name);
+  if (missing.length) {
+    console.warn(`[ALKEBULAN] Checkout summary is missing: ${missing.join(", ")}.`);
+    return false;
+  }
+  return true;
 }
 
 function validateCheckoutForm() {
@@ -410,7 +476,9 @@ function clearCheckoutAttempt() {
   try { sessionStorage.removeItem("luxe_checkout_attempt"); } catch { /* Storage may be unavailable. */ }
 }
 
-function buildAdminWhatsAppUrl(order, cartItems, contact, address) {
+function buildAdminWhatsAppUrl(order, cartItems, contact, address, paymentConfig = checkoutPaymentConfig) {
+  const adminWhatsApp = getAdminWhatsAppNumber(paymentConfig);
+  if (!adminWhatsApp) return null;
   const items = cartItems.map((item) => {
     const product = getProduct(item.id);
     const options = [item.size ? `Size ${item.size}` : "", item.color ? `Colour ${item.color}` : ""].filter(Boolean).join(" / ");
@@ -426,13 +494,21 @@ function buildAdminWhatsAppUrl(order, cartItems, contact, address) {
     `Deliver to: ${address.address}, ${address.city}, ${address.state} ${address.zip}`,
     "", "Please confirm this order and the estimated delivery date.",
   ].filter((line, index, lines) => line !== "" || (index > 0 && lines[index - 1] !== "")).join("\n");
-  return `https://wa.me/${window.LuxePaymentConfig.adminWhatsApp}?text=${encodeURIComponent(message)}`;
+  return `https://wa.me/${adminWhatsApp}?text=${encodeURIComponent(message)}`;
 }
 
 function renderOrderSuccess(order, chatUrl, chatOpened) {
   const grid = document.querySelector(".checkout-grid");
   if (!grid) return;
-  grid.innerHTML = `<div class="checkout-success"><i class="fas fa-check-circle"></i><h2>Order saved successfully</h2><p>Your order <strong>${escapeCheckoutHtml(order.order_number)}</strong> is now in your account and the admin console.</p><p class="success-note">${chatOpened ? `Complete the WhatsApp message in the new tab so ${escapeCheckoutHtml(checkoutBrandName())} can confirm fulfilment.` : "WhatsApp did not open automatically. Use the button below to send the order."}</p><div class="checkout-success-actions"><a href="${escapeCheckoutAttr(chatUrl)}" target="_blank" rel="noopener" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> Send on WhatsApp</a><a href="dashboard.html" class="btn btn-primary"><i class="fas fa-box"></i> Track order</a><a href="shop.html" class="btn btn-outline">Continue shopping</a></div></div>`;
+  const whatsappAction = chatUrl
+    ? `<a href="${escapeCheckoutAttr(chatUrl)}" target="_blank" rel="noopener" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> Send on WhatsApp</a>`
+    : "";
+  const successNote = chatUrl
+    ? (chatOpened
+      ? `Complete the WhatsApp message in the new tab so ${escapeCheckoutHtml(checkoutBrandName())} can confirm fulfilment.`
+      : "WhatsApp did not open automatically. Use the button below to send the order.")
+    : "WhatsApp contact is temporarily unavailable. Your saved order can still be tracked in My Account.";
+  grid.innerHTML = `<div class="checkout-success"><i class="fas fa-check-circle"></i><h2>Order saved successfully</h2><p>Your order <strong>${escapeCheckoutHtml(order.order_number)}</strong> is now in your account and the admin console.</p><p class="success-note">${successNote}</p><div class="checkout-success-actions">${whatsappAction}<a href="dashboard.html" class="btn btn-primary"><i class="fas fa-box"></i> Track order</a><a href="shop.html" class="btn btn-outline">Continue shopping</a></div></div>`;
 }
 
 function setButtonState(button, disabled, label) {

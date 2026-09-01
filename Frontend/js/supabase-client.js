@@ -793,12 +793,23 @@ const LuxeOrders = {
 
   async getByPaymentReference(reference) {
     if (!supabaseClient || !reference) return null;
-    const { data, error } = await supabaseClient
-      .from("orders")
-      .select("id,order_number,payment_status")
-      .eq("payment_reference", reference)
-      .maybeSingle();
-    return error ? null : data;
+    try {
+      const { data, error } = await supabaseClient
+        .from("orders")
+        .select("id,order_number,payment_status")
+        .eq("payment_reference", reference)
+        .maybeSingle();
+
+      if (error) {
+        console.error("[ALKEBULAN] Payment order lookup failed:", error);
+        return null;
+      }
+
+      return data || null;
+    } catch (error) {
+      console.error("[ALKEBULAN] Payment order lookup error:", error);
+      return null;
+    }
   },
 
   async getAdminOrdersPage({ search = "", status = null, limit = 40, cursor = null } = {}) {
@@ -922,45 +933,74 @@ const LuxeOrders = {
     }
   },
 
-  async updateAdminOrder(orderId, fields) {
+  async updateAdminOrder(orderId, fields = {}) {
     if (!supabaseClient) return { data: null, error: { message: "Backend not configured." } };
-    const expectedVersion = Number(fields.expectedVersion);
-    const result = await supabaseClient.rpc("admin_update_order_v3", {
-      p_order_id: orderId,
-      p_status: fields.status,
-      p_estimated_min_days: fields.estimatedMinDays || null,
-      p_estimated_max_days: fields.estimatedMaxDays || null,
-      p_waybill_url: fields.waybillUrl || null,
-      p_expected_version: Number.isSafeInteger(expectedVersion) && expectedVersion >= 0
-        ? expectedVersion
-        : null,
-    });
-
-    // Keep a safe rollout path while the new migration reaches production.
-    if (result.error && (
-      result.error.code === "PGRST202" ||
-      String(result.error.message || "").includes("admin_update_order_v3")
-    )) {
-      return await supabaseClient.rpc("admin_update_order_v2", {
+    try {
+      const expectedVersion = Number(fields.expectedVersion);
+      const result = await supabaseClient.rpc("admin_update_order_v3", {
         p_order_id: orderId,
         p_status: fields.status,
         p_estimated_min_days: fields.estimatedMinDays || null,
         p_estimated_max_days: fields.estimatedMaxDays || null,
         p_waybill_url: fields.waybillUrl || null,
-        p_expected_updated_at: fields.expectedUpdatedAt || null,
+        p_expected_version: Number.isSafeInteger(expectedVersion) && expectedVersion >= 0
+          ? expectedVersion
+          : null,
       });
+
+      // Keep a safe rollout path while the new migration reaches production.
+      if (result.error && (
+        result.error.code === "PGRST202" ||
+        String(result.error.message || "").includes("admin_update_order_v3")
+      )) {
+        return await supabaseClient.rpc("admin_update_order_v2", {
+          p_order_id: orderId,
+          p_status: fields.status,
+          p_estimated_min_days: fields.estimatedMinDays || null,
+          p_estimated_max_days: fields.estimatedMaxDays || null,
+          p_waybill_url: fields.waybillUrl || null,
+          p_expected_updated_at: fields.expectedUpdatedAt || null,
+        });
+      }
+      return result;
+    } catch (error) {
+      console.error("[ALKEBULAN] Admin order update error:", error);
+      return {
+        data: null,
+        error: { message: error?.message || "Unable to update order." },
+      };
     }
-    return result;
   },
 
   async markAllAdminSeen() {
-    if (!supabaseClient) return { error: { message: "Backend not configured." } };
-    return await supabaseClient.rpc("admin_mark_all_orders_seen");
+    if (!supabaseClient) return { data: null, error: { message: "Backend not configured." } };
+    try {
+      return await supabaseClient.rpc("admin_mark_all_orders_seen");
+    } catch (error) {
+      console.error("[ALKEBULAN] Admin order seen-state update error:", error);
+      return {
+        data: null,
+        error: { message: error?.message || "Unable to mark orders as seen." },
+      };
+    }
   },
 
   async getAdminUnseenCount() {
     if (!supabaseClient) return { data: 0, error: { message: "Backend not configured." } };
-    return await supabaseClient.rpc("admin_unseen_order_count");
+    try {
+      const { data, error } = await supabaseClient.rpc("admin_unseen_order_count");
+      const count = Number(data);
+      return {
+        data: Number.isFinite(count) && count >= 0 ? Math.trunc(count) : 0,
+        error,
+      };
+    } catch (error) {
+      console.error("[ALKEBULAN] Admin unseen order count error:", error);
+      return {
+        data: 0,
+        error: { message: error?.message || "Unable to count unseen orders." },
+      };
+    }
   },
 
   async sendWhatsAppNotifications(action, orderId) {
@@ -1415,41 +1455,73 @@ const LuxeCustomers = {
 
   async getRecentActivity(limit = 30) {
     if (!supabaseClient) return { data: [], error: { message: "Backend not configured." } };
-    const { data, error } = await supabaseClient.rpc("admin_recent_activity", {
-      p_limit: Math.min(100, Math.max(1, Number(limit) || 30)),
-    });
-    return { data: data || [], error };
+    try {
+      const { data, error } = await supabaseClient.rpc("admin_recent_activity", {
+        p_limit: Math.min(100, Math.max(1, Math.trunc(Number(limit) || 30))),
+      });
+      return { data: Array.isArray(data) ? data : [], error };
+    } catch (error) {
+      console.error("[ALKEBULAN] Admin activity fetch error:", error);
+      return {
+        data: [],
+        error: { message: error?.message || "Unable to load recent activity." },
+      };
+    }
   },
 };
 
 const LuxePromotions = {
   async getAll() {
     if (!supabaseClient) return { data: [], error: { message: "Backend not configured." } };
-    const { data, error } = await supabaseClient.rpc("admin_list_promotions");
-    return { data: data || [], error };
+    try {
+      const { data, error } = await supabaseClient.rpc("admin_list_promotions");
+      return { data: Array.isArray(data) ? data : [], error };
+    } catch (error) {
+      console.error("[ALKEBULAN] Promotion fetch error:", error);
+      return {
+        data: [],
+        error: { message: error?.message || "Unable to load promotions." },
+      };
+    }
   },
 
-  async save(promotion) {
+  async save(promotion = {}) {
     if (!supabaseClient) return { data: null, error: { message: "Backend not configured." } };
-    return await supabaseClient.rpc("admin_upsert_promotion", {
-      p_id: promotion.id || null,
-      p_code: promotion.code,
-      p_percent_off: promotion.percentOff,
-      p_minimum_subtotal: promotion.minimumSubtotal || 0,
-      p_max_redemptions: promotion.maxRedemptions || null,
-      p_per_user_limit: promotion.perUserLimit || 1,
-      p_starts_at: promotion.startsAt || null,
-      p_ends_at: promotion.endsAt || null,
-      p_active: promotion.active !== false,
-    });
+    try {
+      return await supabaseClient.rpc("admin_upsert_promotion", {
+        p_id: promotion.id || null,
+        p_code: promotion.code,
+        p_percent_off: promotion.percentOff,
+        p_minimum_subtotal: promotion.minimumSubtotal || 0,
+        p_max_redemptions: promotion.maxRedemptions || null,
+        p_per_user_limit: promotion.perUserLimit || 1,
+        p_starts_at: promotion.startsAt || null,
+        p_ends_at: promotion.endsAt || null,
+        p_active: promotion.active !== false,
+      });
+    } catch (error) {
+      console.error("[ALKEBULAN] Promotion save error:", error);
+      return {
+        data: null,
+        error: { message: error?.message || "Unable to save promotion." },
+      };
+    }
   },
 
   async setActive(id, active) {
-    if (!supabaseClient) return { error: { message: "Backend not configured." } };
-    return await supabaseClient.rpc("admin_set_promotion_active", {
-      p_id: id,
-      p_active: !!active,
-    });
+    if (!supabaseClient) return { data: null, error: { message: "Backend not configured." } };
+    try {
+      return await supabaseClient.rpc("admin_set_promotion_active", {
+        p_id: id,
+        p_active: !!active,
+      });
+    } catch (error) {
+      console.error("[ALKEBULAN] Promotion status update error:", error);
+      return {
+        data: null,
+        error: { message: error?.message || "Unable to update promotion status." },
+      };
+    }
   },
 };
 
@@ -2464,6 +2536,95 @@ function safeNavigationImage(value) {
   return LuxeMedia.safeImageUrl(value);
 }
 
+function createSafeNavigationIcon(name, className) {
+  if (typeof document === "undefined" || typeof DOMParser === "undefined") return null;
+
+  const svgNamespace = "http://www.w3.org/2000/svg";
+  const allowedAttributes = {
+    svg: new Set([
+      "class", "viewBox", "fill", "stroke", "stroke-width",
+      "stroke-linecap", "stroke-linejoin", "aria-hidden", "focusable",
+    ]),
+    path: new Set(["d"]),
+    circle: new Set(["cx", "cy", "r"]),
+    rect: new Set(["x", "y", "width", "height", "rx", "ry"]),
+    ellipse: new Set(["cx", "cy", "rx", "ry"]),
+    line: new Set(["x1", "y1", "x2", "y2"]),
+    polyline: new Set(["points"]),
+    polygon: new Set(["points"]),
+    g: new Set(),
+  };
+  const numericValue = /^-?(?:\d+(?:\.\d+)?|\.\d+)$/;
+  const numericList = /^[-+\d.eE,\s]+$/;
+  const pathData = /^[MmZzLlHhVvCcSsQqTtAa\d.eE,+\-\s]+$/;
+
+  const isSafeAttributeValue = (attributeName, value) => {
+    if (!value || value.length > 2_000 || /[<>\u0000-\u001F]/.test(value)) return false;
+    if (attributeName === "class") {
+      return value.split(/\s+/).every((token) => /^[A-Za-z_][\w-]*$/.test(token));
+    }
+    if (attributeName === "viewBox" || attributeName === "points") return numericList.test(value);
+    if (attributeName === "d") return pathData.test(value);
+    if (attributeName === "fill") return value === "none" || value === "currentColor";
+    if (attributeName === "stroke") return value === "none" || value === "currentColor";
+    if (attributeName === "stroke-linecap" || attributeName === "stroke-linejoin") {
+      return ["butt", "round", "square", "miter", "bevel"].includes(value);
+    }
+    if (attributeName === "aria-hidden") return value === "true";
+    if (attributeName === "focusable") return value === "false";
+    return numericValue.test(value);
+  };
+
+  try {
+    const markup = window.LuxeIcons?.svg(name, className);
+    if (typeof markup !== "string" || !markup || markup.length > 10_000) return null;
+
+    const parsed = new DOMParser().parseFromString(markup, "image/svg+xml");
+    if (parsed.querySelector("parsererror")) return null;
+
+    // Parsed markup is never inserted. Rebuild only the small SVG subset used
+    // by the internal icon API so future icon sources cannot add executable DOM.
+    let nodeCount = 0;
+    const rebuild = (source) => {
+      const elementName = source.localName;
+      nodeCount += 1;
+      if (
+        !Object.prototype.hasOwnProperty.call(allowedAttributes, elementName) ||
+        nodeCount > 32 ||
+        source.prefix
+      ) {
+        return null;
+      }
+      const elementAttributes = allowedAttributes[elementName];
+
+      const target = document.createElementNS(svgNamespace, elementName);
+      for (const attribute of Array.from(source.attributes)) {
+        if (
+          attribute.prefix ||
+          !elementAttributes.has(attribute.name) ||
+          !isSafeAttributeValue(attribute.name, attribute.value)
+        ) {
+          return null;
+        }
+        target.setAttribute(attribute.name, attribute.value);
+      }
+
+      for (const child of Array.from(source.children)) {
+        const safeChild = rebuild(child);
+        if (!safeChild) return null;
+        target.appendChild(safeChild);
+      }
+      return target;
+    };
+
+    const icon = rebuild(parsed.documentElement);
+    return icon?.localName === "svg" ? icon : null;
+  } catch (error) {
+    console.warn("[ALKEBULAN] Navigation icon could not be rendered safely:", error);
+    return null;
+  }
+}
+
 function renderAccountControls(user, profile) {
   document.querySelectorAll('.user-icon:not([href="index.html"])').forEach((anchor) => {
     anchor.replaceChildren();
@@ -2471,7 +2632,8 @@ function renderAccountControls(user, profile) {
       anchor.href = "login.html";
       anchor.title = "Sign in";
       anchor.setAttribute("aria-label", "Sign in to your ALKEBULAN account");
-      anchor.innerHTML = window.LuxeIcons?.svg("user", "nav-svg-icon") || "";
+      const icon = createSafeNavigationIcon("user", "nav-svg-icon");
+      if (icon) anchor.appendChild(icon);
       return;
     }
 
@@ -2505,7 +2667,13 @@ function ensureNavbarNotificationControls() {
     link.title = "Notifications";
     link.setAttribute("aria-label", "Open notifications");
     link.hidden = true;
-    link.innerHTML = `${window.LuxeIcons?.svg("bell", "nav-svg-icon") || ""}<span class="navbar-notification-badge" hidden>0</span>`;
+    const icon = createSafeNavigationIcon("bell", "nav-svg-icon");
+    if (icon) link.appendChild(icon);
+    const badge = document.createElement("span");
+    badge.className = "navbar-notification-badge";
+    badge.hidden = true;
+    badge.textContent = "0";
+    link.appendChild(badge);
     container.insertBefore(link, container.querySelector(".user-icon, .hamburger"));
   });
 }

@@ -131,7 +131,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     if (panelId === "ordersPanel") {
-      window.LuxeOrders.markAllAdminSeen().then(() => updateAdminOrderBadge(0));
+      window.LuxeOrders.markAllAdminSeen().then(({ error } = {}) => {
+        if (!error) updateAdminOrderBadge(0);
+      });
       loadOrders();
     }
     if (panelId === "presencePanel") {
@@ -713,8 +715,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   document.getElementById("refreshOrdersBtn")?.addEventListener("click", async () => {
-    await window.LuxeOrders.markAllAdminSeen();
-    updateAdminOrderBadge(0);
+    const { error } = await window.LuxeOrders.markAllAdminSeen();
+    if (!error) updateAdminOrderBadge(0);
     await loadOrders();
   });
 

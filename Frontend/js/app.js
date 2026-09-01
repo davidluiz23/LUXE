@@ -280,28 +280,52 @@ function renderProducts(products, grid) {
 }
 
 // ========== NOTIFICATION TOAST ==========
+const notificationQueue = [];
+const NOTIFICATION_QUEUE_LIMIT = 6;
+let activeNotification = null;
+
 function showNotification(message, type = 'check') {
-    var existing = document.querySelector('.notification-toast');
-    if (existing) {
-        existing.remove();
+    const text = String(message || '').trim();
+    if (!text) return;
+
+    const pending = notificationQueue[notificationQueue.length - 1];
+    if (pending?.message === text && pending?.type === type) return;
+    if (notificationQueue.length >= NOTIFICATION_QUEUE_LIMIT) notificationQueue.shift();
+    notificationQueue.push({ message: text, type });
+    showNextNotification();
+}
+
+function showNextNotification() {
+    if (activeNotification || !notificationQueue.length) return;
+    if (!document.body) {
+        document.addEventListener('DOMContentLoaded', showNextNotification, { once: true });
+        return;
     }
 
+    const next = notificationQueue.shift();
     var notification = document.createElement('div');
+    activeNotification = notification;
+
     notification.className = 'notification-toast';
     notification.setAttribute('role', 'status');
     notification.setAttribute('aria-live', 'polite');
+    notification.setAttribute('aria-atomic', 'true');
     const icon = document.createElement('span');
     icon.className = 'notification-toast-icon';
-    icon.innerHTML = window.LuxeIcons?.svg(type) || '';
-    const text = document.createElement('span');
-    text.textContent = message;
-    notification.append(icon, text);
+    icon.innerHTML = window.LuxeIcons?.svg(next.type) || '';
+    const label = document.createElement('span');
+    label.textContent = next.message;
+    notification.append(icon, label);
     document.body.appendChild(notification);
-    setTimeout(function() {
+
+    window.setTimeout(function() {
+        notification.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
         notification.style.opacity = '0';
-        notification.style.transition = 'opacity 0.3s ease';
-        setTimeout(function() {
+        notification.style.transform = 'translateY(10px)';
+        window.setTimeout(function() {
             notification.remove();
+            if (activeNotification === notification) activeNotification = null;
+            showNextNotification();
         }, 300);
     }, 2000);
 }

@@ -25,16 +25,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (layoutView) layoutView.style.display = 'grid';
 
     const returnParams = new URLSearchParams(window.location.search);
-    if (returnParams.get('payment') === 'return' && returnParams.get('reference') && window.LuxePayments) {
-        const paymentOrder = await window.LuxeOrders.getByPaymentReference(returnParams.get('reference'));
-        if (paymentOrder) {
-            const { data } = await window.LuxePayments.verify(paymentOrder.id);
-            window.history.replaceState({}, '', 'dashboard.html');
-            if (data?.status === 'paid') {
+    if (returnParams.get('payment') === 'return' && returnParams.get('reference')) {
+        try {
+            if (!window.LuxeOrders || !window.LuxePayments) {
+                throw new Error('Payment services are unavailable.');
+            }
+
+            const paymentOrder = await window.LuxeOrders.getByPaymentReference(returnParams.get('reference'));
+            if (!paymentOrder) throw new Error('The payment order could not be found.');
+
+            const { data, error } = await window.LuxePayments.verify(paymentOrder.id);
+            if (error || !data) throw error || new Error('Payment verification returned no result.');
+
+            if (data.status === 'paid') {
                 window.saveCart?.([]);
                 window.updateCartCount?.();
                 alert(`Payment confirmed for ${paymentOrder.order_number}.`);
+            } else {
+                alert('Your payment is not confirmed yet. Check your order status again shortly.');
             }
+        } catch (error) {
+            console.error('[ALKEBULAN] Payment return verification failed:', error);
+            alert('We could not confirm this payment right now. Please check your order status or try again shortly.');
+        } finally {
+            window.history.replaceState({}, '', 'dashboard.html');
         }
     }
 

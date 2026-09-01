@@ -68,6 +68,70 @@ function fetchWithTimeout(input: string, init: RequestInit = {}, timeoutMs = 120
   return fetch(input, { ...init, signal: AbortSignal.timeout(timeoutMs) });
 }
 
+type PaystackCurrencyPolicy = {
+  code: string;
+  providerExponent: number;
+  baseFractionDigits: number;
+};
+
+// Paystack currently supports only these currencies. Its API requires two
+// provider subunit digits for every one of them, including XOF even though XOF
+// has no ISO fractional unit. Keep this provider-specific instead of silently
+// treating arbitrary ISO currencies as Paystack-compatible.
+const PAYSTACK_CURRENCY_POLICIES: Record<string, PaystackCurrencyPolicy> = {
+  NGN: { code: "NGN", providerExponent: 2, baseFractionDigits: 2 },
+  USD: { code: "USD", providerExponent: 2, baseFractionDigits: 2 },
+  GHS: { code: "GHS", providerExponent: 2, baseFractionDigits: 2 },
+  ZAR: { code: "ZAR", providerExponent: 2, baseFractionDigits: 2 },
+  KES: { code: "KES", providerExponent: 2, baseFractionDigits: 2 },
+  XOF: { code: "XOF", providerExponent: 2, baseFractionDigits: 0 },
+};
+
+function paystackCurrencyPolicy(value: unknown): PaystackCurrencyPolicy | null {
+  const code = String(value || "").trim().toUpperCase();
+  return PAYSTACK_CURRENCY_POLICIES[code] || null;
+}
+
+function baseAmountToPaystackMinorUnits(
+  value: unknown,
+  policy: PaystackCurrencyPolicy,
+): number | null {
+  const match = String(value ?? "").trim().match(/^(\d+)(?:\.(\d+))?$/);
+  if (!match) return null;
+  const fraction = match[2] || "";
+  if (/[^0]/.test(fraction.slice(policy.baseFractionDigits))) return null;
+
+  const baseDigits = `${match[1]}${fraction
+    .slice(0, policy.baseFractionDigits)
+    .padEnd(policy.baseFractionDigits, "0")}`;
+  let scaled = BigInt(baseDigits || "0");
+  const exponentDifference = policy.providerExponent - policy.baseFractionDigits;
+  if (exponentDifference >= 0) {
+    scaled *= 10n ** BigInt(exponentDifference);
+  } else {
+    const divisor = 10n ** BigInt(-exponentDifference);
+    if (scaled % divisor !== 0n) return null;
+    scaled /= divisor;
+  }
+  const amount = Number(scaled);
+  return Number.isSafeInteger(amount) ? amount : null;
+}
+
+function paystackMinorUnitsToBaseAmount(
+  value: unknown,
+  policy: PaystackCurrencyPolicy,
+): number | null {
+  const serialized = String(value ?? "").trim();
+  if (!/^\d+$/.test(serialized)) return null;
+  const minorAmount = Number(serialized);
+  if (!Number.isSafeInteger(minorAmount) || minorAmount <= 0) return null;
+  const exponentDifference = policy.providerExponent - policy.baseFractionDigits;
+  if (exponentDifference > 0 && minorAmount % (10 ** exponentDifference) !== 0) {
+    return null;
+  }
+  return minorAmount / (10 ** policy.providerExponent);
+}
+
 async function notifyAdminOfPayment(
   order: Record<string, unknown>,
   reference: string,
@@ -127,16 +191,21 @@ async function applyVerifiedPayment(
   currency: unknown,
   providerData: Record<string, unknown>,
 ): Promise<PaymentState> {
-  const minorAmount = Number(amountInMinorUnits);
-  if (!Number.isSafeInteger(minorAmount) || minorAmount < 0) {
+  const currencyPolicy = paystackCurrencyPolicy(currency);
+  if (!currencyPolicy) {
+    console.error("[payment-gateway] Paystack returned an unsupported currency.");
+    return { state: "mismatch" };
+  }
+  const baseAmount = paystackMinorUnitsToBaseAmount(amountInMinorUnits, currencyPolicy);
+  if (baseAmount === null) {
     return { state: "mismatch" };
   }
   const method = paymentMethodFields(providerData);
   const { data, error } = await service.rpc("service_mark_order_paid_v1", {
     p_order_id: orderId,
     p_reference: reference,
-    p_amount: minorAmount / 100,
-    p_currency: String(currency || ""),
+    p_amount: baseAmount,
+    p_currency: currencyPolicy.code,
     p_channel: method.payment_channel,
     p_method_label: method.payment_method_label,
   });
@@ -166,14 +235,41 @@ Deno.serve(async (request) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = getSupabaseServiceKey();
   const paystackKey = Deno.env.get("PAYSTACK_SECRET_KEY");
-  if (!supabaseUrl || !serviceKey || !paystackKey) return json({ error: "server_not_configured" }, 500, origin);
-  const service = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const contentLength = Number(request.headers.get("content-length") || 0);
   if (contentLength > 65_536) return json({ error: "request_too_large" }, 413, origin);
   const rawBody = await request.text();
   if (rawBody.length > 65_536) return json({ error: "request_too_large" }, 413, origin);
   let body: Record<string, unknown>;
   try { body = JSON.parse(rawBody); } catch { return json({ error: "invalid_json" }, 400, origin); }
+
+  const action = String(body.action || "");
+  if (!body.event && action === "config") {
+    const candidate = normalizePhone(Deno.env.get("WHATSAPP_ADMIN_NUMBER"));
+    const adminWhatsApp = /^[1-9]\d{6,14}$/.test(candidate) ? candidate : null;
+    const callbackUrl = Deno.env.get("PAYSTACK_CALLBACK_URL") ||
+      `${Deno.env.get("LUXE_SITE_URL") || ""}/dashboard.html?payment=return`;
+    const paystackEnabled = Deno.env.get("PAYSTACK_ENABLED") === "true" &&
+      Boolean(supabaseUrl && serviceKey && paystackKey) && validCallbackUrl(callbackUrl);
+    const activeProvider = adminWhatsApp ? "whatsapp" : paystackEnabled ? "paystack" : null;
+    return json({
+      ok: true,
+      paymentConfig: {
+        adminWhatsApp,
+        activeProvider,
+        providers: {
+          whatsapp: { enabled: Boolean(adminWhatsApp) },
+          paystack: { enabled: paystackEnabled },
+        },
+      },
+    }, 200, origin);
+  }
+
+  if (!supabaseUrl || !serviceKey || !paystackKey) {
+    return json({ error: "server_not_configured" }, 500, origin);
+  }
+  const service = createClient(supabaseUrl, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 
   if (body.event) {
     const signature = request.headers.get("x-paystack-signature") || "";
@@ -213,7 +309,6 @@ Deno.serve(async (request) => {
   if (authError || !authData.user) return json({ error: "authentication_required" }, 401, origin);
   if (Deno.env.get("PAYSTACK_ENABLED") !== "true") return json({ error: "payments_temporarily_disabled" }, 503, origin);
 
-  const action = String(body.action || "");
   const orderId = String(body.orderId || "");
   const { data: order } = await service.from("orders").select("*").eq("id", orderId).eq("user_id", authData.user.id).maybeSingle();
   if (!order || order.payment_provider !== "paystack") return json({ error: "order_not_found" }, 404, origin);
@@ -222,6 +317,14 @@ Deno.serve(async (request) => {
     if (order.payment_status === "paid") return json({ error: "order_already_paid" }, 409, origin);
     if (order.status === "cancelled" || order.inventory_released_at) {
       return json({ error: "order_expired" }, 409, origin);
+    }
+    const currencyPolicy = paystackCurrencyPolicy(order.currency);
+    if (!currencyPolicy) {
+      return json({ error: "payment_currency_not_supported" }, 422, origin);
+    }
+    const amountInMinorUnits = baseAmountToPaystackMinorUnits(order.total, currencyPolicy);
+    if (amountInMinorUnits === null || amountInMinorUnits <= 0) {
+      return json({ error: "payment_amount_invalid" }, 422, origin);
     }
     const reference = `${order.order_number}-${crypto.randomUUID().slice(0, 8)}`;
     const { data: preparation, error: preparationError } = await service.rpc(
@@ -273,8 +376,8 @@ Deno.serve(async (request) => {
         headers: { "Authorization": `Bearer ${paystackKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           email: order.contact_email,
-          amount: Math.round(Number(order.total) * 100),
-          currency: order.currency,
+          amount: amountInMinorUnits,
+          currency: currencyPolicy.code,
           reference: claimedReference,
           channels,
           callback_url: callbackUrl,

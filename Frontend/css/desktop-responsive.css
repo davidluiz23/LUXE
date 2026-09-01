@@ -1,0 +1,292 @@
+/*
+   Desktop-window responsiveness
+   -----------------------------
+   A narrow browser pane on a desktop should not inherit the phone/tablet
+   composition. These rules are intentionally limited to fine-pointer,
+   hover-capable devices so the existing mobile layouts stay untouched.
+*/
+
+/* Short laptop/desktop windows: reduce dead space without miniaturising the UI. */
+@media (any-hover: hover) and (any-pointer: fine) and (min-width: 1021px) and (max-height: 820px) {
+    html.alkebulan-site body.page-index .hero.luxury-home-hero {
+        height: clamp(500px, calc(100svh - var(--alk-nav-height)), 820px);
+        height: clamp(500px, calc(100dvh - var(--alk-nav-height)), 820px);
+        min-height: 0;
+    }
+
+    html.alkebulan-site body.page-index .luxury-home-hero .hero-layout {
+        height: 100%;
+        min-height: 0;
+    }
+
+    html.alkebulan-site body.page-index .luxury-home-hero .hero-copy {
+        min-height: 0;
+        padding-block: clamp(30px, 5svh, 48px);
+    }
+
+    html.alkebulan-site body.page-index .luxury-home-hero .hero-kicker {
+        margin-bottom: clamp(28px, 4svh, 40px);
+    }
+
+    html.alkebulan-site body.page-index .luxury-home-hero .hero-title {
+        font-size: clamp(4.5rem, min(8.2vw, 13svh), 7.5rem);
+    }
+
+    html.alkebulan-site body.page-index .luxury-home-hero .hero-sub {
+        margin-top: clamp(24px, 4svh, 36px);
+    }
+
+    html.alkebulan-site body.page-index .luxury-home-hero .hero-buttons {
+        margin-top: 22px;
+    }
+
+    html.alkebulan-site body.page-index .luxury-home-hero .hero-meta {
+        padding-top: clamp(24px, 4svh, 36px);
+    }
+
+    html.alkebulan-site body.page-index .luxury-home-hero .hero-visual {
+        height: 100%;
+        min-height: 0;
+    }
+
+    html.alkebulan-site body.login-page .login-container {
+        min-height: calc(100svh - var(--alk-nav-height) - 40px);
+        min-height: calc(100dvh - var(--alk-nav-height) - 40px);
+    }
+
+    html.alkebulan-site body.login-page .login-container .login-image {
+        min-height: 0;
+    }
+
+    html.alkebulan-site body.login-page .login-container .auth-form-wrapper {
+        padding-block: clamp(30px, 5svh, 48px);
+    }
+
+    html.alkebulan-site body.login-page .login-eyebrow {
+        margin-bottom: 12px;
+    }
+
+    html.alkebulan-site body.login-page .login-container .auth-form-wrapper h1 {
+        margin-bottom: 14px;
+        font-size: clamp(4rem, min(6.3vw, 11svh), 5.5rem);
+    }
+
+    html.alkebulan-site body.login-page .login-container .auth-subtitle {
+        margin-bottom: 20px;
+    }
+
+    html.alkebulan-site body.login-page .auth-divider {
+        margin: 16px 0;
+    }
+
+    html.alkebulan-site body.login-page .login-container .auth-form .form-group {
+        margin-bottom: 14px;
+    }
+
+    html.alkebulan-site body.login-page .login-container .remember-forgot {
+        margin: 2px 0 16px;
+    }
+
+    html.alkebulan-site body.login-page .login-container .auth-switch {
+        margin-top: 18px;
+    }
+
+    html.alkebulan-site body.login-page .login-container .auth-image-content h2 {
+        font-size: clamp(4rem, min(6.2vw, 12svh), 6rem);
+    }
+
+    html.alkebulan-site body.login-page .login-benefits {
+        margin-top: 24px;
+    }
+
+    html.alkebulan-site body.dashboard-page .dashboard-section {
+        padding-block: clamp(48px, 6svh, 64px);
+    }
+
+    html.alkebulan-site body.dashboard-page .dashboard-layout {
+        grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+        gap: clamp(32px, 4vw, 52px);
+    }
+}
+
+@media (any-hover: hover) and (any-pointer: fine) and (min-width: 641px) and (max-width: 1020px) {
+    /* Home: retain the editorial split while the desktop window is narrow. */
+    html.alkebulan-site body.page-index .hero.luxury-home-hero {
+        height: max(500px, calc(100svh - var(--alk-nav-height)));
+        height: max(500px, calc(100dvh - var(--alk-nav-height)));
+        min-height: 500px;
+    }
+
+    html.alkebulan-site body.page-index .luxury-home-hero .hero-layout {
+        height: 100%;
+        min-height: 0;
+        grid-template-columns: minmax(280px, .88fr) minmax(0, 1.12fr);
+    }
+
+    html.alkebulan-site body.page-index .luxury-home-hero .hero-copy {
+        min-height: 0;
+        padding: clamp(24px, 4svh, 38px) clamp(24px, 4vw, 40px);
+        border-right: 1px solid var(--alk-line);
+        border-bottom: 0;
+    }
+
+    html.alkebulan-site body.page-index .luxury-home-hero .hero-kicker {
+        margin-bottom: clamp(18px, 3svh, 26px);
+        gap: 14px;
+    }
+
+    html.alkebulan-site body.page-index .luxury-home-hero .hero-kicker::after {
+        width: clamp(38px, 6vw, 64px);
+    }
+
+    html.alkebulan-site body.page-index .luxury-home-hero .hero-title {
+        font-size: clamp(3.4rem, 9vw, 5rem) !important;
+    }
+
+    html.alkebulan-site body.page-index .luxury-home-hero .hero-sub {
+        max-width: none;
+        margin-top: clamp(16px, 2.6svh, 22px);
+        font-size: .68rem;
+        line-height: 1.58;
+    }
+
+    html.alkebulan-site body.page-index .luxury-home-hero .hero-buttons {
+        display: grid;
+        margin-top: clamp(16px, 2.5svh, 22px);
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    html.alkebulan-site body.page-index .luxury-home-hero .hero-buttons .btn {
+        width: 100%;
+        max-width: none;
+        min-height: 44px;
+        padding: 10px 14px;
+    }
+
+    html.alkebulan-site body.page-index .luxury-home-hero .hero-meta {
+        padding-top: clamp(16px, 2.6svh, 24px);
+    }
+
+    html.alkebulan-site body.page-index .luxury-home-hero .hero-visual {
+        height: 100%;
+        min-height: 0;
+        max-height: none;
+    }
+
+    /* Login: keep both halves visible in a resized desktop window. */
+    html.alkebulan-site body.login-page .auth-section {
+        padding: 12px;
+    }
+
+    html.alkebulan-site body.login-page .auth-section > .container {
+        width: 100%;
+    }
+
+    html.alkebulan-site body.login-page .login-container {
+        min-height: max(620px, calc(100svh - var(--alk-nav-height) - 24px));
+        min-height: max(620px, calc(100dvh - var(--alk-nav-height) - 24px));
+        grid-template-columns: minmax(320px, .94fr) minmax(0, 1.06fr);
+    }
+
+    html.alkebulan-site body.login-page .login-container .auth-form-wrapper {
+        width: auto;
+        min-height: 0;
+        padding: clamp(26px, 4vw, 42px) clamp(24px, 4vw, 38px);
+        align-items: stretch;
+    }
+
+    html.alkebulan-site body.login-page .login-container .auth-form-wrapper > * {
+        width: 100%;
+    }
+
+    html.alkebulan-site body.login-page .login-container .auth-form-wrapper h1 {
+        margin-bottom: 14px;
+        font-size: clamp(3rem, 7.2vw, 4.3rem);
+    }
+
+    html.alkebulan-site body.login-page .login-container .auth-subtitle {
+        margin-bottom: 18px;
+        font-size: .66rem;
+        line-height: 1.65;
+    }
+
+    html.alkebulan-site body.login-page .login-container .google-signin-btn {
+        min-height: 46px;
+    }
+
+    html.alkebulan-site body.login-page .login-container .auth-divider {
+        margin: 14px 0;
+    }
+
+    html.alkebulan-site body.login-page .login-container .auth-form .form-group {
+        margin-bottom: 13px;
+    }
+
+    html.alkebulan-site body.login-page .login-container .remember-forgot {
+        margin: 0 0 16px;
+    }
+
+    html.alkebulan-site body.login-page .login-container .login-actions {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    html.alkebulan-site body.login-page .login-container .auth-btn {
+        min-height: 46px;
+    }
+
+    html.alkebulan-site body.login-page .login-container .auth-switch {
+        margin-top: 16px;
+    }
+
+    html.alkebulan-site body.login-page .login-container .login-privacy-note {
+        margin-top: 9px;
+    }
+
+    html.alkebulan-site body.login-page .login-container .login-image {
+        display: flex;
+        min-height: 620px;
+    }
+
+    html.alkebulan-site body.login-page .login-container .auth-image-content {
+        padding: clamp(28px, 4vw, 42px);
+    }
+
+    html.alkebulan-site body.login-page .login-container .auth-image-content h2 {
+        font-size: clamp(3rem, 6vw, 4.4rem);
+    }
+
+    /* Dashboard: preserve sidebar/content hierarchy instead of flattening it. */
+    html.alkebulan-site body.dashboard-page .dashboard-layout {
+        grid-template-columns: minmax(176px, 200px) minmax(0, 1fr);
+        gap: clamp(18px, 3vw, 28px);
+    }
+
+    html.alkebulan-site body.dashboard-page .dashboard-sidebar {
+        position: sticky;
+        top: calc(var(--alk-nav-height) + 16px);
+    }
+
+    html.alkebulan-site body.dashboard-page .dashboard-nav {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    html.alkebulan-site body.dashboard-page .dashboard-nav-btn,
+    html.alkebulan-site body.dashboard-page .dashboard-nav-btn:hover,
+    html.alkebulan-site body.dashboard-page .dashboard-nav-btn.active {
+        min-height: 48px;
+        padding: 10px 8px;
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 9px;
+        text-align: left;
+        font-size: .56rem;
+    }
+
+    html.alkebulan-site body.dashboard-page .dashboard-nav-btn i {
+        width: 16px;
+    }
+}

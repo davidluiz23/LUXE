@@ -1,18 +1,12 @@
 // js/cart.js - Variant-aware cart management
 
 const CART_MAX_QUANTITY = 99;
+const GUEST_CART_STORAGE_KEY = 'luxe_cart';
 let cartQuoteGeneration = 0;
+let cartSessionStorageKey = null;
 
 function getCartStorageKey() {
-    const isLoggedIn = localStorage.getItem('luxe_logged_in') === 'true';
-    const storedUser = localStorage.getItem('luxe_user');
-    if (isLoggedIn && storedUser) {
-        try {
-            const user = JSON.parse(storedUser);
-            if (user?.email) return `luxe_cart_${user.email}`;
-        } catch { /* Fall back to the guest key below. */ }
-    }
-    return 'luxe_cart';
+    return getAccountCartStorageKey() || GUEST_CART_STORAGE_KEY;
 }
 
 function normalizeCartOption(value) {
@@ -54,9 +48,53 @@ function normalizeCart(cart) {
     return [...merged.values()];
 }
 
+function getAccountCartStorageKey(user = null) {
+    if (user?.email) return `luxe_cart_${user.email}`;
+    if (cartSessionStorageKey !== null) return cartSessionStorageKey;
+    try {
+        if (localStorage.getItem('luxe_logged_in') !== 'true') return '';
+        const storedUser = JSON.parse(localStorage.getItem('luxe_user') || 'null');
+        return storedUser?.email ? `luxe_cart_${storedUser.email}` : '';
+    } catch {
+        return '';
+    }
+}
+
+function getCheckoutDestination() {
+    return getAccountCartStorageKey() ? 'checkout.html' : 'login.html?returnTo=checkout.html';
+}
+
+function mergeGuestCartIntoAccountCart(user = null) {
+    const accountKey = getAccountCartStorageKey(user);
+    if (!accountKey) return false;
+    if (user?.email) cartSessionStorageKey = accountKey;
+
+    try {
+        const guestValue = localStorage.getItem(GUEST_CART_STORAGE_KEY);
+        if (guestValue === null) return false;
+
+        const guestCart = normalizeCart(JSON.parse(guestValue || '[]'));
+        if (!guestCart.length) {
+            localStorage.removeItem(GUEST_CART_STORAGE_KEY);
+            return false;
+        }
+
+        const accountValue = localStorage.getItem(accountKey);
+        const accountCart = normalizeCart(accountValue ? JSON.parse(accountValue) : []);
+        const mergedCart = normalizeCart([...accountCart, ...guestCart]);
+
+        // Only clear the recoverable guest copy after the account cart write succeeds.
+        localStorage.setItem(accountKey, JSON.stringify(mergedCart));
+        localStorage.removeItem(GUEST_CART_STORAGE_KEY);
+        return true;
+    } catch (error) {
+        console.error('Error merging guest cart:', error);
+        return false;
+    }
+}
+
 function loadCart() {
     try {
-        if (localStorage.getItem('luxe_logged_in') !== 'true') return [];
         const stored = localStorage.getItem(getCartStorageKey());
         return normalizeCart(stored ? JSON.parse(stored) : []);
     } catch (error) {
@@ -69,8 +107,10 @@ function saveCart(cart) {
     try {
         localStorage.setItem(getCartStorageKey(), JSON.stringify(normalizeCart(cart)));
         updateCartCount();
+        return true;
     } catch (error) {
         console.error('Error saving cart:', error);
+        return false;
     }
 }
 
@@ -164,12 +204,6 @@ function addToCart(productId, quantity = 1, options = {}) {
         notifyCart('This product is currently out of stock.', 'box');
         return false;
     }
-    if (localStorage.getItem('luxe_logged_in') !== 'true') {
-        notifyCart('Please sign in or create an account to add items to your cart.', 'lock');
-        setTimeout(() => { window.location.href = 'login.html'; }, 1500);
-        return false;
-    }
-
     const requestedQuantity = Math.min(CART_MAX_QUANTITY, Math.max(1, Math.trunc(Number(quantity) || 1)));
     const selected = resolveCartOptions(product, options || {});
     if (!selected.valid) {
@@ -200,7 +234,10 @@ function addToCart(productId, quantity = 1, options = {}) {
         incoming.quantity = Math.min(incoming.quantity, lineLimit);
         cart.push(incoming);
     }
-    saveCart(cart);
+    if (!saveCart(cart)) {
+        notifyCart('We could not save your cart in this browser. Please check your storage settings and try again.', 'box');
+        return false;
+    }
     notifyCart('Added to cart.', 'bag');
     return true;
 }
@@ -381,7 +418,52 @@ async function refreshCartQuote(items) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    const authAvailable = window.LuxeAuth?.isReady?.()
+        && typeof window.LuxeAuth.getCurrentUser === 'function';
+    let initialUser = null;
+    let authSessionChecked = false;
+
+    if (authAvailable) {
+        // Treat the cart as guest-scoped until the persisted auth session is
+        // verified; a stale UI cache must never consume the guest cart.
+        cartSessionStorageKey = '';
+        try {
+            initialUser = await window.LuxeAuth.getCurrentUser();
+            authSessionChecked = true;
+        } catch { /* Use the cached identity only when auth cannot be checked. */ }
+    }
+
+    if (authSessionChecked) {
+        if (initialUser) mergeGuestCartIntoAccountCart(initialUser);
+    } else {
+        mergeGuestCartIntoAccountCart();
+    }
     updateCartCount();
+    document.querySelector('a.checkout-btn[href="checkout.html"]')?.addEventListener('click', (event) => {
+        if (getAccountCartStorageKey()) return;
+        event.preventDefault();
+        window.location.href = getCheckoutDestination();
+    });
+    if (window.LuxeAuth?.isReady?.()) {
+        const syncCartIdentity = (user) => {
+            // Keep storage work outside the auth callback's synchronous turn.
+            window.setTimeout(() => {
+                if (user) mergeGuestCartIntoAccountCart(user);
+                else cartSessionStorageKey = '';
+                updateCartCount();
+                if (document.getElementById('cartItems')) {
+                    if (window.productsReady) {
+                        void Promise.resolve(window.productsReady).then(renderCartPage, renderCartPage);
+                    } else {
+                        renderCartPage();
+                    }
+                }
+            }, 0);
+        };
+        if (typeof window.LuxeAuth.onAuthStateChange === 'function') {
+            window.LuxeAuth.onAuthStateChange(syncCartIdentity);
+        }
+    }
     if (document.getElementById('cartItems')) {
         if (window.productsReady) await window.productsReady;
         renderCartPage();
@@ -389,12 +471,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function sendProductToWhatsApp(productId, quantity = 1, options = {}) {
-    if (addToCart(productId, quantity, options)) window.location.href = 'checkout.html';
+    if (addToCart(productId, quantity, options)) window.location.href = getCheckoutDestination();
 }
 
 window.CART_MAX_QUANTITY = CART_MAX_QUANTITY;
 window.getCartStorageKey = getCartStorageKey;
 window.getCartItemKey = getCartItemKey;
+window.mergeGuestCartIntoAccountCart = mergeGuestCartIntoAccountCart;
 window.getAvailableCartItems = getAvailableCartItems;
 window.loadCart = loadCart;
 window.saveCart = saveCart;

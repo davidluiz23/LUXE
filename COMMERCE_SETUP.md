@@ -148,6 +148,13 @@ Configure `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, and
 `WHATSAPP_ADMIN_NUMBER`. Approved templates are recommended for messages sent
 outside the customer-service conversation window.
 
+`WHATSAPP_ADMIN_NUMBER` is also the authoritative storefront ordering
+destination. The public `config` action in `payment-gateway` returns its
+normalized value to checkout; the frontend does not keep a phone-number copy.
+Deploy or redeploy `payment-gateway` with the frontend release that uses this
+configuration flow. If that configuration cannot be loaded, WhatsApp ordering
+fails closed instead of routing an order to a stale number.
+
 Template body parameter order:
 
 - `WHATSAPP_ADMIN_ORDER_TEMPLATE`: order number, customer name, phone, items,
@@ -258,8 +265,9 @@ and the unique database index prevents it from being attached to another user.
 
 1. Set `PAYSTACK_SECRET_KEY` and `PAYSTACK_ENABLED=true` in Supabase secrets.
 2. Set the Paystack webhook URL to the deployed `payment-gateway` function.
-3. Set `providers.paystack.enabled` to `true` in
-   `Frontend/js/store-config.js`.
+3. Deploy the current `payment-gateway`; the storefront reads provider
+   availability from its public `config` action, so no frontend secret or phone
+   number is required.
 4. Test initialization, callback, webhook signature validation, amount matching,
    and idempotent fulfilment with Paystack test keys before using live keys.
 
@@ -273,7 +281,7 @@ are migrated together and tested end to end.
 # Production URLs
 
 The production storefront is deployed on Vercel at
-`https://luxe-nine-rust.vercel.app/`. Keep this stable production origin in
+`https://alkebulan.boutique/`. Keep this stable production origin in
 Supabase Edge Function secrets; do not substitute a per-commit preview URL.
 
 In Supabase, open **Authentication > URL Configuration** and set:
