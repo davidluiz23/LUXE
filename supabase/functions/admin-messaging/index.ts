@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.4";
 import { sendPushToUsers } from "../_shared/web-push.ts";
 import { getSupabaseServiceKey } from "../_shared/supabase-server.ts";
+import { escapeEmailHtml, sendBrevoEmail } from "../_shared/brevo-email.ts";
 
 type DeliveryResult = { status: string; reference?: string };
 
@@ -29,12 +30,6 @@ function json(body: Record<string, unknown>, status: number, origin: string) {
   });
 }
 
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>'"]/g, (character) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;",
-  })[character] || character);
-}
-
 async function sendEmail(
   deliveryId: string,
   email: string | null,
@@ -46,48 +41,24 @@ async function sendEmail(
   if (!optedIn) return { status: "not_opted_in" };
   if (!email) return { status: "unavailable" };
   const brand = (Deno.env.get("BRAND_NAME") || "ALKEBULAN").trim().slice(0, 80) || "ALKEBULAN";
-  const apiKey = (Deno.env.get("BREVO_API_KEY") || "").trim();
-  const senderEmail = (Deno.env.get("BREVO_SENDER_EMAIL") || "").trim();
-  const senderName = (Deno.env.get("BREVO_SENDER_NAME") || brand).trim().slice(0, 80) || brand;
-  if (!apiKey || !senderEmail) return { status: "not_configured" };
-
-  const safeBrand = escapeHtml(brand);
-  const safeName = escapeHtml(name);
-  const safeTitle = escapeHtml(title);
-  const safeMessage = escapeHtml(message).replace(/\n/g, "<br>");
-  let response: Response;
-  try {
-    response = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "api-key": apiKey,
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        sender: {
-          name: senderName,
-          email: senderEmail,
-        },
-        to: [{ name, email }],
-        subject: `${brand}: ${title}`,
-        textContent: `Hello ${name},\n\n${message}\n\n${brand} Customer Care`,
-        htmlContent: `<div style="font-family:Arial,sans-serif;line-height:1.65;color:#1b1b1b"><p>Hello ${safeName},</p><h2 style="font-size:20px">${safeTitle}</h2><p>${safeMessage}</p><p style="color:#777">${safeBrand} Customer Care</p></div>`,
-        headers: { idempotencyKey: deliveryId },
-        tags: ["luxe-admin-message"],
-      }),
-      signal: AbortSignal.timeout(10000),
-    });
-  } catch (error) {
-    console.error("[admin-messaging] Brevo request failed:", error);
-    return { status: "failed" };
-  }
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    console.error("[admin-messaging] Brevo failed:", response.status, payload);
-    return { status: "failed" };
-  }
-  return { status: "sent", reference: String(payload.messageId || "") };
+  const safeBrand = escapeEmailHtml(brand);
+  const safeName = escapeEmailHtml(name);
+  const safeTitle = escapeEmailHtml(title);
+  const safeMessage = escapeEmailHtml(message).replace(/\n/g, "<br>");
+  const result = await sendBrevoEmail({
+    toEmail: email,
+    toName: name,
+    subject: `${brand}: ${title}`,
+    textContent: `Hello ${name},\n\n${message}\n\n${brand} Customer Care`,
+    htmlContent: `<div style="font-family:Arial,sans-serif;line-height:1.65;color:#1b1b1b"><p>Hello ${safeName},</p><h2 style="font-size:20px">${safeTitle}</h2><p>${safeMessage}</p><p style="color:#777">${safeBrand} Customer Care</p></div>`,
+    idempotencyKey: deliveryId,
+    tag: "luxe-admin-message",
+    logContext: "admin-messaging",
+  });
+  if (result.status === "not_configured") return { status: "not_configured" };
+  if (result.status === "invalid_recipient") return { status: "unavailable" };
+  if (!result.sent) return { status: "failed" };
+  return { status: "sent", reference: result.messageId || "" };
 }
 
 async function sendWhatsApp(

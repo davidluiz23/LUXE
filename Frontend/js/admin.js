@@ -448,6 +448,70 @@ document.addEventListener("DOMContentLoaded", async () => {
   let presenceLoading = false;
   let onlineCustomerIds = new Set();
   let customerPresenceAvailable = true;
+  const orderLifecycleActions = Object.freeze({
+    pending_confirmation: {
+      nextStatus: "processing",
+      label: "Start processing",
+      help: "Accept the order and begin fulfilment.",
+    },
+    awaiting_payment: {
+      nextStatus: null,
+      label: "Awaiting payment",
+      help: "Processing starts automatically after the payment provider confirms payment.",
+    },
+    processing: {
+      nextStatus: "confirmed",
+      label: "Ready for courier",
+      help: "Confirm packing is complete and the parcel is ready for collection.",
+    },
+    confirmed: {
+      nextStatus: "shipped",
+      label: "Handed to courier",
+      help: "Mark the parcel as handed over and on its way.",
+    },
+    shipped: {
+      nextStatus: "delivered",
+      label: "Mark delivered",
+      help: "Confirm the courier has completed delivery.",
+    },
+  });
+
+  function orderDeliveryResultLabel(result) {
+    if (!result) return "not reported";
+    const sentCount = Number(result.sent);
+    if (result.sent === true || result.delivered === true || (Number.isFinite(sentCount) && sentCount > 0)) {
+      return result.skipped ? "already sent" : "sent";
+    }
+    if (result.status === "queued") return "queued";
+    if (result.skipped) return "skipped";
+    return "unavailable";
+  }
+
+  async function copyInternalPackageId(button) {
+    const packageId = String(button?.dataset.packageId || "").trim();
+    if (!packageId) return;
+    let copied = false;
+    try {
+      await navigator.clipboard.writeText(packageId);
+      copied = true;
+    } catch (_error) {
+      const input = document.createElement("textarea");
+      try {
+        input.value = packageId;
+        input.setAttribute("readonly", "");
+        input.style.position = "fixed";
+        input.style.opacity = "0";
+        document.body.appendChild(input);
+        input.select();
+        copied = document.execCommand("copy");
+      } catch (_fallbackError) {
+        copied = false;
+      } finally {
+        input.remove();
+      }
+    }
+    showToast(copied ? `Package ID ${packageId} copied.` : "Could not copy the package ID.", !copied);
+  }
 
   function updateAdminOrderBadge(count) {
     const badge = document.getElementById("adminOrderBadge");
@@ -602,6 +666,26 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>`).join("");
       const customerMessage = encodeURIComponent(`Hi ${order.contact_name || "there"}, here is an update for ${adminBrandName()} order ${order.order_number}.`);
       const customerPhone = String(order.contact_phone || "").replace(/\D/g, "").replace(/^0/, "234");
+      const lifecycleAction = orderLifecycleActions[order.status] || null;
+      const internalPackageId = String(order.internal_package_id || order.internalPackageId || "").trim();
+      const packageIdMarkup = internalPackageId
+        ? `<div class="admin-internal-package-id">
+            <span>Internal package ID</span>
+            <code>${escapeAdminHtml(internalPackageId)}</code>
+            <button type="button" class="admin-copy-package-id" data-package-id="${escapeAttr(internalPackageId)}" aria-label="Copy internal package ID ${escapeAttr(internalPackageId)}"><i class="fas fa-copy" aria-hidden="true"></i> Copy</button>
+          </div>`
+        : `<div class="admin-internal-package-id is-pending">
+            <span>Internal package ID</span>
+            <strong>Generated when processing starts</strong>
+          </div>`;
+      const lifecycleMarkup = lifecycleAction
+        ? `<div class="admin-order-next-step">
+            <div><span>Next fulfilment step</span><strong>${escapeAdminHtml(lifecycleAction.label)}</strong><small>${escapeAdminHtml(lifecycleAction.help)}</small></div>
+            ${lifecycleAction.nextStatus ? `<button class="btn btn-primary admin-order-next-action" type="button" data-next-status="${escapeAttr(lifecycleAction.nextStatus)}" data-action-label="${escapeAttr(lifecycleAction.label)}">${escapeAdminHtml(lifecycleAction.label)}</button>` : ""}
+          </div>`
+        : `<div class="admin-order-next-step is-complete">
+            <div><span>Fulfilment lifecycle</span><strong>${order.status === "cancelled" ? "Order cancelled" : "Lifecycle complete"}</strong><small>Use the advanced controls only if another permitted change is required.</small></div>
+          </div>`;
 
       const attribution = order.last_admin_changed_at
         ? `<p class="admin-order-attribution"><i class="fas fa-user-check"></i> ${escapeAdminHtml(formatAdminAction(order.last_admin_action))} by ${escapeAdminHtml(order.last_admin_email || "Administrator")} · ${new Date(order.last_admin_changed_at).toLocaleString()}</p>`
@@ -624,11 +708,13 @@ document.addEventListener("DOMContentLoaded", async () => {
           <div class="admin-order-items"><h4>Items</h4>${items}</div>
         </div>
         <form class="admin-order-fulfilment">
-          <label>Status<select name="status">${["pending_confirmation","awaiting_payment","processing","confirmed","shipped","delivered","cancelled"].map((status) => `<option value="${status}" ${status === order.status ? "selected" : ""}>${status.replaceAll("_", " ")}</option>`).join("")}</select></label>
+          <div class="admin-order-guided-actions">${lifecycleMarkup}${packageIdMarkup}</div>
+          <p class="admin-order-delivery-hint">Status changes notify the customer by email, WhatsApp and browser push when each channel is available.</p>
+          <label><span class="admin-order-field-label">Status <small>(advanced/manual)</small></span><select name="status">${["pending_confirmation","awaiting_payment","processing","confirmed","shipped","delivered","cancelled"].map((status) => `<option value="${status}" ${status === order.status ? "selected" : ""}>${status.replaceAll("_", " ")}</option>`).join("")}</select></label>
           <label>ETA from (days)<input name="etaMin" type="number" min="1" max="90" value="${escapeAttr(order.estimated_delivery_min_days || "")}" placeholder="2"></label>
           <label>ETA to (days)<input name="etaMax" type="number" min="1" max="120" value="${escapeAttr(order.estimated_delivery_max_days || "")}" placeholder="5"></label>
           <label class="waybill-field">Waybill / tracking URL<input name="waybill" type="url" maxlength="1000" value="${escapeAttr(order.waybill_url || "")}" placeholder="https://…"></label>
-          <button class="btn btn-primary" type="submit">Save order</button>
+          <button class="btn btn-outline admin-order-save" type="submit">Save manual changes</button>
         </form>
       </article>`;
     }).join("");
@@ -645,13 +731,24 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
+    adminOrdersList.querySelectorAll(".admin-copy-package-id").forEach((button) => {
+      button.addEventListener("click", () => copyInternalPackageId(button));
+    });
+
     adminOrdersList.querySelectorAll(".admin-order-fulfilment").forEach((form) => {
+      form.querySelector(".admin-order-next-action")?.addEventListener("click", (event) => {
+        form.__luxeOrderSubmitter = event.currentTarget;
+        form.requestSubmit(form.querySelector(".admin-order-save"));
+        form.__luxeOrderSubmitter = null;
+      });
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
         const card = form.closest(".admin-order-card");
-        const button = form.querySelector('button[type="submit"]');
+        const button = form.__luxeOrderSubmitter || event.submitter || form.querySelector(".admin-order-save");
+        form.__luxeOrderSubmitter = null;
+        const actionLabel = String(button?.dataset.actionLabel || "").trim();
         const orderNumber = card.dataset.orderNumber;
-        const nextStatus = form.elements.status.value;
+        const nextStatus = button?.dataset.nextStatus || form.elements.status.value;
         const waybillUrl = form.elements.waybill.value.trim();
         if (waybillUrl && !isSafeHttpsUrl(waybillUrl)) {
           showToast("Tracking links must use a secure https:// URL.", true);
@@ -660,17 +757,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
         const isCancellation = nextStatus === "cancelled";
         const confirmed = await requestAdminConfirmation({
-          title: isCancellation ? `Cancel ${orderNumber}?` : `Confirm changes to ${orderNumber}?`,
+          title: isCancellation
+            ? `Cancel ${orderNumber}?`
+            : actionLabel
+              ? `${actionLabel} for ${orderNumber}?`
+              : `Confirm changes to ${orderNumber}?`,
           message: isCancellation
             ? "Cancelling an order affects fulfilment, promo usage and customer notifications. This action will be attributed to your admin account."
-            : `Save this order as ${nextStatus.replaceAll("_", " ")}? The customer account will update immediately and WhatsApp will be attempted separately when configured.`,
+            : `Save this order as ${nextStatus.replaceAll("_", " ")}? The customer account will update immediately, then email, WhatsApp and browser push delivery will be attempted when available.`,
           expectedText: isCancellation ? `CANCEL ${orderNumber}` : "",
           danger: isCancellation,
         });
         if (!confirmed) return;
-        button.disabled = true;
-        button.textContent = "Saving…";
-        const { error } = await window.LuxeOrders.updateAdminOrder(card.dataset.orderId, {
+        const submitButtons = [...form.querySelectorAll(".admin-order-next-action, .admin-order-save")];
+        const originalButtonLabels = submitButtons.map((submitButton) => submitButton.textContent);
+        submitButtons.forEach((submitButton) => { submitButton.disabled = true; });
+        if (button) button.textContent = "Saving…";
+        form.setAttribute("aria-busy", "true");
+        const { data: updateResult, error } = await window.LuxeOrders.updateAdminOrder(card.dataset.orderId, {
           status: nextStatus,
           estimatedMinDays: Number(form.elements.etaMin.value) || null,
           estimatedMaxDays: Number(form.elements.etaMax.value) || null,
@@ -678,8 +782,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           expectedVersion: Number(card.dataset.orderVersion),
           expectedUpdatedAt: card.dataset.updatedAt,
         });
-        button.disabled = false;
-        button.textContent = "Save order";
+        form.removeAttribute("aria-busy");
+        submitButtons.forEach((submitButton, index) => {
+          submitButton.disabled = false;
+          submitButton.textContent = originalButtonLabels[index];
+        });
         if (error) {
           const message = String(error.message || "");
           showToast(
@@ -691,9 +798,14 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (message.includes("ORDER_CONFLICT") || message.includes("another administrator")) await loadOrders();
           return;
         }
-        showToast("Order updated. Customer account history and in-app notification are current.");
-        const notificationPromise = window.LuxeOrders
-          .sendWhatsAppNotifications("order_updated", card.dataset.orderId)
+        if (updateResult?.changed === false) {
+          showToast("No order changes to save.");
+          return;
+        }
+        const notificationSender = window.LuxeOrders.sendOrderNotifications ||
+          window.LuxeOrders.sendWhatsAppNotifications;
+        const notificationPromise = notificationSender
+          .call(window.LuxeOrders, "order_updated", card.dataset.orderId)
           .catch((notifyError) => {
             console.warn("[ALKEBULAN] Order notification delivery unavailable:", notifyError);
             return { data: null, error: notifyError };
@@ -703,13 +815,14 @@ document.addEventListener("DOMContentLoaded", async () => {
           loadAdminActivity(),
           notificationPromise,
         ]);
-        if (!notification.error) {
-          const whatsappSent = !!notification.data?.customer?.sent;
-          const pushSent = Number(notification.data?.customerPush?.sent || 0) > 0;
-          if (whatsappSent && pushSent) showToast("WhatsApp and browser push updates sent.");
-          else if (pushSent) showToast("Browser push order update sent.");
-          else if (whatsappSent) showToast("WhatsApp order update sent.");
+        if (notification.error || notification.data?.error) {
+          showToast("Order saved, but email, WhatsApp and browser push delivery could not be confirmed.", true);
+          return;
         }
+        const emailResult = notification.data?.customerEmail || notification.data?.email;
+        showToast(
+          `Order saved. Email: ${orderDeliveryResultLabel(emailResult)} · WhatsApp: ${orderDeliveryResultLabel(notification.data?.customer)} · Push: ${orderDeliveryResultLabel(notification.data?.customerPush)}.`,
+        );
       });
     });
   }
@@ -1545,7 +1658,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const confirmed = await requestAdminConfirmation({
       title: `Publish “${title}”?`,
-      message: "This update will appear on the storefront and notify customer accounts in-app and by browser push when enabled.",
+      message: "This update will appear on the storefront and notify customer accounts in-app, by opted-in email, and by browser push when enabled.",
     });
     if (!confirmed) return;
 
@@ -1560,14 +1673,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const pushResult = await window.LuxePush?.broadcastUpdate(title, message);
     const pushDelivery = pushResult?.data?.delivery;
     const queuedDevices = Number(pushDelivery?.queued || 0);
+    const emailNote = " Brevo email is queued for opted-in accounts.";
     showToast(
       pushResult?.error || pushDelivery?.status === "not_configured"
-        ? "Update posted. Browser push is currently unavailable."
+        ? `Update posted.${emailNote} Browser push is currently unavailable.`
         : pushDelivery?.status === "queued"
-          ? `Update posted. Browser push queued for ${queuedDevices} subscribed device${queuedDevices === 1 ? "" : "s"}.`
+          ? `Update posted.${emailNote} Browser push queued for ${queuedDevices} subscribed device${queuedDevices === 1 ? "" : "s"}.`
         : pushDelivery?.status === "sent"
-          ? `Update posted and sent to ${pushDelivery.sent} subscribed device${pushDelivery.sent === 1 ? "" : "s"}.`
-          : "Update posted. No subscribed devices are active yet.",
+          ? `Update posted.${emailNote} Browser push sent to ${pushDelivery.sent} subscribed device${pushDelivery.sent === 1 ? "" : "s"}.`
+          : `Update posted.${emailNote} No subscribed browser devices are active yet.`,
     );
     await loadUpdates();
   });

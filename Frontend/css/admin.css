@@ -440,6 +440,25 @@
 .admin-order-fulfilment label { display: grid; gap: 5px; color: var(--gray-text); font-size: .68rem; font-weight: 600; }
 .admin-order-fulfilment input, .admin-order-fulfilment select { width: 100%; min-width: 0; padding: 9px 10px; border: 1px solid var(--border-color); border-radius: 7px; font: inherit; color: var(--primary); box-sizing: border-box; }
 .admin-order-fulfilment .btn { min-height: 39px; white-space: nowrap; }
+.admin-order-guided-actions { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(240px, .7fr); gap: 10px; }
+.admin-order-next-step, .admin-internal-package-id { min-width: 0; padding: 12px 14px; border: 1px solid #E8E1D4; border-radius: 10px; background: #FCFAF6; }
+.admin-order-next-step { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.admin-order-next-step > div { display: grid; min-width: 0; gap: 2px; }
+.admin-order-next-step span, .admin-internal-package-id span { color: var(--gray-text); font-size: .65rem; font-weight: 700; letter-spacing: .45px; text-transform: uppercase; }
+.admin-order-next-step strong { font-size: .9rem; }
+.admin-order-next-step small { color: var(--gray-text); font-size: .72rem; line-height: 1.4; }
+.admin-order-next-step.is-complete { background: #F4F8F4; border-color: #DCE9DC; }
+.admin-order-next-action { flex: 0 0 auto; }
+.admin-internal-package-id { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 9px; }
+.admin-internal-package-id span { grid-column: 1 / -1; margin-bottom: 3px; }
+.admin-internal-package-id code, .admin-internal-package-id strong { min-width: 0; overflow-wrap: anywhere; color: var(--primary); font-size: .8rem; }
+.admin-internal-package-id.is-pending { grid-template-columns: minmax(0, 1fr); }
+.admin-internal-package-id.is-pending strong { color: var(--gray-text); font-weight: 500; }
+.admin-copy-package-id { display: inline-flex; align-items: center; gap: 5px; padding: 6px 8px; border: 1px solid var(--border-color); border-radius: 7px; background: #fff; color: var(--primary); font: inherit; font-size: .7rem; font-weight: 700; cursor: pointer; }
+.admin-copy-package-id:hover { border-color: var(--accent); color: #8B6C12; }
+.admin-order-delivery-hint { grid-column: 1 / -1; margin: -1px 0 0; color: var(--gray-text); font-size: .68rem; line-height: 1.45; }
+.admin-order-field-label { display: flex; align-items: baseline; gap: 4px; }
+.admin-order-field-label small { font-size: .62rem; font-weight: 500; }
 
 .admin-product-live-preview { margin-top: 24px; padding: 18px; border: 1px solid var(--border-color); border-radius: 14px; background: var(--light-bg); }
 .admin-preview-label { display: flex; align-items: center; gap: 7px; margin-bottom: 12px; color: var(--gray-text); font-size: .74rem; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
@@ -1223,6 +1242,7 @@
     .admin-order-grid { grid-template-columns: minmax(0, 1fr); }
     .admin-order-fulfilment { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .admin-order-fulfilment .waybill-field { grid-column: 1 / -1; }
+    .admin-order-guided-actions { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Phones: tighten spacing, keep tap targets comfortable */
@@ -1318,6 +1338,9 @@
     .admin-order-fulfilment { grid-template-columns: minmax(0, 1fr); }
     .admin-order-fulfilment .waybill-field { grid-column: auto; }
     .admin-order-fulfilment .btn { width: 100%; }
+    .admin-order-next-step { align-items: stretch; flex-direction: column; }
+    .admin-internal-package-id { grid-template-columns: minmax(0, 1fr); row-gap: 8px; }
+    .admin-copy-package-id { width: 100%; justify-content: center; min-height: 38px; }
 
     .admin-panel-header {
         align-items: stretch;

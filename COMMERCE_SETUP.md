@@ -101,6 +101,51 @@ secrets configured on `commerce-maintenance` as well as `push-notifications`.
 Delivery is at-least-once after a worker crash; the stable per-broadcast Web Push
 tag lets browsers replace a replay instead of stacking duplicate visible alerts.
 
+## Brevo order and site-update emails
+
+Order emails are transactional and are queued by PostgreSQL as part of the order
+write. They do not depend on the checkout/admin browser remaining open, and they
+do not require the optional site-update preference. The `order-notifications`
+function attempts an immediate Brevo send after checkout or an admin status
+change; `commerce-maintenance` retries anything that remains in the private
+queue.
+
+The customer email lifecycle is:
+
+- order created: **Order received**;
+- `processing`: **Order processing**;
+- `confirmed`: **Order ready for courier**;
+- `shipped`: **Order shipping**, including the public HTTPS waybill URL when set;
+- `delivered`: **Order delivered**;
+- `cancelled`: **Order cancelled**.
+
+The admin console provides one-step controls for these transitions. An immutable
+`ALK-PKG-XXXXXXXXXXXX` internal package ID is generated when fulfilment starts.
+It is stored in the protected `order_admin_state` table and returned only by
+admin-authorized RPCs; it is intentionally different from the customer-visible
+courier/waybill URL and is never included in customer queries or emails.
+
+Publishing an active site update snapshots a Brevo delivery only for confirmed,
+active accounts that enabled site-update email. Consent and the current recipient
+address are checked again when the worker claims the message, so an opt-out before
+delivery is respected. These broadcasts have lower priority than order emails.
+`BREVO_EMAIL_BATCH_SIZE` controls the bounded batch (default 12, maximum 25),
+while `BREVO_BROADCAST_DAILY_LIMIT` limits site-update email claims per UTC day
+(default 200). These values are operational limits, not provider credentials.
+
+Set `BREVO_API_KEY`, `BREVO_SENDER_EMAIL`, and `BREVO_SENDER_NAME` in Supabase
+Edge Function secrets, then deploy the database and both delivery functions:
+
+```sh
+supabase db push
+supabase functions deploy order-notifications
+supabase functions deploy commerce-maintenance --no-verify-jwt
+```
+
+A successful Brevo API response means the message was accepted for delivery.
+Inbox delivery, bounces and complaints require Brevo transactional webhooks if
+provider-level delivery reporting is added later.
+
 ## Signup abuse protection
 
 Signup requests are rate-limited atomically in PostgreSQL. For public production

@@ -131,8 +131,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       whatsappWindow?.close();
     }
 
-    const notificationPromise = window.LuxeOrders
-      .sendWhatsAppNotifications("order_created", order.id)
+    const notificationSender = window.LuxeOrders.sendOrderNotifications ||
+      window.LuxeOrders.sendWhatsAppNotifications;
+    const notificationPromise = notificationSender
+      .call(window.LuxeOrders, "order_created", order.id)
       .catch((notifyError) => {
         console.warn("[ALKEBULAN] Order notifications were not sent:", notifyError);
         return { data: null, error: notifyError };

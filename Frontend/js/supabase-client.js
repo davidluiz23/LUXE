@@ -680,6 +680,37 @@ const LuxeWhatsApp = {
   },
 };
 
+function isMissingSupabaseRpc(error, rpcName) {
+  if (!error) return false;
+  return error.code === "PGRST202" ||
+    String(error.message || "").includes(rpcName);
+}
+
+function filterAdminOrderRows(orders, query) {
+  const search = String(query || "").trim().slice(0, 120);
+  if (!search) return orders || [];
+  const needle = search.toLowerCase();
+  const digits = needle.replace(/\D/g, "").replace(/^0+/, "") || "0";
+  return (orders || []).filter((order) => {
+    const orderValues = [
+      order.id, order.order_number, order.payment_reference,
+      order.internal_package_id, order.contact_name,
+      order.contact_email, order.contact_phone,
+    ];
+    if (orderValues.some((value) => String(value || "").toLowerCase().includes(needle))) return true;
+    return (order.order_items || []).some((item) => {
+      const productId = String(item.product_id || "");
+      const productRef = /^\d+$/.test(productId)
+        ? `alk-${productId.padStart(4, "0")}`
+        : productId.toLowerCase();
+      return String(item.product_name || "").toLowerCase().includes(needle) ||
+        productId.toLowerCase().includes(needle) ||
+        productRef.includes(needle) ||
+        (/^(alk[ -]?)?\d+$/i.test(search) && (productId.replace(/^0+/, "") || "0") === digits);
+    });
+  });
+}
+
 const LuxeOrders = {
   async createOrder(items, shippingAddress, contact, paymentProvider = "whatsapp", idempotencyKey, promoCode = null) {
     if (!supabaseClient) {
@@ -826,13 +857,18 @@ const LuxeOrders = {
     const beforeId = cursor?.id || null;
 
     try {
-      const result = await supabaseClient.rpc("admin_list_orders_v3", {
+      const rpcParams = {
         p_search: safeSearch,
         p_status: status || null,
         p_limit: safeLimit,
         p_before_created_at: beforeCreatedAt,
         p_before_id: beforeId,
-      });
+      };
+      let result = await supabaseClient.rpc("admin_list_orders_v4", rpcParams);
+
+      if (isMissingSupabaseRpc(result.error, "admin_list_orders_v4")) {
+        result = await supabaseClient.rpc("admin_list_orders_v3", rpcParams);
+      }
 
       if (!result.error) {
         const payload = result.data || {};
@@ -846,8 +882,7 @@ const LuxeOrders = {
         };
       }
 
-      const functionMissing = result.error.code === "PGRST202" ||
-        String(result.error.message || "").includes("admin_list_orders_v3");
+      const functionMissing = isMissingSupabaseRpc(result.error, "admin_list_orders_v3");
       if (!functionMissing) {
         return {
           data: { orders: [], hasMore: false, nextCursor: null },
@@ -863,12 +898,10 @@ const LuxeOrders = {
           error: null,
         };
       }
-      const legacy = safeSearch
-        ? await this.searchAdminOrders(safeSearch)
-        : await this.getAdminOrders();
+      const legacy = await this.getAdminOrders();
       return {
         data: {
-          orders: legacy.data || [],
+          orders: filterAdminOrderRows(legacy.data || [], safeSearch),
           hasMore: false,
           nextCursor: null,
         },
@@ -908,26 +941,7 @@ const LuxeOrders = {
       // Safe deployment fallback while the migration reaches production.
       const fallback = await this.getAdminOrders();
       if (fallback.error) return fallback;
-      const needle = search.toLowerCase();
-      const digits = needle.replace(/\D/g, "").replace(/^0+/, "") || "0";
-      const matches = (fallback.data || []).filter((order) => {
-        const orderValues = [
-          order.id, order.order_number, order.payment_reference,
-          order.contact_name, order.contact_email, order.contact_phone,
-        ];
-        if (orderValues.some((value) => String(value || "").toLowerCase().includes(needle))) return true;
-        return (order.order_items || []).some((item) => {
-          const productId = String(item.product_id || "");
-          const productRef = /^\d+$/.test(productId)
-            ? `alk-${productId.padStart(4, "0")}`
-            : productId.toLowerCase();
-          return String(item.product_name || "").toLowerCase().includes(needle) ||
-            productId.toLowerCase().includes(needle) ||
-            productRef.includes(needle) ||
-            (/^(alk[ -]?)?\d+$/i.test(search) && (productId.replace(/^0+/, "") || "0") === digits);
-        });
-      });
-      return { data: matches, error: null };
+      return { data: filterAdminOrderRows(fallback.data || [], search), error: null };
     } catch (error) {
       return { data: [], error: { message: error?.message || "Unable to search orders." } };
     }
@@ -937,7 +951,7 @@ const LuxeOrders = {
     if (!supabaseClient) return { data: null, error: { message: "Backend not configured." } };
     try {
       const expectedVersion = Number(fields.expectedVersion);
-      const result = await supabaseClient.rpc("admin_update_order_v3", {
+      const v4Params = {
         p_order_id: orderId,
         p_status: fields.status,
         p_estimated_min_days: fields.estimatedMinDays || null,
@@ -946,13 +960,15 @@ const LuxeOrders = {
         p_expected_version: Number.isSafeInteger(expectedVersion) && expectedVersion >= 0
           ? expectedVersion
           : null,
-      });
+      };
+      let result = await supabaseClient.rpc("admin_update_order_v4", v4Params);
+
+      if (isMissingSupabaseRpc(result.error, "admin_update_order_v4")) {
+        result = await supabaseClient.rpc("admin_update_order_v3", v4Params);
+      }
 
       // Keep a safe rollout path while the new migration reaches production.
-      if (result.error && (
-        result.error.code === "PGRST202" ||
-        String(result.error.message || "").includes("admin_update_order_v3")
-      )) {
+      if (isMissingSupabaseRpc(result.error, "admin_update_order_v3")) {
         return await supabaseClient.rpc("admin_update_order_v2", {
           p_order_id: orderId,
           p_status: fields.status,
@@ -1003,11 +1019,16 @@ const LuxeOrders = {
     }
   },
 
-  async sendWhatsAppNotifications(action, orderId) {
+  async sendOrderNotifications(action, orderId) {
     if (!supabaseClient) return { data: null, error: { message: "Backend not configured." } };
     return await supabaseClient.functions.invoke("order-notifications", {
       body: { action, orderId },
     });
+  },
+
+  // Backward compatibility for pages cached before the helper was renamed.
+  async sendWhatsAppNotifications(action, orderId) {
+    return await this.sendOrderNotifications(action, orderId);
   },
 };
 

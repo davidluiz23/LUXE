@@ -1,4 +1,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.4";
+import {
+  sendOrderStatusEmail,
+  type OrderEmailRecord,
+} from "../_shared/order-email.ts";
 import { sendPushToAdmins, sendPushToUsers } from "../_shared/web-push.ts";
 import {
   getSupabaseServiceKey,
@@ -6,6 +10,18 @@ import {
 } from "../_shared/supabase-server.ts";
 
 type NotificationAction = "order_created" | "order_updated";
+
+type EmailDeliveryClaim = {
+  delivery_id: string;
+  claim_token: string;
+  kind: "order" | "site_update";
+  order_id: string | null;
+  site_update_id: string | null;
+  template_key: string;
+  recipient_email: string;
+  recipient_name: string;
+  payload: Record<string, unknown> | null;
+};
 
 function allowedOrigin(request: Request): string | null {
   const configured = (Deno.env.get("LUXE_ALLOWED_ORIGINS") || Deno.env.get("LUXE_SITE_URL") || "")
@@ -151,6 +167,90 @@ async function deliverWithClaim(
   }
 }
 
+async function deliverQueuedOrderEmail(
+  service: SupabaseServiceClient,
+  order: OrderEmailRecord & { admin_version?: number },
+  dedupeKey: string,
+) {
+  const { data, error } = await service.rpc(
+    "service_claim_email_delivery_by_key_v1",
+    { p_dedupe_key: dedupeKey },
+  );
+  if (error) {
+    // The durable worker can still deliver the queued message. This also keeps
+    // rolling deployments safe when the Edge function reaches production first.
+    console.error("[order-notifications] Email queue claim failed:", error.message);
+    return { sent: false, queued: true, skipped: true, status: "queued" };
+  }
+
+  const claim = (Array.isArray(data) ? data[0] : data) as EmailDeliveryClaim | undefined;
+  if (!claim) {
+    return {
+      sent: false,
+      queued: false,
+      skipped: true,
+      status: "not_pending",
+    };
+  }
+
+  const payload = claim.payload && typeof claim.payload === "object" ? claim.payload : {};
+  const status = String(payload.status || order.status || "updated")
+    .toLowerCase()
+    .replace(/[^a-z_]/g, "") || "updated";
+  const rawVersion = Number(payload.admin_version ?? order.admin_version ?? 0);
+  const version = Number.isSafeInteger(rawVersion) && rawVersion >= 0 ? rawVersion : 0;
+  const eventKey = claim.template_key === "order_received"
+    ? `created:${order.id}`
+    : `status:${version}:${status}`;
+
+  try {
+    const result = await sendOrderStatusEmail({
+      ...order,
+      contact_email: claim.recipient_email,
+      contact_name: claim.recipient_name || order.contact_name,
+    }, eventKey, {
+      idempotencyKey: claim.delivery_id,
+      logContext: "order-notifications",
+    });
+    const finishResult = result.sent
+      ? "sent"
+      : result.status === "invalid_recipient"
+      ? "suppressed"
+      : result.retryable
+      ? "retry"
+      : "failed";
+    const { error: finishError } = await service.rpc(
+      "service_finish_email_delivery_v1",
+      {
+        p_claim_token: claim.claim_token,
+        p_result: finishResult,
+        p_provider_message_id: result.messageId || null,
+        p_error: result.sent ? null : result.reason || result.status,
+      },
+    );
+    if (finishError) {
+      console.error("[order-notifications] Email queue completion failed:", finishError.message);
+    }
+    return {
+      sent: result.sent,
+      accepted: result.sent,
+      queued: !result.sent && result.retryable,
+      status: result.status,
+      reference: result.messageId,
+    };
+  } catch (sendError) {
+    const message = sendError instanceof Error ? sendError.message : "Email delivery failed.";
+    await service.rpc("service_finish_email_delivery_v1", {
+      p_claim_token: claim.claim_token,
+      p_result: "retry",
+      p_provider_message_id: null,
+      p_error: message,
+    });
+    console.error("[order-notifications] Email delivery failed:", sendError);
+    return { sent: false, accepted: false, queued: true, status: "failed" };
+  }
+}
+
 Deno.serve(async (request) => {
   const origin = allowedOrigin(request);
   if (!origin) return new Response("Origin not allowed", { status: 403 });
@@ -231,7 +331,7 @@ Deno.serve(async (request) => {
 
     const pushAlreadySent = order.customer_push_notified_at && order.created_at &&
       new Date(order.customer_push_notified_at).getTime() >= new Date(order.created_at).getTime();
-    const [adminResult, customerResult, adminPushResult, customerPushResult] = await Promise.all([
+    const [adminResult, customerResult, adminPushResult, customerPushResult, customerEmailResult] = await Promise.all([
       order.admin_notified_at
         ? Promise.resolve({ sent: true, skipped: true, delivered: true })
         : deliverWithClaim(service, order.id, eventKey, "admin_whatsapp", () => sendWhatsApp(
@@ -268,6 +368,11 @@ Deno.serve(async (request) => {
           tag: `customer-order-${order.id}`,
           data: { orderId: order.id, orderNumber: order.order_number, audience: "customer" },
         })),
+      deliverQueuedOrderEmail(
+        service,
+        order as OrderEmailRecord & { admin_version?: number },
+        `order:${order.id}:received`,
+      ),
     ]);
 
     const stamps: Record<string, string> = {};
@@ -283,6 +388,7 @@ Deno.serve(async (request) => {
       customer: customerResult,
       adminPush: adminPushResult,
       customerPush: customerPushResult,
+      customerEmail: customerEmailResult,
     }, 200, origin);
   }
 
@@ -290,31 +396,47 @@ Deno.serve(async (request) => {
     new Date(order.customer_notified_at).getTime() >= new Date(order.updated_at).getTime();
   const eventKey = `updated:${String(order.admin_version ?? order.updated_at ?? order.id)}`.slice(0, 160);
   const updateText = `${brand} order ${order.order_number} is now ${String(order.status).replaceAll("_", " ")}. Estimated arrival: ${eta}.${order.waybill_url ? ` Track/waybill: ${order.waybill_url}` : ""}`;
-  const customerResult = !order.whatsapp_opt_in_at
-    ? { sent: false, skipped: true, delivered: false, reason: "Customer did not opt in." }
-    : alreadySent
-    ? { sent: true, skipped: true, delivered: true }
-    : await deliverWithClaim(service, order.id, eventKey, "customer_whatsapp", () => sendWhatsApp(
-      normalizePhone(order.contact_phone),
-      Deno.env.get("WHATSAPP_CUSTOMER_UPDATE_TEMPLATE") || null,
-      [order.contact_name, order.order_number, String(order.status).replaceAll("_", " "), eta, order.waybill_url || "Not available"],
-      updateText,
-    ));
   const pushAlreadySent = order.customer_push_notified_at && order.updated_at &&
     new Date(order.customer_push_notified_at).getTime() >= new Date(order.updated_at).getTime();
-  const customerPushResult = pushAlreadySent
-    ? { status: "sent", configured: true, attempted: 0, sent: 0, failed: 0, expired: 0, delivered: true }
-    : await deliverWithClaim(service, order.id, eventKey, "customer_push", () => sendPushToUsers(service, [order.user_id], {
-      title: `Order ${order.order_number} updated`,
-      body: `${brand} marked your order ${String(order.status).replaceAll("_", " ")}. Estimated arrival: ${eta}.`,
-      url: `dashboard.html?tab=orders&order=${encodeURIComponent(order.order_number)}`,
-      tag: `customer-order-${order.id}`,
-      data: { orderId: order.id, orderNumber: order.order_number, audience: "customer" },
-    }));
+  const emailEligible = ["processing", "confirmed", "shipped", "delivered", "cancelled"]
+    .includes(String(order.status));
+  const [customerResult, customerPushResult, customerEmailResult] = await Promise.all([
+    !order.whatsapp_opt_in_at
+      ? Promise.resolve({ sent: false, skipped: true, delivered: false, reason: "Customer did not opt in." })
+      : alreadySent
+      ? Promise.resolve({ sent: true, skipped: true, delivered: true })
+      : deliverWithClaim(service, order.id, eventKey, "customer_whatsapp", () => sendWhatsApp(
+        normalizePhone(order.contact_phone),
+        Deno.env.get("WHATSAPP_CUSTOMER_UPDATE_TEMPLATE") || null,
+        [order.contact_name, order.order_number, String(order.status).replaceAll("_", " "), eta, order.waybill_url || "Not available"],
+        updateText,
+      )),
+    pushAlreadySent
+      ? Promise.resolve({ status: "sent", configured: true, attempted: 0, sent: 0, failed: 0, expired: 0, delivered: true })
+      : deliverWithClaim(service, order.id, eventKey, "customer_push", () => sendPushToUsers(service, [order.user_id], {
+        title: `Order ${order.order_number} updated`,
+        body: `${brand} marked your order ${String(order.status).replaceAll("_", " ")}. Estimated arrival: ${eta}.`,
+        url: `dashboard.html?tab=orders&order=${encodeURIComponent(order.order_number)}`,
+        tag: `customer-order-${order.id}`,
+        data: { orderId: order.id, orderNumber: order.order_number, audience: "customer" },
+      })),
+    emailEligible
+      ? deliverQueuedOrderEmail(
+        service,
+        order as OrderEmailRecord & { admin_version?: number },
+        `order:${order.id}:status:${order.status}`,
+      )
+      : Promise.resolve({ sent: false, queued: false, skipped: true, status: "not_applicable" }),
+  ]);
   const stamps: Record<string, string> = {};
   const now = new Date().toISOString();
   if (customerResult.delivered) stamps.customer_notified_at = now;
   if (customerPushResult.delivered) stamps.customer_push_notified_at = now;
   if (Object.keys(stamps).length) await service.from("orders").update(stamps).eq("id", order.id);
-  return json({ ok: true, customer: customerResult, customerPush: customerPushResult }, 200, origin);
+  return json({
+    ok: true,
+    customer: customerResult,
+    customerPush: customerPushResult,
+    customerEmail: customerEmailResult,
+  }, 200, origin);
 });
