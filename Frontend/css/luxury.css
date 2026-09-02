@@ -2105,3 +2105,42 @@ html.alkebulan-site .signup-captcha {
     margin: 0 0 18px;
 }
 html.alkebulan-site .signup-captcha[hidden] { display: none; }
+
+/* Search toggle is a real <button> for accessibility; keep the icon look. */
+html.alkebulan-site .nav-icons button.search-icon {
+    display: grid;
+    width: 36px;
+    height: 40px;
+    place-items: center;
+    color: var(--alk-ink);
+    border-radius: var(--alk-radius-sm);
+    font-size: 1rem;
+    line-height: 1;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    transition: color var(--alk-fast) ease, background var(--alk-fast) ease, transform var(--alk-fast) var(--alk-ease);
+}
+html.alkebulan-site .nav-icons button.search-icon:hover {
+    background: rgba(139, 112, 79, .09);
+    color: var(--alk-bronze);
+    transform: translateY(-1px);
+}
+html.alkebulan-site .nav-icons button.search-icon:focus-visible {
+    outline: 2px solid var(--alk-bronze);
+    outline-offset: 3px;
+}
+html.alkebulan-site .forgot-link {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    font: inherit;
+}
+html.alkebulan-site .whatsapp-consent[hidden] { display: none; }
+
+/* Shared inline auth error messages (login / reset / verify forms). */
+html.alkebulan-site .auth-message.error { color: #C0392B; }

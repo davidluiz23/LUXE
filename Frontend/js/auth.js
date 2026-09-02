@@ -325,7 +325,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!email) return;
 
       if (!window.LuxeAuth || !window.LuxeAuth.isReady()) {
-        alert("Account service is unavailable right now.");
+        if (forgotError) {
+          forgotError.textContent =
+            "Account service is unavailable right now. Please try again.";
+          forgotError.style.display = "block";
+        }
         return;
       }
 

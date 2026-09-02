@@ -63,6 +63,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       "Choose a new password for your administrator account.";
   }
 
+  function showResetFormError(message) {
+    const errorText = document.getElementById("resetFormError");
+    const subtitleEl = document.getElementById("resetSubtitle");
+    if (errorText) {
+      errorText.textContent = message;
+      errorText.style.display = "block";
+    } else if (subtitleEl) {
+      subtitleEl.textContent = message;
+      subtitleEl.style.color = "#C0392B";
+    }
+  }
+
   form?.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -72,12 +84,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("confirmNewPassword")?.value || "";
 
     if (newPassword.length < 8) {
-      alert("Password must be at least 8 characters.");
+      showResetFormError("Password must be at least 8 characters.");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      alert("Passwords do not match.");
+      showResetFormError("Passwords do not match.");
       return;
     }
 
@@ -98,7 +110,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     if (error) {
-      alert("Could not update password: " + error.message);
+      showResetFormError("Could not update password: " + error.message);
       return;
     }
 

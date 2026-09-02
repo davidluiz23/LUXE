@@ -42,9 +42,9 @@
           </ul>
         </nav>
         <div class="nav-icons">
-          <a href="#" class="search-icon" id="searchToggle"
+          <button type="button" class="search-icon" id="searchToggle"
             ><i class="fas fa-search"></i
-          ></a>
+          ></button>
           <a href="wishlist.html" class="wishlist-icon"
             ><i class="fas fa-heart"></i
             ><span class="wishlist-count">0</span></a
@@ -116,6 +116,7 @@
           </aside>
 
           <div class="dashboard-content">
+            <p class="dashboard-banner" id="paymentBanner" role="status" hidden></p>
             <!-- ---------- Profile panel ---------- -->
             <div class="dashboard-panel active" id="panel-profile">
               <h1>My Profile</h1>
@@ -160,6 +161,7 @@
                   </div>
                 </div>
                 <button type="submit" class="btn btn-primary">Save Changes</button>
+                <p class="dashboard-form-status" id="profileFormStatus" role="status"></p>
               </form>
 
               <form class="communication-preferences" id="communicationPreferencesForm">

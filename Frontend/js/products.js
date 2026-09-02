@@ -1773,7 +1773,44 @@ function finishProductGridLoading(grid) {
 }
 
 window.productsReady = (async function loadCatalog() {
+    const pageFile = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
+    let needsLiveCatalog = [
+        'index.html', 'shop.html', 'men.html', 'women.html',
+        'product.html', 'wishlist.html', 'cart.html', 'checkout.html',
+        'admin.html',
+    ].includes(pageFile);
+    if (!needsLiveCatalog) {
+        // Pages without product grids stay lightweight, but still fetch the
+        // live catalog when saved items cannot be resolved from the bundled
+        // fallback (badges, mini-cart and search previews).
+        try {
+            const savedEntries = [];
+            const readList = (key) => {
+                try {
+                    const parsed = JSON.parse(window.localStorage.getItem(key) || '[]');
+                    if (Array.isArray(parsed)) savedEntries.push(...parsed);
+                } catch { /* Ignore malformed storage. */ }
+            };
+            readList('luxe_cart');
+            readList('luxe_wishlist');
+            for (let index = 0; index < window.localStorage.length; index += 1) {
+                const key = window.localStorage.key(index);
+                if (key && key.indexOf('luxe_wishlist_') === 0) readList(key);
+            }
+            const savedIds = savedEntries
+                .map((entry) => Number(entry && (entry.id ?? entry.product_id)))
+                .filter((id) => Number.isFinite(id) && id > 0);
+            needsLiveCatalog = savedIds.some((id) =>
+                !products.some((product) => Number(product.id) === id),
+            );
+        } catch { /* Fall through to the bundled catalogue. */ }
+    }
     try {
+        if (!needsLiveCatalog) {
+            activeProductsList = products;
+            setCatalogStatus('ready', 'bundled', 'Bundled catalogue preview.');
+            return activeProductsList;
+        }
         if (catalogBackendConfigured) {
             let timeoutId;
             const timeoutResult = new Promise((resolve) => {

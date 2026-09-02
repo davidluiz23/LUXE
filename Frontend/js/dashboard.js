@@ -25,7 +25,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (layoutView) layoutView.style.display = 'grid';
 
     const returnParams = new URLSearchParams(window.location.search);
-    if (returnParams.get('payment') === 'return' && returnParams.get('reference')) {
+    const paymentReturn = returnParams.get('payment') === 'return' && !!returnParams.get('reference');
+    if (paymentReturn) {
         try {
             if (!window.LuxeOrders || !window.LuxePayments) {
                 throw new Error('Payment services are unavailable.');
@@ -40,13 +41,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (data.status === 'paid') {
                 window.saveCart?.([]);
                 window.updateCartCount?.();
-                alert(`Payment confirmed for ${paymentOrder.order_number}.`);
+                showDashboardBanner(`Payment confirmed for ${paymentOrder.order_number}.`, 'success');
             } else {
-                alert('Your payment is not confirmed yet. Check your order status again shortly.');
+                showDashboardBanner('Your payment is not confirmed yet. Check your order status again shortly.', 'info');
             }
         } catch (error) {
             console.error('[ALKEBULAN] Payment return verification failed:', error);
-            alert('We could not confirm this payment right now. Please check your order status or try again shortly.');
+            showDashboardBanner('We could not confirm this payment right now. Please check your order status or try again shortly.', 'error');
         } finally {
             window.history.replaceState({}, '', 'dashboard.html');
         }
@@ -139,6 +140,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (requestedTab === 'notifications') {
         document.getElementById('notificationsTabBtn')?.click();
     } else if (requestedTab === 'orders') {
+        document.querySelector('.dashboard-nav-btn[data-tab="orders"]')?.click();
+    }
+
+    if (paymentReturn) {
         document.querySelector('.dashboard-nav-btn[data-tab="orders"]')?.click();
     }
 
@@ -323,7 +328,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (btn) { btn.disabled = false; btn.textContent = 'Save Changes'; }
 
             if (error) {
-                alert('Could not save changes: ' + error.message);
+                setProfileFormStatus('Could not save changes: ' + error.message, true);
                 return;
             }
 
@@ -334,7 +339,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             localStorage.setItem('luxe_user', JSON.stringify(cached));
             window.syncStorefrontNavigation?.();
 
-            alert('Profile updated!');
+            setProfileFormStatus('Profile updated.');
         });
     }
 
@@ -433,6 +438,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 });
+
+function showDashboardBanner(message, state) {
+    const banner = document.getElementById('paymentBanner');
+    if (!banner) return;
+    banner.hidden = false;
+    banner.className = 'dashboard-banner is-' + (state || 'info');
+    banner.textContent = message;
+}
+
+function setProfileFormStatus(message, isError) {
+    const status = document.getElementById('profileFormStatus');
+    if (!status) return;
+    status.textContent = message;
+    status.className = 'dashboard-form-status' + (isError ? ' is-error' : '');
+}
 
 function renderOrderCard(order) {
     const date = new Date(order.created_at).toLocaleDateString('en-US', {

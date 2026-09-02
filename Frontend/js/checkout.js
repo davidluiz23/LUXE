@@ -238,13 +238,27 @@ function configurePaymentOptions() {
     if (provider === "paystack" && enabled) option?.querySelector("em")?.remove();
   });
 
-  const enabledOptions = options.filter(({ radio }) => radio && !radio.disabled);
+  const enabledOptions = options.filter(({ radio: optionRadio }) => optionRadio && !optionRadio.disabled);
   const preferred = enabledOptions.find(({ provider }) => provider === checkoutPaymentConfig?.activeProvider)
     || enabledOptions[0];
   if (preferred?.radio) preferred.radio.checked = true;
+  document.querySelectorAll('input[name="payment"]').forEach((radio) => {
+    radio.addEventListener("change", syncWhatsAppConsentVisibility);
+  });
+  syncWhatsAppConsentVisibility();
 }
 
 function value(id) { return document.getElementById(id)?.value.trim() || ""; }
+function selectedProvider() {
+  return document.querySelector('input[name="payment"]:checked:not(:disabled)')?.value || "whatsapp";
+}
+function syncWhatsAppConsentVisibility() {
+  const usingWhatsApp = selectedProvider() === "whatsapp";
+  const consent = document.getElementById("whatsappConsent");
+  const consentRow = consent?.closest(".whatsapp-consent");
+  if (consentRow) consentRow.hidden = !usingWhatsApp;
+  if (consent && !usingWhatsApp) consent.checked = false;
+}
 function getCheckoutCartItems() {
   try {
     if (window.getAvailableCartItems) return window.getAvailableCartItems({ purge: true });
@@ -440,9 +454,10 @@ function validateCheckoutForm() {
 
   const consent = document.getElementById("whatsappConsent");
   const consentLabel = consent?.closest(".whatsapp-consent");
-  consentLabel?.classList.toggle("field-invalid-group", !consent?.checked);
-  consent?.setAttribute("aria-invalid", String(!consent?.checked));
-  if (!consent?.checked) invalid.push({ field: consent, label: "WhatsApp order-update consent" });
+  const consentRequired = selectedProvider() === "whatsapp";
+  consentLabel?.classList.toggle("field-invalid-group", consentRequired && !consent?.checked);
+  consent?.setAttribute("aria-invalid", String(consentRequired && !consent?.checked));
+  if (consentRequired && !consent?.checked) invalid.push({ field: consent, label: "WhatsApp order-update consent" });
 
   if (invalid.length) {
     const labels = [...new Set(invalid.map((item) => item.label))];

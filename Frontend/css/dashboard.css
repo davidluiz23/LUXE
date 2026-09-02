@@ -567,3 +567,19 @@
     .browser-push-option { grid-template-columns: auto minmax(0, 1fr); }
     .browser-push-option .dashboard-push-btn { grid-column: 2; justify-self: start; }
 }
+
+/* Non-blocking status banners and inline form statuses. */
+.dashboard-banner {
+    margin: 0 0 16px;
+    padding: 11px 14px;
+    border-radius: 8px;
+    font-size: .85rem;
+    line-height: 1.5;
+}
+.dashboard-banner[hidden] { display: none; }
+.dashboard-banner.is-success { background: #E9F7EF; color: #1E7D49; border: 1px solid #BFE8D0; }
+.dashboard-banner.is-info { background: #FFF8E1; color: #8B6C12; border: 1px solid #F1E3B8; }
+.dashboard-banner.is-error { background: #FDECEA; color: #C0392B; border: 1px solid #F5C6C0; }
+.dashboard-banner i { margin-right: 8px; }
+.dashboard-form-status { min-height: 20px; margin-top: 9px; color: #1E7D49; font-size: .78rem; }
+.dashboard-form-status.is-error { color: #C0392B; }
