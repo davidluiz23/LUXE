@@ -902,10 +902,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function renderOnlineVisitors(visitors) {
-    const signedIn = visitors.filter((visitor) => visitor.is_authenticated).length;
+    const signedIn = new Set(
+      visitors
+        .filter((visitor) => visitor.is_authenticated && visitor.user_id)
+        .map((visitor) => visitor.user_id),
+    ).size;
+    const guests = visitors.filter((visitor) => !visitor.is_authenticated).length;
     setText("onlineVisitorCount", visitors.length);
     setText("onlineCustomerCount", signedIn);
-    setText("onlineGuestCount", visitors.length - signedIn);
+    setText("onlineGuestCount", guests);
 
     if (onlineVisitorBadge) {
       onlineVisitorBadge.textContent = visitors.length > 99 ? "99+" : String(visitors.length);
@@ -2365,7 +2370,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!currentAdminRole || document.visibilityState !== "visible") return;
     const shouldRender = document.getElementById("presencePanel")?.classList.contains("active");
     loadOnlineVisitors({ render: shouldRender });
-  }, 20000);
+  }, 10000);
 
   window.setInterval(async () => {
     if (!currentAdminRole || document.visibilityState !== "visible") return;

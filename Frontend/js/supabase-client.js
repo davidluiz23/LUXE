@@ -1426,7 +1426,9 @@ const LuxePresence = {
     };
 
     heartbeat();
-    this._heartbeatTimer = window.setInterval(heartbeat, 45000);
+    // Ten seconds keeps the admin view responsive while the server rejects
+    // faster duplicate touches from the same browser session.
+    this._heartbeatTimer = window.setInterval(heartbeat, 10000);
 
     if (!this._listenersBound) {
       document.addEventListener("visibilitychange", heartbeat);
