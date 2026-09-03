@@ -105,7 +105,7 @@ const LuxeAuth = {
     }
 
     try {
-      return await supabaseClient.functions.invoke("signup-flow", {
+      const result = await supabaseClient.functions.invoke("signup-flow", {
         body: {
           action: "request",
           fullName,
@@ -113,6 +113,31 @@ const LuxeAuth = {
           captchaToken,
         },
       });
+
+      if (
+        result.error?.context &&
+        typeof result.error.context.json === "function"
+      ) {
+        try {
+          const detail = await result.error.context.clone().json();
+
+          if (detail?.error === "account_exists") {
+            return {
+              data: detail,
+              error: {
+                code: detail.error,
+                message:
+                  detail.message ||
+                  "An account already exists with this email. Please sign in instead.",
+              },
+            };
+          }
+        } catch {
+          // Keep the original Edge Function error when its body is unavailable.
+        }
+      }
+
+      return result;
     } catch (error) {
       console.error("[ALKEBULAN] Signup error:", error);
       return {

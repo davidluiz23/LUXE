@@ -366,9 +366,16 @@ Deno.serve(async (request) => {
       return json({ error: "service_unavailable" }, 503, origin);
     }
 
-    // Do not reveal whether an Auth account already exists.
     if (exists === true) {
-      return genericRequestSuccess(origin);
+      return json(
+        {
+          error: "account_exists",
+          message:
+            `An ${brandName()} account already exists with this email. Please sign in instead.`,
+        },
+        409,
+        origin,
+      );
     }
 
     const now = Date.now();

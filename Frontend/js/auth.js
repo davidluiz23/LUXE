@@ -172,17 +172,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (googleSignInButton) {
     googleSignInButton.addEventListener("click", async () => {
-      if (
-        googleSignInButton.dataset.requiresTerms === "true" &&
-        !document.getElementById("terms")?.checked
-      ) {
-        showAuthError(
-          "Please agree to the Terms of Service and acknowledge the Privacy Notice.",
-        );
-        document.getElementById("terms")?.focus();
-        return;
-      }
-
       if (!window.LuxeAuth || !window.LuxeAuth.isReady()) {
         showAuthError("Account service is unavailable right now.");
         return;
