@@ -1,6 +1,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.4";
 import { getSupabaseServiceKey } from "../_shared/supabase-server.ts";
 
+const MAX_REQUEST_BYTES = 16_384;
+
 function allowedOrigin(request: Request): string | null {
   const configured = (Deno.env.get("LUXE_ALLOWED_ORIGINS") || Deno.env.get("LUXE_SITE_URL") || "")
     .split(",").map((value) => value.trim()).filter(Boolean)
@@ -31,6 +33,10 @@ Deno.serve(async (request) => {
   if (!origin) return new Response("Origin not allowed", { status: 403 });
   if (request.method === "OPTIONS") return json({ ok: true }, 200, origin);
   if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405, origin);
+  const contentLength = Number(request.headers.get("content-length") || 0);
+  if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BYTES) {
+    return json({ error: "request_too_large" }, 413, origin);
+  }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = getSupabaseServiceKey();
@@ -50,8 +56,17 @@ Deno.serve(async (request) => {
   }
 
   let body: Record<string, unknown>;
-  try { body = await request.json(); }
-  catch { return json({ error: "invalid_json" }, 400, origin); }
+  try {
+    const rawBody = await request.text();
+    if (new TextEncoder().encode(rawBody).byteLength > MAX_REQUEST_BYTES) {
+      return json({ error: "request_too_large" }, 413, origin);
+    }
+    const parsed = JSON.parse(rawBody || "{}");
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("invalid_json");
+    body = parsed as Record<string, unknown>;
+  } catch {
+    return json({ error: "invalid_json" }, 400, origin);
+  }
   if (body.action !== "set_suspension") return json({ error: "invalid_action" }, 400, origin);
 
   const userId = String(body.userId || "");

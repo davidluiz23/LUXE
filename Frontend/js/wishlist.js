@@ -2,6 +2,7 @@
 
 const WISHLIST_INTENT_STORAGE_KEY = 'luxe_pending_wishlist_intent';
 const WISHLIST_INTENT_MAX_AGE_MS = 30 * 60 * 1000;
+const ACCOUNT_WISHLIST_STORAGE_PREFIX = 'luxe_wishlist_user_';
 let wishlistLoginRedirectTimer = null;
 
 function isWishlistUserLoggedIn() {
@@ -105,16 +106,63 @@ function captureWishlistIntentFromLoginUrl() {
     } catch { /* Ignore malformed or unavailable URL state. */ }
 }
 
-function getWishlistStorageKey(user = null) {
-    if (user?.email) return `luxe_wishlist_${user.email}`;
-    const storedUser = localStorage.getItem('luxe_user');
-    if (localStorage.getItem('luxe_logged_in') === 'true' && storedUser) {
-        try {
-            const user = JSON.parse(storedUser);
-            if (user?.email) return `luxe_wishlist_${user.email}`;
-        } catch { /* Use the guest key below. */ }
+function canonicalWishlistEmail(value) {
+    return String(value || '').trim().toLocaleLowerCase();
+}
+
+function cachedWishlistUser() {
+    try {
+        if (!isWishlistUserLoggedIn()) return null;
+        const user = JSON.parse(localStorage.getItem('luxe_user') || 'null');
+        return user && typeof user === 'object' ? user : null;
+    } catch {
+        return null;
     }
-    return 'luxe_wishlist';
+}
+
+function wishlistStorageKeyForUser(user) {
+    const userId = String(user?.id || '').trim();
+    if (userId) return `${ACCOUNT_WISHLIST_STORAGE_PREFIX}${encodeURIComponent(userId)}`;
+    const email = canonicalWishlistEmail(user?.email);
+    return email ? `luxe_wishlist_${email}` : '';
+}
+
+function migrateLegacyWishlist(user, accountKey) {
+    const email = String(user?.email || '').trim();
+    const legacyKeys = new Set([
+        email ? `luxe_wishlist_${email}` : '',
+        canonicalWishlistEmail(email) ? `luxe_wishlist_${canonicalWishlistEmail(email)}` : '',
+    ]);
+    legacyKeys.delete('');
+    legacyKeys.delete(accountKey);
+
+    try {
+        const sourceKeys = [...legacyKeys].filter((key) => localStorage.getItem(key) !== null);
+        if (!sourceKeys.length) return false;
+        const accountWishlist = normalizeWishlist(
+            JSON.parse(localStorage.getItem(accountKey) || '[]'),
+        );
+        const legacyWishlist = sourceKeys.flatMap((key) =>
+            normalizeWishlist(JSON.parse(localStorage.getItem(key) || '[]')),
+        );
+        localStorage.setItem(
+            accountKey,
+            JSON.stringify(normalizeWishlist([...accountWishlist, ...legacyWishlist])),
+        );
+        sourceKeys.forEach((key) => localStorage.removeItem(key));
+        return true;
+    } catch (error) {
+        console.error('Error migrating legacy wishlist:', error);
+        return false;
+    }
+}
+
+function getWishlistStorageKey(user = null) {
+    const accountUser = user || cachedWishlistUser();
+    const accountKey = wishlistStorageKeyForUser(accountUser);
+    if (!accountKey) return 'luxe_wishlist';
+    migrateLegacyWishlist(accountUser, accountKey);
+    return accountKey;
 }
 
 function normalizeWishlist(values) {
@@ -267,7 +315,7 @@ async function restorePendingWishlistIntent() {
         try {
             authSessionChecked = true;
             const user = await window.LuxeAuth.getCurrentUser();
-            if (user?.email) accountStorageKey = getWishlistStorageKey(user);
+            if (user?.id || user?.email) accountStorageKey = getWishlistStorageKey(user);
         } catch { /* Fall back to the cached storefront identity below. */ }
     }
     if (!accountStorageKey && !authSessionChecked && isWishlistUserLoggedIn()) {

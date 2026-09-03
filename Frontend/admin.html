@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="assets/brand/alkebulan-mark.svg" type="image/svg+xml">
     <script src="js/utils.js?v=20260830-2"></script>
     <meta name="robots" content="noindex, nofollow">
     <title>Admin | ALKEBULAN</title>
@@ -13,7 +14,7 @@
 
     <link rel="stylesheet" href="css/variables.css?v=20260830-1">
     <link rel="stylesheet" href="css/style.css?v=20260830-1">
-    <link rel="stylesheet" href="css/admin.css?v=20260901-1">
+    <link rel="stylesheet" href="css/admin.css?v=20260903-1">
     <link rel="stylesheet" href="css/responsive.css?v=20260830-1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -81,7 +82,7 @@
                 <i class="fas fa-ban" style="color:#C0392B;"></i>
                 <h2>Not Authorized</h2>
                 <p>This account is signed in but does not have permission to use the ALKEBULAN management console.</p>
-                <button class="btn btn-outline" style="background:#111;color:#fff;" id="adminDeniedSignOut">Sign Out</button>
+                <button type="button" class="btn btn-outline" style="background:#111;color:#fff;" id="adminDeniedSignOut">Sign Out</button>
             </div>
 
             <div class="admin-layout" id="adminLayout">
@@ -96,7 +97,7 @@
                         <div class="admin-owner-email" id="adminOwnerEmail"></div>
                     </div>
 
-                    <button class="admin-nav-btn active" data-panel="productsPanel">
+                    <button type="button" class="admin-nav-btn active" data-panel="productsPanel">
                         <i class="fas fa-box"></i> Products
                     </button>
 
@@ -110,7 +111,7 @@
                         <span class="admin-nav-badge admin-live-badge" id="onlineVisitorBadge" hidden>0</span>
                     </button>
 
-                    <button class="admin-nav-btn" data-panel="updatesPanel">
+                    <button type="button" class="admin-nav-btn" data-panel="updatesPanel">
                         <i class="fas fa-bullhorn"></i> Site Updates
                     </button>
 
@@ -126,11 +127,11 @@
                         <i class="fas fa-history"></i> Activity Log
                     </button>
 
-                    <button class="admin-nav-btn" data-panel="teamPanel" id="teamNavBtn" style="display:none;">
+                    <button type="button" class="admin-nav-btn" data-panel="teamPanel" id="teamNavBtn" style="display:none;">
                         <i class="fas fa-users-cog"></i> Team
                     </button>
 
-                    <button class="admin-nav-btn logout-btn" id="adminSignOutBtn">
+                    <button type="button" class="admin-nav-btn logout-btn" id="adminSignOutBtn">
                         <i class="fas fa-sign-out-alt"></i> Sign Out
                     </button>
                 </aside>
@@ -146,11 +147,11 @@
                                 </div>
 
                                 <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                                    <button class="btn btn-outline" style="background:#111;color:#fff;padding:10px 20px;font-size:0.85rem;" id="importCatalogBtn">
+                                    <button type="button" class="btn btn-outline" style="background:#111;color:#fff;padding:10px 20px;font-size:0.85rem;" id="importCatalogBtn">
                                         <i class="fas fa-cloud-upload-alt"></i> Import Starter Catalog
                                     </button>
 
-                                    <button class="btn btn-primary" style="padding:10px 22px;font-size:0.85rem;" id="addProductBtn">
+                                    <button type="button" class="btn btn-primary" style="padding:10px 22px;font-size:0.85rem;" id="addProductBtn">
                                         <i class="fas fa-plus"></i> Add Product
                                     </button>
                                 </div>
@@ -591,6 +592,7 @@
 
                                 <span class="admin-form-hint admin-upload-status" id="pImageUploadStatus" aria-live="polite"></span>
                                 <span class="admin-image-meta" id="pImageMeta">Recommended: 1200 × 1500 px or larger.</span>
+                                <label class="sr-only" for="pImage">Main image URL</label>
                                 <input type="url" id="pImage" required placeholder="...or paste an image URL">
                             </div>
                         </div>
@@ -615,6 +617,7 @@
 
                                 <span class="admin-form-hint admin-upload-status" id="pHoverImageUploadStatus" aria-live="polite"></span>
                                 <span class="admin-image-meta" id="pHoverImageMeta">Optional second angle · the same smart 4:5 fit is applied.</span>
+                                <label class="sr-only" for="pHoverImage">Hover image URL</label>
                                 <input type="url" id="pHoverImage" placeholder="...or paste an image URL">
                             </div>
                         </div>
@@ -680,10 +683,10 @@
     <script src="js/brand-config.js?v=20260830-1"></script>
     <script src="js/icons.js?v=20260830-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
-    <script src="js/supabase-client.js?v=20260901-1"></script>
-    <script src="js/products.js?v=20260830-1"></script>
+    <script src="js/supabase-client.js?v=20260903-1"></script>
+    <script src="js/products.js?v=20260903-1"></script>
     <script src="js/animation.js?v=20260830-1"></script>
-    <script src="js/app.js?v=20260830-1"></script>
-    <script src="js/admin.js?v=20260901-1"></script>
+    <script src="js/app.js?v=20260903-1"></script>
+    <script src="js/admin.js?v=20260903-1"></script>
 </body>
 </html>

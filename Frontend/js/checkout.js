@@ -2,6 +2,7 @@
 let checkoutAttemptMemory = null;
 let appliedPromoCode = null;
 let checkoutQuoteGeneration = 0;
+let checkoutSubmissionInFlight = false;
 let checkoutIdentity = {
   user: null,
   required: false,
@@ -23,7 +24,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   checkoutPaymentConfig = await checkoutPaymentConfigReady;
   configurePaymentOptions();
   prefillSavedAddress();
-  checkoutIdentityReady = loadCheckoutIdentity();
+  checkoutIdentityReady = loadCheckoutIdentity().catch((error) => {
+    console.warn("[ALKEBULAN] Checkout identity could not be loaded:", error);
+    return checkoutIdentity;
+  });
   await checkoutIdentityReady;
   loadCheckoutItems();
   const initialQuote = await updateOrderTotals();
@@ -40,15 +44,31 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   const form = document.getElementById("checkoutForm");
-  form?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    if (!validateCheckoutForm()) return;
+  form?.addEventListener("submit", handleCheckoutSubmit);
+});
 
-    const cartItems = getCheckoutCartItems();
-    if (!cartItems.length) return showCheckoutError("Your cart is empty.");
+async function handleCheckoutSubmit(event) {
+  event.preventDefault();
+  if (checkoutSubmissionInFlight || !validateCheckoutForm()) return;
 
+  const form = event.currentTarget;
+  const cartItems = getCheckoutCartItems();
+  if (!cartItems.length) return showCheckoutError("Your cart is empty.");
+
+  const button = form.querySelector(".checkout-btn");
+  let whatsappWindow = null;
+  let whatsappChatOpened = false;
+  let order = null;
+  let retryLabel = "Place Order";
+  let keepButtonDisabled = false;
+  checkoutSubmissionInFlight = true;
+  setButtonState(button, true, "Checking order details…");
+
+  try {
     const identity = await checkoutIdentityReady;
-    const user = identity.user || (window.LuxeAuth?.isReady() ? await window.LuxeAuth.getCurrentUser() : null);
+    const user = identity.user || (window.LuxeAuth?.isReady()
+      ? await window.LuxeAuth.getCurrentUser()
+      : null);
     if (!user) {
       showCheckoutError("Please sign in before placing your order.");
       setTimeout(() => { window.location.href = "login.html?returnTo=checkout.html"; }, 1200);
@@ -73,26 +93,29 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const paymentConfig = await checkoutPaymentConfigReady;
     const provider = document.querySelector('input[name="payment"]:checked:not(:disabled)')?.value;
-    if (!provider) return showCheckoutError("No order method is currently available. Please try again shortly.");
+    if (!provider) {
+      showCheckoutError("No order method is currently available. Please try again shortly.");
+      return;
+    }
     const providerConfig = paymentConfig?.providers?.[provider];
-    if (!providerConfig?.enabled) return showCheckoutError("That payment option is not available yet.");
+    if (!providerConfig?.enabled) {
+      showCheckoutError("That payment option is not available yet.");
+      return;
+    }
     if (provider === "whatsapp" && !getAdminWhatsAppNumber(paymentConfig)) {
-      return showCheckoutError("WhatsApp ordering is temporarily unavailable. Please try again shortly.");
+      showCheckoutError("WhatsApp ordering is temporarily unavailable. Please try again shortly.");
+      return;
     }
 
-    const whatsappWindow = provider === "whatsapp" ? window.open("about:blank", "_blank") : null;
-    const button = form.querySelector(".checkout-btn");
+    whatsappWindow = provider === "whatsapp" ? window.open("about:blank", "_blank") : null;
     setButtonState(button, true, "Confirming secure total…");
     const quoteResult = await updateOrderTotals();
     if (quoteResult.error || !quoteResult.data) {
-      whatsappWindow?.close();
-      setButtonState(button, false, "Place Order");
       showCheckoutError(`The order total could not be confirmed: ${quoteResult.error?.message || "Please try again."}`);
       return;
     }
 
     setButtonState(button, true, "Saving secure order…");
-
     const normalizedPhone = window.LuxeWhatsApp?.normalizePhone(
       value("phone"),
       identity.defaultCountryCode,
@@ -112,61 +135,113 @@ document.addEventListener("DOMContentLoaded", async () => {
       size: item.size || null,
       color: item.color || null,
     }));
-    const idempotencyKey = getCheckoutIdempotencyKey({ items, shippingAddress, contact, provider, promoCode: appliedPromoCode });
-    const { data: order, error } = await window.LuxeOrders.createOrder(
+    const idempotencyKey = getCheckoutIdempotencyKey({
+      items, shippingAddress, contact, provider, promoCode: appliedPromoCode,
+    });
+    const orderResult = await window.LuxeOrders?.createOrder?.(
       items, shippingAddress, contact, provider, idempotencyKey, appliedPromoCode,
     );
+    order = orderResult?.data || null;
 
-    if (error || !order) {
-      whatsappWindow?.close();
-      setButtonState(button, false, "Place Order");
-      showCheckoutError(`Could not place order: ${error?.message || "Please try again."}`);
+    if (orderResult?.error || !order) {
+      showCheckoutError(`Could not place order: ${orderResult?.error?.message || "Please try again."}`);
       return;
     }
 
     const chatUrl = buildAdminWhatsAppUrl(order, cartItems, contact, shippingAddress, paymentConfig);
     if (provider === "whatsapp" && whatsappWindow && chatUrl) {
       whatsappWindow.location.href = chatUrl;
+      whatsappChatOpened = true;
     } else if (provider === "whatsapp") {
       whatsappWindow?.close();
+      whatsappWindow = null;
     }
 
-    const notificationSender = window.LuxeOrders.sendOrderNotifications ||
-      window.LuxeOrders.sendWhatsAppNotifications;
-    const notificationPromise = notificationSender
-      .call(window.LuxeOrders, "order_created", order.id)
-      .catch((notifyError) => {
-        console.warn("[ALKEBULAN] Order notifications were not sent:", notifyError);
-        return { data: null, error: notifyError };
-      });
-
+    const notificationPromise = sendCheckoutOrderNotifications(order.id);
     if (provider !== "whatsapp") {
       // Do not navigate away until the server has accepted the admin/customer
       // notification job; otherwise the browser can abort it mid-request.
-      const beginPayment = window.LuxePaymentProviders?.begin;
       const [payment] = await Promise.all([
-        typeof beginPayment === "function"
-          ? beginPayment(provider, order)
-          : Promise.resolve({ ok: false, error: "Secure payments are temporarily unavailable." }),
+        beginCheckoutPayment(provider, order),
         notificationPromise,
       ]);
-      if (!payment.ok) {
-        setButtonState(button, false, "Try Payment Again");
-        return showCheckoutError(payment.error);
+      if (!payment.ok || !payment.authorizationUrl) {
+        retryLabel = "Try Payment Again";
+        showCheckoutError(
+          `Order ${order.order_number || ""} was saved, but payment could not start: ${checkoutErrorText(payment.error, "Please try again.")}`,
+        );
+        return;
       }
-      clearCheckoutAttempt();
       window.location.assign(payment.authorizationUrl);
+      clearCheckoutAttempt();
+      keepButtonDisabled = true;
       return;
     }
 
     await notificationPromise;
     clearCheckoutAttempt();
+    clearCheckoutCart();
+    renderOrderSuccess(order, chatUrl, whatsappChatOpened);
+    keepButtonDisabled = true;
+  } catch (error) {
+    console.error("[ALKEBULAN] Checkout failed unexpectedly:", error);
+    retryLabel = order ? "Try Again" : "Place Order";
+    const prefix = order
+      ? `Order ${order.order_number || ""} was saved, but checkout could not finish`
+      : "Checkout could not be completed";
+    showCheckoutError(`${prefix}: ${checkoutErrorText(error, "Please try again.")}`);
+  } finally {
+    checkoutSubmissionInFlight = false;
+    if (!whatsappChatOpened) whatsappWindow?.close();
+    if (!keepButtonDisabled) setButtonState(button, false, retryLabel);
+  }
+}
+
+function checkoutErrorText(error, fallback) {
+  const message = typeof error === "string" ? error : error?.message;
+  return String(message || fallback).trim();
+}
+
+function sendCheckoutOrderNotifications(orderId) {
+  const orders = window.LuxeOrders;
+  const sender = orders?.sendOrderNotifications || orders?.sendWhatsAppNotifications;
+  if (typeof sender !== "function") {
+    console.warn("[ALKEBULAN] Order notification service is unavailable.");
+    return Promise.resolve({ data: null, error: { message: "Notification service unavailable." } });
+  }
+  return Promise.resolve()
+    .then(() => sender.call(orders, "order_created", orderId))
+    .catch((error) => {
+      console.warn("[ALKEBULAN] Order notifications were not sent:", error);
+      return { data: null, error };
+    });
+}
+
+async function beginCheckoutPayment(provider, order) {
+  const beginPayment = window.LuxePaymentProviders?.begin;
+  if (typeof beginPayment !== "function") {
+    return { ok: false, error: "Secure payments are temporarily unavailable." };
+  }
+  try {
+    const payment = await beginPayment(provider, order);
+    return payment && typeof payment === "object"
+      ? payment
+      : { ok: false, error: "The payment provider returned an invalid response." };
+  } catch (error) {
+    console.error("[ALKEBULAN] Payment initialization failed:", error);
+    return { ok: false, error: checkoutErrorText(error, "Secure payment could not start.") };
+  }
+}
+
+function clearCheckoutCart() {
+  try {
     window.saveCart?.([]);
     localStorage.removeItem("luxe_cart");
     window.updateCartCount?.();
-    renderOrderSuccess(order, chatUrl, !!(whatsappWindow && chatUrl));
-  });
-});
+  } catch (error) {
+    console.warn("[ALKEBULAN] The completed order cart could not be cleared:", error);
+  }
+}
 
 async function loadCheckoutIdentity() {
   const notice = document.getElementById("whatsappIdentityNotice");
@@ -279,25 +354,34 @@ async function applyPromoCode() {
     setPromoStatus("Enter a promo code.", "error");
     return;
   }
-  const user = window.LuxeAuth?.isReady() ? await window.LuxeAuth.getCurrentUser() : null;
-  if (!user) {
-    setPromoStatus("Sign in before applying a promo code.", "error");
-    return;
-  }
-  if (!getCheckoutCartItems().length) return setPromoStatus("Your cart is empty.", "error");
   if (button) { button.disabled = true; button.textContent = "Checking…"; }
-  const { data, error } = await updateOrderTotals({ promoCode: code });
-  if (error || !data?.promotionCode) {
+  try {
+    const user = window.LuxeAuth?.isReady() ? await window.LuxeAuth.getCurrentUser() : null;
+    if (!user) {
+      setPromoStatus("Sign in before applying a promo code.", "error");
+      return;
+    }
+    if (!getCheckoutCartItems().length) {
+      setPromoStatus("Your cart is empty.", "error");
+      return;
+    }
+    const { data, error } = await updateOrderTotals({ promoCode: code });
+    if (error || !data?.promotionCode) {
+      appliedPromoCode = null;
+      await updateOrderTotals();
+      setPromoStatus(error?.message || "Promo code could not be applied.", "error");
+      return;
+    }
+    appliedPromoCode = data.promotionCode;
+    if (input) input.value = appliedPromoCode;
+    setPromoStatus(`${data.percentOff}% discount applied.`, "success");
+  } catch (error) {
     appliedPromoCode = null;
-    await updateOrderTotals();
+    console.warn("[ALKEBULAN] Promo code validation failed:", error);
+    setPromoStatus(checkoutErrorText(error, "Promo code could not be applied."), "error");
+  } finally {
     if (button) { button.disabled = false; button.textContent = "Apply"; }
-    setPromoStatus(error?.message || "Promo code could not be applied.", "error");
-    return;
   }
-  appliedPromoCode = data.promotionCode;
-  if (button) { button.disabled = false; button.textContent = "Apply"; }
-  if (input) input.value = appliedPromoCode;
-  setPromoStatus(`${data.percentOff}% discount applied.`, "success");
 }
 
 function setPromoStatus(message, state = "") {
@@ -353,7 +437,20 @@ async function updateOrderTotals({ promoCode = appliedPromoCode } = {}) {
     return { data: null, error: { message: "The secure order service is unavailable." } };
   }
 
-  const { data, error } = await window.LuxeOrders.quote(items, promoCode || null);
+  let quoteResult;
+  try {
+    quoteResult = await window.LuxeOrders.quote(items, promoCode || null);
+  } catch (error) {
+    if (generation !== checkoutQuoteGeneration) {
+      return { data: null, error: { message: "A newer total is being calculated." }, stale: true };
+    }
+    renderOrderTotalsUnavailable(localSubtotal);
+    return {
+      data: null,
+      error: { message: checkoutErrorText(error, "Unable to calculate the order total.") },
+    };
+  }
+  const { data, error } = quoteResult || {};
   if (generation !== checkoutQuoteGeneration) {
     return { data: null, error: { message: "A newer total is being calculated." }, stale: true };
   }

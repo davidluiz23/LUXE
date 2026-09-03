@@ -2,6 +2,7 @@
 
 const CART_MAX_QUANTITY = 99;
 const GUEST_CART_STORAGE_KEY = 'luxe_cart';
+const ACCOUNT_CART_STORAGE_PREFIX = 'luxe_cart_user_';
 let cartQuoteGeneration = 0;
 let cartSessionStorageKey = null;
 
@@ -48,15 +49,58 @@ function normalizeCart(cart) {
     return [...merged.values()];
 }
 
-function getAccountCartStorageKey(user = null) {
-    if (user?.email) return `luxe_cart_${user.email}`;
-    if (cartSessionStorageKey !== null) return cartSessionStorageKey;
+function canonicalCartEmail(value) {
+    return String(value || '').trim().toLocaleLowerCase();
+}
+
+function cartStorageKeyForUser(user) {
+    const userId = String(user?.id || '').trim();
+    if (userId) return `${ACCOUNT_CART_STORAGE_PREFIX}${encodeURIComponent(userId)}`;
+    const email = canonicalCartEmail(user?.email);
+    return email ? `luxe_cart_${email}` : '';
+}
+
+function getCachedCartUser() {
     try {
-        if (localStorage.getItem('luxe_logged_in') !== 'true') return '';
+        if (localStorage.getItem('luxe_logged_in') !== 'true') return null;
         const storedUser = JSON.parse(localStorage.getItem('luxe_user') || 'null');
-        return storedUser?.email ? `luxe_cart_${storedUser.email}` : '';
+        return storedUser && typeof storedUser === 'object' ? storedUser : null;
     } catch {
-        return '';
+        return null;
+    }
+}
+
+function getAccountCartStorageKey(user = null) {
+    const userKey = cartStorageKeyForUser(user);
+    if (userKey) return userKey;
+    if (user) return '';
+    if (cartSessionStorageKey !== null) return cartSessionStorageKey;
+    return cartStorageKeyForUser(getCachedCartUser());
+}
+
+function migrateLegacyAccountCart(user, accountKey) {
+    const email = String(user?.email || '').trim();
+    const legacyKeys = new Set([
+        email ? `luxe_cart_${email}` : '',
+        canonicalCartEmail(email) ? `luxe_cart_${canonicalCartEmail(email)}` : '',
+    ]);
+    legacyKeys.delete('');
+    legacyKeys.delete(accountKey);
+
+    try {
+        const sourceKeys = [...legacyKeys].filter((key) => localStorage.getItem(key) !== null);
+        if (!sourceKeys.length) return false;
+        const accountValue = localStorage.getItem(accountKey);
+        const accountCart = normalizeCart(accountValue ? JSON.parse(accountValue) : []);
+        const legacyCart = sourceKeys.flatMap((key) =>
+            normalizeCart(JSON.parse(localStorage.getItem(key) || '[]')),
+        );
+        localStorage.setItem(accountKey, JSON.stringify(normalizeCart([...accountCart, ...legacyCart])));
+        sourceKeys.forEach((key) => localStorage.removeItem(key));
+        return true;
+    } catch (error) {
+        console.error('Error migrating legacy account cart:', error);
+        return false;
     }
 }
 
@@ -65,18 +109,21 @@ function getCheckoutDestination() {
 }
 
 function mergeGuestCartIntoAccountCart(user = null) {
-    const accountKey = getAccountCartStorageKey(user);
+    const accountUser = user || getCachedCartUser();
+    if (!accountUser) return false;
+    const accountKey = getAccountCartStorageKey(accountUser);
     if (!accountKey) return false;
-    if (user?.email) cartSessionStorageKey = accountKey;
+    const migratedLegacyCart = migrateLegacyAccountCart(accountUser, accountKey);
+    cartSessionStorageKey = accountKey;
 
     try {
         const guestValue = localStorage.getItem(GUEST_CART_STORAGE_KEY);
-        if (guestValue === null) return false;
+        if (guestValue === null) return migratedLegacyCart;
 
         const guestCart = normalizeCart(JSON.parse(guestValue || '[]'));
         if (!guestCart.length) {
             localStorage.removeItem(GUEST_CART_STORAGE_KEY);
-            return false;
+            return migratedLegacyCart;
         }
 
         const accountValue = localStorage.getItem(accountKey);

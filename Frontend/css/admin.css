@@ -9,6 +9,10 @@
     min-height: 100vh;
 }
 
+body.admin-page.mobile-nav-open {
+    overflow: hidden !important;
+}
+
 .admin-gate {
     max-width: 420px;
     margin: 40px auto;

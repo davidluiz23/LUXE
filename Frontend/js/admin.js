@@ -1616,7 +1616,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           </div>
         </div>
 
-        <button class="admin-icon-btn delete-btn delete-update-btn" data-id="${escapeAttr(update.id)}" title="Delete">
+        <button type="button" class="admin-icon-btn delete-btn delete-update-btn" data-id="${escapeAttr(update.id)}" title="Delete">
           <i class="fas fa-trash"></i>
         </button>
       </div>
@@ -2257,6 +2257,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 ? '<span class="admin-protected"><i class="fas fa-lock"></i> Protected</span>'
                 : `
                   <button
+                    type="button"
                     class="admin-icon-btn delete-btn remove-admin-btn"
                     data-userid="${escapeAttr(admin.user_id)}"
                     data-email="${escapeAttr(admin.email)}"

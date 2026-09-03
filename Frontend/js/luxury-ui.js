@@ -98,6 +98,7 @@
       hamburger.setAttribute("role", "button");
       hamburger.setAttribute("tabindex", "0");
       hamburger.setAttribute("aria-label", "Open menu");
+      hamburger.setAttribute("aria-controls", "mobileMenu");
       hamburger.setAttribute("aria-expanded", "false");
       const openWithKeyboard = (event) => {
         if (event.key !== "Enter" && event.key !== " ") return;
@@ -137,19 +138,19 @@
 
       const menuObserver = new MutationObserver(syncMobileMenu);
       menuObserver.observe(mobileMenu, { attributes: true, attributeFilter: ["class"] });
-      hamburger?.addEventListener("click", () => requestAnimationFrame(() => {
+      hamburger?.addEventListener("click", () => {
+        if (!mobileViewport.matches) return;
+        mobileMenu.classList.add("active");
         syncMobileMenu();
-        if (mobileMenu.classList.contains("active")) {
-          mobileMenu.scrollTop = 0;
-          mobileClose?.focus({ preventScroll: true });
-        }
-      }));
+        mobileMenu.scrollTop = 0;
+        mobileClose?.focus({ preventScroll: true });
+      });
 
       if (mobileClose) {
         mobileClose.setAttribute("role", "button");
         mobileClose.setAttribute("tabindex", "0");
         mobileClose.setAttribute("aria-label", "Close menu");
-        mobileClose.addEventListener("click", () => requestAnimationFrame(() => closeMobileMenu({ restoreFocus: true })));
+        mobileClose.addEventListener("click", () => closeMobileMenu({ restoreFocus: true }));
         mobileClose.addEventListener("keydown", (event) => {
           if (event.key === "Enter" || event.key === " ") mobileClose.click();
         });
@@ -198,6 +199,7 @@
       });
       mobileViewport.addEventListener("change", syncMobileMenu);
       syncMobileMenu();
+      window.LuxeMobileMenuController = true;
     }
 
     const progress = document.createElement("span");

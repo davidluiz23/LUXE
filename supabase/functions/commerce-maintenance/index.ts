@@ -19,6 +19,8 @@ import {
   webPushPublicKey,
 } from "../_shared/web-push.ts";
 
+const MAX_REQUEST_BYTES = 1_024;
+
 function safeEqual(left: string, right: string): boolean {
   if (left.length !== right.length) return false;
   let difference = 0;
@@ -224,6 +226,10 @@ async function sendClaimedEmail(
 
 Deno.serve(async (request) => {
   if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405);
+  const contentLength = Number(request.headers.get("content-length") || 0);
+  if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BYTES) {
+    return json({ error: "request_too_large" }, 413);
+  }
 
   const expectedSecret = Deno.env.get("COMMERCE_MAINTENANCE_SECRET") || "";
   const suppliedSecret = request.headers.get("x-maintenance-secret") || "";

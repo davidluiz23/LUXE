@@ -7,8 +7,8 @@ const products = [
         "subcategory": "Footwear",
         "price": 175,
         "oldPrice": null,
-        "image": "https://editorialist.com/thumbnail/600/2024/2/028/685/474/28685474~red_0.webp?width=600&quality=60",
-        "hoverImage": "https://editorialist.com/thumbnails/600/2024/2/028/685/474/28685474~red_1.webp",
+        "image": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop",
+        "hoverImage": "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=600&auto=format&fit=crop",
         "rating": 5,
         "discount": false,
         "description": "These low top sneakers feature a paneled design, signature Swoosh logo detail, round toe, front lace-up fastening, logo-embroidered tongue, branded heel counter and a rubber sole with Max Air cushioning. These styles are supplied by a premium sneaker marketplace. Stocking only the most sought-after footwear, they source and curate some of the most hard to find sneakers from around the world. The brand is Nike.",
@@ -971,7 +971,7 @@ const products = [
         price: 1850.00,
         oldPrice: null,
         image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop",
-        hoverImage: "https://images.unsplash.com/photo-1609357530491-030999908cfd?w=600&auto=format&fit=crop",
+        hoverImage: "https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=600&auto=format&fit=crop",
         rating: 4.8,
         discount: false,
         description: "High-precision Swiss sports chronograph with blue dial and sapphire crystal front.",
@@ -1008,8 +1008,8 @@ const products = [
         subcategory: "Necklaces",
         price: 650.00,
         oldPrice: null,
-        image: "https://static.austenblake.com/clpd00004/pa0000853/detail/3d/yy/di/0001.jpg",
-        hoverImage: "https://static.austenblake.com/clpd00004/pa0000853/detail/model/yy/di/0001.jpg",
+        image: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=600&auto=format&fit=crop",
+        hoverImage: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&auto=format&fit=crop",
         rating: 4.8,
         discount: false,
         description: "0.75 carat round brilliant lab-grown diamond set in 14K solid yellow gold chain necklace.",
@@ -1028,7 +1028,7 @@ const products = [
         price: 420.00,
         oldPrice: 495.00,
         image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=600&auto=format&fit=crop",
-        hoverImage: "https://images.unsplash.com/photo-1551163944-7f1a9ee00f1a?w=600&auto=format&fit=crop",
+        hoverImage: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&auto=format&fit=crop",
         rating: 4.7,
         discount: true,
         description: "Hand-strung AAA grade white freshwater pearls finished with an 18K gold ball clasp.",
@@ -1065,8 +1065,8 @@ const products = [
         subcategory: "Earrings",
         price: 580.00,
         oldPrice: 699.00,
-        image: "https://static.austenblake.com/cler00010/ea0000103/detail/3d/ww/di/0001.jpg",
-        hoverImage: "https://static.austenblake.com/cler00010/ea0000103/detail/down/ww/di/0001.jpg",
+        image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&auto=format&fit=crop",
+        hoverImage: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=600&auto=format&fit=crop",
         rating: 4.9,
         discount: true,
         description: "Total 1.0 ctw lab-grown brilliant diamonds set in four-prong 14K white gold friction backs.",
@@ -1103,8 +1103,8 @@ const products = [
         subcategory: "Bags",
         price: 65.00,
         oldPrice: 85.00,
-        image: "https://cdn-images.farfetch-contents.com/20/98/00/52/20980052_51122629_1000.jpg",
-        hoverImage: "https://i.pinimg.com/1200x/3d/1e/9e/3d1e9ea22065967826a63efb8716abc4.jpg",
+        image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop",
+        hoverImage: "https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?w=600&auto=format&fit=crop",
         rating: 4.5,
         discount: true,
         description: "Durable cross-body messenger bag with iconic Lacoste crocodile crest and adjustable webbed strap.",
@@ -1431,8 +1431,8 @@ const products = [
         subcategory: "Tops",
         price: 75.00,
         oldPrice: 90.00,
-        image: "https://www.footasylum.com/images/products/large/4112897.jpg",
-        hoverImage: "https://www.footasylum.com/images/products/large/4112897_1.jpg",
+        image: "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=600&auto=format&fit=crop",
+        hoverImage: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=600&auto=format&fit=crop",
         rating: 4.7,
         discount: true,
         description: "Cosy heavyweight fleece pullover hoodie embroidered with white Trefoil logo and kangaroo front pocket.",
@@ -1450,8 +1450,8 @@ const products = [
         subcategory: "Footwear",
         price: 100.00,
         oldPrice: null,
-        image: "https://cdn-images.farfetch-contents.com/22/10/30/11/22103011_51862196_1000.jpg",
-        hoverImage: "https://cdn-images.farfetch-contents.com/22/10/30/11/22103011_49059242_1000.jpg",
+        image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop",
+        hoverImage: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=600&auto=format&fit=crop",
         rating: 4.9,
         discount: false,
         description: "Timeless Adidas Samba OG low-top sneakers in soft full-grain leather with suede T-toe overlay and retro gum rubber sole.",
@@ -1469,8 +1469,8 @@ const products = [
         subcategory: "Outerwear",
         price: 85.00,
         oldPrice: 100.00,
-        image: "https://cdn-images.farfetch-contents.com/36/41/76/97/36417697_68455637_1000.jpg",
-        hoverImage: "https://cdn-images.farfetch-contents.com/36/41/76/97/36417697_68455503_1000.jpg",
+        image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=600&auto=format&fit=crop",
+        hoverImage: "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=600&auto=format&fit=crop",
         rating: 4.8,
         discount: true,
         description: "Lightweight weather-resistant full-zip windbreaker jacket featuring iconic 3-Stripes along sleeves and high stand collar.",
@@ -1489,8 +1489,8 @@ const products = [
         subcategory: "Footwear",
         price: 120.00,
         oldPrice: 140.00,
-        image: "https://cdn-images.farfetch-contents.com/23/70/60/47/23706047_53613814_1000.jpg",
-        hoverImage: "https://cdn-images.farfetch-contents.com/23/70/60/47/23706047_53613807_1000.jpg",
+        image: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=600&auto=format&fit=crop",
+        hoverImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop",
         rating: 4.9,
         discount: true,
         description: "Statement platform edition of the classic Gazelle in soft suede with triple-stacked gum rubber platform outsole.",
@@ -1699,7 +1699,17 @@ const catalogBackendConfigured = !!(
     window.isSupabaseConfigured &&
     window.isSupabaseConfigured()
 );
-let activeProductsList = catalogBackendConfigured ? [] : products;
+
+function catalogProducts(value) {
+    return Array.isArray(value)
+        ? value.filter((product) => {
+            const id = Number(product?.id);
+            return product && typeof product === 'object' && Number.isInteger(id) && id > 0;
+        })
+        : [];
+}
+
+let activeProductsList = catalogBackendConfigured ? [] : catalogProducts(products);
 
 window.LuxeCatalogStatus = {
     state: catalogBackendConfigured ? 'loading' : 'offline',
@@ -1824,16 +1834,29 @@ window.productsReady = (async function loadCatalog() {
                 timeoutResult,
             ]);
             clearTimeout(timeoutId);
-            if (!error && data && data.length) {
-                activeProductsList = data;
-                setCatalogStatus('ready', 'supabase', 'Live catalog loaded.');
-            } else if (!error && data && data.length === 0) {
-                activeProductsList = [];
-                setCatalogStatus('empty', 'supabase', 'No products are currently published.');
+            if (!error && Array.isArray(data)) {
+                const validProducts = catalogProducts(data);
+                if (validProducts.length !== data.length) {
+                    console.warn(`ALKEBULAN: ignored ${data.length - validProducts.length} malformed catalog row(s).`);
+                }
+                if (validProducts.length) {
+                    activeProductsList = validProducts;
+                    setCatalogStatus('ready', 'supabase', 'Live catalog loaded.');
+                } else if (data.length === 0) {
+                    activeProductsList = [];
+                    setCatalogStatus('empty', 'supabase', 'No products are currently published.');
+                } else {
+                    activeProductsList = [];
+                    setCatalogStatus('unavailable', 'supabase', 'The live catalog returned invalid product data.');
+                }
             } else if (error) {
                 activeProductsList = [];
                 setCatalogStatus('unavailable', 'supabase', 'The live catalog is temporarily unavailable. Please try again shortly.');
                 console.warn('ALKEBULAN: could not load the live product catalog.', error.message || error);
+            } else {
+                activeProductsList = [];
+                setCatalogStatus('unavailable', 'supabase', 'The live catalog returned an invalid response.');
+                console.warn('ALKEBULAN: product catalog response was not an array.');
             }
         } else {
             setCatalogStatus('offline', 'bundled', 'Offline catalog preview — the live catalog is not configured.');
@@ -1848,50 +1871,59 @@ window.productsReady = (async function loadCatalog() {
 
 // Get ALL products
 function getProducts() {
-    return activeProductsList;
+    return catalogProducts(activeProductsList);
 }
 
 // Get a SINGLE product by its ID
 function getProductById(id) {
     const numId = Number(id);
-    return activeProductsList.find(p => p.id === numId);
+    return getProducts().find((product) => Number(product.id) === numId);
 }
 
 // Get products by category (Men, Women, Accessories, Footwear)
 function getProductsByCategory(category) {
-    return activeProductsList.filter(p => p.category.toLowerCase() === category.toLowerCase());
+    const requestedCategory = String(category || '').trim().toLocaleLowerCase();
+    if (!requestedCategory) return [];
+    return getProducts().filter((product) =>
+        String(product.category || '').trim().toLocaleLowerCase() === requestedCategory,
+    );
 }
 
 // Get ONLY Men's products
 function getMenProducts() {
-    return activeProductsList.filter(p => p.category === "Men");
+    return getProductsByCategory('Men');
 }
 
 // Get ONLY Women's products
 function getWomenProducts() {
-    return activeProductsList.filter(p => p.category === "Women");
+    return getProductsByCategory('Women');
 }
 
 // Get featured products (first 8)
 function getFeaturedProducts() {
-    return activeProductsList.slice(0, 8);
+    return getProducts().slice(0, 8);
 }
 
 // Get new arrivals (last 8)
 function getNewArrivals() {
-    return activeProductsList.slice(-8);
+    return getProducts().slice(-8);
 }
 
 // Search products by name, brand, category, or tags
 function searchProducts(query) {
-    const q = query.toLowerCase().trim();
-    return activeProductsList.filter(p =>
-        p.name.toLowerCase().includes(q) ||
-        p.brand.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q) ||
-        (p.subcategory && p.subcategory.toLowerCase().includes(q)) ||
-        (p.tags && p.tags.some(tag => tag.includes(q)))
-    );
+    const searchQuery = String(query || '').toLocaleLowerCase().trim();
+    return getProducts().filter((product) => {
+        const fields = [
+            product.name,
+            product.brand,
+            product.category,
+            product.subcategory,
+            ...(Array.isArray(product.tags) ? product.tags : []),
+        ];
+        return fields.some((field) =>
+            String(field || '').toLocaleLowerCase().includes(searchQuery),
+        );
+    });
 }
 
 // ---------------------------------------------------------------------
@@ -1942,7 +1974,7 @@ async function importStarterCatalog() {
         // Refresh local cache from the DB so the admin panel shows the
         // freshly imported rows immediately.
         const { data, error } = await window.LuxeProducts.getAll();
-        if (!error && data) activeProductsList = data;
+        if (!error && Array.isArray(data)) activeProductsList = catalogProducts(data);
     }
     return result;
 }
@@ -1950,7 +1982,7 @@ async function importStarterCatalog() {
 if (typeof window !== 'undefined') {
     Object.defineProperty(window, 'products', {
         get: function () { return activeProductsList; },
-        set: function (val) { activeProductsList = val; },
+        set: function (val) { activeProductsList = catalogProducts(val); },
         configurable: true
     });
     window.getProducts = getProducts;

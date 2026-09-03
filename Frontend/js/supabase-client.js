@@ -777,20 +777,23 @@ const LuxeOrders = {
 
   async quote(items, promoCode = null) {
     if (!supabaseClient) return { data: null, error: { message: "Order service is not configured." } };
-    const rpcItems = (items || []).map((item) => ({
-      product_id: Number(item.product_id ?? item.id),
-      quantity: Number(item.quantity),
-      size: String(item.size || "").trim().slice(0, 80) || null,
-      color: String(item.color || "").trim().slice(0, 80) || null,
-    }));
-    const invalidItem = rpcItems.some((item) =>
-      !Number.isInteger(item.product_id) || item.product_id <= 0 ||
-      !Number.isInteger(item.quantity) || item.quantity <= 0 || item.quantity > 99
-    );
-    if (invalidItem) {
-      return { data: null, error: { message: "Your cart contains invalid items." } };
+    if (!Array.isArray(items) || items.length === 0) {
+      return { data: null, error: { message: "Your cart is empty." } };
     }
     try {
+      const rpcItems = items.map((item) => ({
+        product_id: Number(item?.product_id ?? item?.id),
+        quantity: Number(item?.quantity),
+        size: String(item?.size || "").trim().slice(0, 80) || null,
+        color: String(item?.color || "").trim().slice(0, 80) || null,
+      }));
+      const invalidItem = rpcItems.some((item) =>
+        !Number.isInteger(item.product_id) || item.product_id <= 0 ||
+        !Number.isInteger(item.quantity) || item.quantity <= 0 || item.quantity > 99
+      );
+      if (invalidItem) {
+        return { data: null, error: { message: "Your cart contains invalid items." } };
+      }
       return await supabaseClient.rpc("order_quote_secure_v1", {
         p_items: rpcItems,
         p_promo_code: promoCode || null,
@@ -1794,14 +1797,6 @@ const LuxeMedia = {
   apply(image, value, options = {}) {
     if (!image) return null;
     const media = this.responsive(value, { ...options, allowLocalPreview: true });
-    image.src = media.src || this.placeholderUrl();
-    if (media.srcset) {
-      image.srcset = media.srcset;
-      image.sizes = media.sizes;
-    } else {
-      image.removeAttribute("srcset");
-      image.removeAttribute("sizes");
-    }
     image.width = Math.round(media.config.width || 640);
     image.height = Math.round(media.config.height || 800);
     image.loading = options.priority ? "eager" : "lazy";
@@ -1812,34 +1807,55 @@ const LuxeMedia = {
     image.dataset.luxePlaceholder = this.placeholderUrl();
     delete image.dataset.luxeOriginalFallbackUsed;
     delete image.dataset.luxePlaceholderUsed;
-    this.bindFallback(image);
+    this.bindFallback(image, { checkComplete: false });
+    image.removeAttribute("srcset");
+    image.removeAttribute("sizes");
+    if (media.srcset) {
+      image.srcset = media.srcset;
+      image.sizes = media.sizes;
+    }
+    image.src = media.src || this.placeholderUrl();
+    this.checkFallback(image);
     return media;
   },
 
-  bindFallback(image) {
-    if (!image || image.dataset.luxeFallbackBound === "true") return;
-    image.dataset.luxeFallbackBound = "true";
-    image.addEventListener("error", () => {
-      const original = this.safeImageUrl(image.dataset.luxeOriginal, { allowLocalPreview: true });
-      image.removeAttribute("srcset");
-      image.removeAttribute("sizes");
-      const current = this.safeImageUrl(image.currentSrc || image.src, { allowLocalPreview: true });
-      if (original && current !== original && image.dataset.luxeOriginalFallbackUsed !== "true") {
-        image.dataset.luxeOriginalFallbackUsed = "true";
-        image.src = original;
-        return;
-      }
-      const placeholder = image.dataset.luxePlaceholder || this.placeholderUrl();
-      if (placeholder && current !== placeholder && image.dataset.luxePlaceholderUsed !== "true") {
-        image.dataset.luxePlaceholderUsed = "true";
-        image.src = placeholder;
-      }
-    });
+  handleFallback(image) {
+    if (!image) return;
+    const original = this.safeImageUrl(image.dataset.luxeOriginal, { allowLocalPreview: true });
+    image.removeAttribute("srcset");
+    image.removeAttribute("sizes");
+    const current = this.safeImageUrl(image.currentSrc || image.src, { allowLocalPreview: true });
+    if (original && current !== original && image.dataset.luxeOriginalFallbackUsed !== "true") {
+      image.dataset.luxeOriginalFallbackUsed = "true";
+      image.src = original;
+      return;
+    }
+    const placeholder = image.dataset.luxePlaceholder || this.placeholderUrl();
+    if (placeholder && current !== placeholder && image.dataset.luxePlaceholderUsed !== "true") {
+      image.dataset.luxePlaceholderUsed = "true";
+      image.src = placeholder;
+    }
+  },
+
+  checkFallback(image) {
+    if (image?.complete && image.naturalWidth === 0) this.handleFallback(image);
+  },
+
+  bindFallback(image, { checkComplete = true } = {}) {
+    if (!image) return;
+    if (image.dataset.luxeFallbackBound !== "true") {
+      image.dataset.luxeFallbackBound = "true";
+      image.addEventListener("error", () => this.handleFallback(image));
+    }
+    if (checkComplete) this.checkFallback(image);
   },
 
   hydrate(root = document) {
     if (!root?.querySelectorAll) return;
-    root.querySelectorAll("img[data-luxe-original]").forEach((image) => this.bindFallback(image));
+    const images = root.matches?.("img[data-luxe-original]")
+      ? [root, ...root.querySelectorAll("img[data-luxe-original]")]
+      : [...root.querySelectorAll("img[data-luxe-original]")];
+    images.forEach((image) => this.bindFallback(image));
   },
 
   async validateProductFile(file) {
@@ -2203,11 +2219,24 @@ const LuxeProducts = {
         return { data: null, error };
       }
 
+      if (!Array.isArray(data)) {
+        return {
+          data: null,
+          error: { message: "The product service returned an invalid response." },
+        };
+      }
+      const productRows = data.filter((row) => row && typeof row === "object");
+      if (productRows.length !== data.length) {
+        console.warn(`[ALKEBULAN] Ignored ${data.length - productRows.length} malformed product row(s).`);
+      }
+      const trendingRows = Array.isArray(trendingResult.data) ? trendingResult.data : [];
       const trending = new Map(
-        (trendingResult.data || []).map((row) => [Number(row.product_id), Number(row.units_sold)]),
+        trendingRows
+          .filter((row) => row && typeof row === "object")
+          .map((row) => [Number(row.product_id), Number(row.units_sold)]),
       );
       return {
-        data: (data || []).map((row) => ({
+        data: productRows.map((row) => ({
           ...this._fromRow(row),
           trending: trending.has(Number(row.id)),
           unitsSold: trending.get(Number(row.id)) || 0,

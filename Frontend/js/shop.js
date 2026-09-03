@@ -107,12 +107,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   if (priceValue) priceValue.textContent = `$${initialMaxPrice} USD`;
 
+  const syncCategoryFilterState = (activeFilter) => {
+    categoryFilters.forEach((filter) => {
+      const isActive = filter === activeFilter;
+      filter.classList.toggle("active", isActive);
+      if (isActive) filter.setAttribute("aria-current", "true");
+      else filter.removeAttribute("aria-current");
+    });
+  };
   const requestedCategory = String(pageParams.get("category") || "").toLocaleLowerCase();
   const requestedFilter = categoryFilters.find((filter) => filter.dataset.category === requestedCategory);
-  if (requestedFilter) {
-    categoryFilters.forEach((filter) => filter.classList.remove("active"));
-    requestedFilter.classList.add("active");
-  }
+  syncCategoryFilterState(
+    requestedFilter || categoryFilters.find((filter) => filter.classList.contains("active")) || categoryFilters[0],
+  );
   const requestedSort = pageParams.get("sort");
   if (sortSelect && Array.from(sortSelect.options).some((option) => option.value === requestedSort)) {
     sortSelect.value = requestedSort;
@@ -246,8 +253,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   categoryFilters.forEach((filter) => filter.addEventListener("click", (event) => {
     event.preventDefault();
-    categoryFilters.forEach((item) => item.classList.remove("active"));
-    filter.classList.add("active");
+    syncCategoryFilterState(filter);
     applyFilters();
   }));
   priceRange?.addEventListener("input", (event) => {
@@ -270,8 +276,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     applyFilters();
   });
   document.getElementById("resetFilters")?.addEventListener("click", () => {
-    categoryFilters.forEach((filter) => filter.classList.remove("active"));
-    categoryFilters[0]?.classList.add("active");
+    syncCategoryFilterState(categoryFilters[0]);
     if (priceRange) priceRange.value = String(maxCatalogPrice);
     if (priceValue) priceValue.textContent = `$${maxCatalogPrice} USD`;
     priceRange?.setAttribute("aria-valuetext", `Up to $${maxCatalogPrice} USD`);
@@ -290,14 +295,44 @@ document.addEventListener("DOMContentLoaded", async () => {
   const shopSidebar = document.getElementById("shopSidebar");
   const sidebarClose = document.getElementById("sidebarClose");
   const filterDrawerViewport = window.matchMedia("(max-width: 1020px)");
+  const filterFocusableSelector = 'a[href], button, input, select, textarea, [tabindex]';
+  const setFilterDrawerInert = (shouldBeInert) => {
+    if (!shopSidebar) return;
+    shopSidebar.toggleAttribute("inert", shouldBeInert);
+    if ("inert" in shopSidebar) {
+      shopSidebar.inert = shouldBeInert;
+      return;
+    }
+    shopSidebar.querySelectorAll(filterFocusableSelector).forEach((element) => {
+      if (shouldBeInert) {
+        if (element.dataset.filterPreviousTabindex === undefined) {
+          element.dataset.filterPreviousTabindex = element.hasAttribute("tabindex")
+            ? element.getAttribute("tabindex")
+            : "__none__";
+        }
+        element.setAttribute("tabindex", "-1");
+        return;
+      }
+      const previousTabindex = element.dataset.filterPreviousTabindex;
+      if (previousTabindex === undefined) return;
+      if (previousTabindex === "__none__") element.removeAttribute("tabindex");
+      else element.setAttribute("tabindex", previousTabindex);
+      delete element.dataset.filterPreviousTabindex;
+    });
+  };
   const syncFilterAccessibility = () => {
     if (!shopSidebar) return;
     const isDrawer = filterDrawerViewport.matches;
     const isOpen = shopSidebar.classList.contains("active");
-    shopSidebar.setAttribute("aria-hidden", String(isDrawer && !isOpen));
+    const isHidden = isDrawer && !isOpen;
+    filterToggle?.setAttribute("aria-expanded", String(isDrawer && isOpen));
+    if (isDrawer) shopSidebar.setAttribute("aria-hidden", String(isHidden));
+    else shopSidebar.removeAttribute("aria-hidden");
+    setFilterDrawerInert(isHidden);
     if (isDrawer) {
       shopSidebar.setAttribute("role", "dialog");
-      shopSidebar.setAttribute("aria-modal", "true");
+      if (isOpen) shopSidebar.setAttribute("aria-modal", "true");
+      else shopSidebar.removeAttribute("aria-modal");
       shopSidebar.setAttribute("aria-label", "Product filters");
     } else {
       shopSidebar.removeAttribute("role");
@@ -327,8 +362,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
     if (event.key !== "Tab") return;
-    const focusable = Array.from(shopSidebar.querySelectorAll('a[href], button, input, select'))
-      .filter((element) => !element.hidden && !element.disabled);
+    const focusable = Array.from(shopSidebar.querySelectorAll(filterFocusableSelector))
+      .filter((element) => !element.hidden && !element.disabled && element.tabIndex >= 0);
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
     if (!first || !last) return;

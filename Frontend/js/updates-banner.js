@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         banner.innerHTML = `
             <strong style="color:#D4AF37;">${escapeHtmlBanner(update.title)}</strong>
             <span style="margin-left:8px;">${escapeHtmlBanner(update.message)}</span>
-            <button aria-label="Dismiss" id="luxeUpdateBannerClose" style="
+            <button type="button" aria-label="Dismiss" id="luxeUpdateBannerClose" style="
                 position:absolute; right:10px; top:50%; transform:translateY(-50%);
                 background:none; border:none; color:#fff; opacity:0.7; cursor:pointer; font-size:1rem;
             ">&times;</button>

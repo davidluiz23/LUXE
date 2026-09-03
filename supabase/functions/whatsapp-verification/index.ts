@@ -7,6 +7,7 @@ const OTP_TTL_MINUTES = 10;
 const RESEND_COOLDOWN_SECONDS = 60;
 const MAX_SENDS_PER_HOUR = 5;
 const MAX_VERIFY_ATTEMPTS = 5;
+const MAX_REQUEST_BYTES = 16_384;
 
 function allowedOrigin(request: Request): string | null {
   const configured = (Deno.env.get("LUXE_ALLOWED_ORIGINS") || Deno.env.get("LUXE_SITE_URL") || "")
@@ -128,6 +129,10 @@ Deno.serve(async (request) => {
   if (!origin) return new Response("Origin not allowed", { status: 403 });
   if (request.method === "OPTIONS") return json({ ok: true }, 200, origin);
   if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405, origin);
+  const contentLength = Number(request.headers.get("content-length") || 0);
+  if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BYTES) {
+    return json({ error: "request_too_large" }, 413, origin);
+  }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = getSupabaseServiceKey();
@@ -147,8 +152,17 @@ Deno.serve(async (request) => {
   if (userError || !user) return json({ error: "authentication_required" }, 401, origin);
 
   let payload: Record<string, unknown>;
-  try { payload = await request.json(); }
-  catch { return json({ error: "invalid_json" }, 400, origin); }
+  try {
+    const rawBody = await request.text();
+    if (new TextEncoder().encode(rawBody).byteLength > MAX_REQUEST_BYTES) {
+      return json({ error: "request_too_large" }, 413, origin);
+    }
+    const parsed = JSON.parse(rawBody || "{}");
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("invalid_json");
+    payload = parsed as Record<string, unknown>;
+  } catch {
+    return json({ error: "invalid_json" }, 400, origin);
+  }
 
   const action = String(payload.action || "") as VerificationAction;
   if (action !== "request" && action !== "verify") {
