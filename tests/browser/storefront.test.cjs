@@ -135,6 +135,35 @@ test('closed mobile menus are inert and opening/closing restores keyboard focus'
   }
 });
 
+test('opening navigation hides the page scrollbar and restores page scrolling on close', async () => {
+  for (const [name,width,height] of [['shop.html',390,600],['shop.html',900,540],['admin.html',390,320]]) {
+    const {page,context,errors}=await fixture.openPage(name,{width});
+    try {
+      await page.setViewportSize({width,height});
+      await page.evaluate(()=>{document.documentElement.style.scrollBehavior='auto';window.scrollTo(0,100);});
+      const originalPosition=await page.evaluate(()=>window.scrollY);
+      assert.ok(originalPosition>0,`${name}: fixture needs a scrollable page`);
+      await page.click('#hamburger');
+      await page.waitForTimeout(650);
+      assert.equal(await page.evaluate(()=>document.documentElement.clientWidth===innerWidth),true,`${name}: the background page scrollbar remains visible`);
+      const menu=page.locator('#mobileMenu');
+      const menuOverflows=await menu.evaluate(element=>element.scrollHeight>element.clientHeight);
+      if(name==='shop.html') assert.equal(menuOverflows,true,'The storefront fixture needs an overflowing menu');
+      await page.mouse.move(width/2,height/2);
+      await page.mouse.wheel(0,200);
+      if(menuOverflows) await page.waitForFunction(()=>document.getElementById('mobileMenu').scrollTop>0);
+      else await page.waitForTimeout(200);
+      assert.equal(await page.evaluate(()=>window.scrollY),originalPosition,`${name}: opening or scrolling the menu moved the page`);
+      await page.keyboard.press('Escape');
+      assert.equal(await page.evaluate(()=>window.scrollY),originalPosition,`${name}: closing the menu lost the page position`);
+      await page.waitForTimeout(650);
+      await page.mouse.wheel(0,100);
+      await page.waitForFunction(previous=>window.scrollY>previous,originalPosition);
+      assert.deepEqual(errors,[]);
+    } finally {await context.close();}
+  }
+});
+
 test('signup from checkout preserves the destination through email verification', async () => {
   const {page,context,errors} = await fixture.openPage('login.html?returnTo=checkout.html');
   try {

@@ -23,6 +23,11 @@ body {
     overflow-x: clip;
 }
 
+/* Lock the document as well as the body while the navigation panel scrolls. */
+html:has(body.mobile-nav-open) {
+    overflow: hidden;
+}
+
 img,
 picture,
 video,

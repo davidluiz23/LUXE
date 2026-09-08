@@ -83,7 +83,8 @@ async function startFixture() {
     'C:/Program Files/Google/Chrome/Application/chrome.exe',
     'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
   ].find(file => fs.existsSync(file));
-  const browser = await chromium.launch({ executablePath, headless: true });
+  // Headless Chromium normally hides the scrollbars these layout checks need to see.
+  const browser = await chromium.launch({ executablePath, headless: true, ignoreDefaultArgs: ['--hide-scrollbars'] });
   async function openPage(name, {width = 390, state = {}, saved = {}} = {}) {
     const context = await browser.newContext({ viewport: {width, height: 900}, serviceWorkers: 'block', reducedMotion: 'reduce' });
     await context.addInitScript(({products, state, saved}) => {
