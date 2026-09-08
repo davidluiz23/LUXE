@@ -3,6 +3,7 @@ let checkoutAttemptMemory = null;
 let appliedPromoCode = null;
 let checkoutQuoteGeneration = 0;
 let checkoutSubmissionInFlight = false;
+let checkoutReady = false;
 let checkoutIdentity = {
   user: null,
   required: false,
@@ -15,40 +16,52 @@ let checkoutPaymentConfigReady = Promise.resolve(null);
 const checkoutBrandName = () => window.LuxeBrand?.name || "ALKEBULAN";
 
 document.addEventListener("DOMContentLoaded", async () => {
-  if (window.productsReady) await window.productsReady;
-  if (window.syncStorefrontNavigation) await window.syncStorefrontNavigation();
-  const loader = document.getElementById("loader");
-  if (loader) setTimeout(() => { loader.style.display = "none"; }, 250);
-
-  checkoutPaymentConfigReady = loadPaymentConfig();
-  checkoutPaymentConfig = await checkoutPaymentConfigReady;
-  configurePaymentOptions();
-  prefillSavedAddress();
-  checkoutIdentityReady = loadCheckoutIdentity().catch((error) => {
-    console.warn("[ALKEBULAN] Checkout identity could not be loaded:", error);
-    return checkoutIdentity;
-  });
-  await checkoutIdentityReady;
-  loadCheckoutItems();
-  const initialQuote = await updateOrderTotals();
-  if (initialQuote.error && getCheckoutCartItems().length) {
-    showCheckoutError(`The secure order total could not be calculated: ${initialQuote.error.message}`);
-  }
-
-  document.getElementById("applyPromoBtn")?.addEventListener("click", applyPromoCode);
-  document.getElementById("promoCode")?.addEventListener("input", () => {
-    if (!appliedPromoCode) return;
-    appliedPromoCode = null;
-    setPromoStatus("Code changed. Apply it again to update the total.");
-    void updateOrderTotals();
-  });
-
   const form = document.getElementById("checkoutForm");
+  const button = form?.querySelector(".checkout-btn");
   form?.addEventListener("submit", handleCheckoutSubmit);
+  setButtonState(button, true, "Loading checkout…");
+  try {
+    if (window.productsReady) await window.productsReady;
+    if (window.syncStorefrontNavigation) await window.syncStorefrontNavigation();
+    const loader = document.getElementById("loader");
+    if (loader) setTimeout(() => { loader.style.display = "none"; }, 250);
+
+    checkoutPaymentConfigReady = loadPaymentConfig();
+    checkoutPaymentConfig = await checkoutPaymentConfigReady;
+    configurePaymentOptions();
+    prefillSavedAddress();
+    checkoutIdentityReady = loadCheckoutIdentity().catch((error) => {
+      console.warn("[ALKEBULAN] Checkout identity could not be loaded:", error);
+      return checkoutIdentity;
+    });
+    await checkoutIdentityReady;
+    loadCheckoutItems();
+    const initialQuote = await updateOrderTotals();
+    if (initialQuote.error && !initialQuote.stale && getCheckoutCartItems().length) {
+      showCheckoutError(`The secure order total could not be calculated: ${initialQuote.error.message}`);
+    }
+
+    document.getElementById("applyPromoBtn")?.addEventListener("click", applyPromoCode);
+    document.getElementById("promoCode")?.addEventListener("input", () => {
+      if (!appliedPromoCode) return;
+      appliedPromoCode = null;
+      setPromoStatus("Code changed. Apply it again to update the total.");
+      void updateOrderTotals();
+    });
+
+    checkoutReady = true;
+    const hasItems = getCheckoutCartItems().length > 0;
+    setButtonState(button, !hasItems, hasItems ? "Place Order" : "Your cart is empty");
+  } catch (error) {
+    console.error("[ALKEBULAN] Checkout initialization failed:", error);
+    showCheckoutError("Checkout could not load. Please reload the page and try again.");
+    setButtonState(button, true, "Checkout unavailable");
+  }
 });
 
 async function handleCheckoutSubmit(event) {
   event.preventDefault();
+  if (!checkoutReady) return;
   if (checkoutSubmissionInFlight || !validateCheckoutForm()) return;
 
   const form = event.currentTarget;
@@ -147,6 +160,11 @@ async function handleCheckoutSubmit(event) {
       showCheckoutError(`Could not place order: ${orderResult?.error?.message || "Please try again."}`);
       return;
     }
+    if (checkoutAttemptMemory) {
+      checkoutAttemptMemory.orderId = order.id;
+      try { sessionStorage.setItem("luxe_checkout_attempt", JSON.stringify(checkoutAttemptMemory)); }
+      catch { /* The server still deduplicates this in-page attempt. */ }
+    }
 
     const chatUrl = buildAdminWhatsAppUrl(order, cartItems, contact, shippingAddress, paymentConfig);
     if (provider === "whatsapp" && whatsappWindow && chatUrl) {
@@ -170,17 +188,20 @@ async function handleCheckoutSubmit(event) {
         showCheckoutError(
           `Order ${order.order_number || ""} was saved, but payment could not start: ${checkoutErrorText(payment.error, "Please try again.")}`,
         );
+        const recovery = document.createElement("a");
+        recovery.href = "dashboard.html?tab=orders";
+        recovery.textContent = "Continue payment from My Orders";
+        document.querySelector(".checkout-error")?.append(document.createTextNode(" "), recovery);
         return;
       }
       window.location.assign(payment.authorizationUrl);
-      clearCheckoutAttempt();
       keepButtonDisabled = true;
       return;
     }
 
     await notificationPromise;
     clearCheckoutAttempt();
-    clearCheckoutCart();
+    clearCheckoutCart(order.id, cartItems, user);
     renderOrderSuccess(order, chatUrl, whatsappChatOpened);
     keepButtonDisabled = true;
   } catch (error) {
@@ -196,6 +217,12 @@ async function handleCheckoutSubmit(event) {
     if (!keepButtonDisabled) setButtonState(button, false, retryLabel);
   }
 }
+
+window.addEventListener("pageshow", (event) => {
+  if (!event.persisted || !checkoutReady || !document.getElementById("checkoutForm")) return;
+  checkoutSubmissionInFlight = false;
+  setButtonState(document.querySelector("#checkoutForm .checkout-btn"), false, "Place Order");
+});
 
 function checkoutErrorText(error, fallback) {
   const message = typeof error === "string" ? error : error?.message;
@@ -233,11 +260,9 @@ async function beginCheckoutPayment(provider, order) {
   }
 }
 
-function clearCheckoutCart() {
+function clearCheckoutCart(orderId, items, user) {
   try {
-    window.saveCart?.([]);
-    localStorage.removeItem("luxe_cart");
-    window.updateCartCount?.();
+    window.completeCartOrder?.(orderId, items, user);
   } catch (error) {
     console.warn("[ALKEBULAN] The completed order cart could not be cleared:", error);
   }
@@ -570,7 +595,10 @@ function getCheckoutIdempotencyKey(payload) {
   if (checkoutAttemptMemory?.fingerprint === fingerprint) return checkoutAttemptMemory.key;
   try {
     const saved = JSON.parse(sessionStorage.getItem("luxe_checkout_attempt") || "null");
-    if (saved?.fingerprint === fingerprint && saved?.key) return saved.key;
+    if (saved?.fingerprint === fingerprint && saved?.key) {
+      checkoutAttemptMemory = saved;
+      return saved.key;
+    }
   } catch { /* Create a fresh attempt below. */ }
 
   const key = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() :

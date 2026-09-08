@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 mobileMenu.setAttribute('aria-modal', 'true');
                 mobileMenu.setAttribute('aria-label', 'Site navigation');
                 mobileMenu.setAttribute('aria-hidden', String(!isOpen));
+                mobileMenu.inert = !isOpen;
                 document.body.classList.toggle('mobile-nav-open', isOpen);
             };
             hamburger.addEventListener('click', () => {

@@ -9,7 +9,7 @@
     --alk-paper: #f1eee7;
     --alk-paper-deep: #e7e2d8;
     --alk-white: #fbfaf7;
-    --alk-muted: #706d66;
+    --alk-muted: #65625c;
     --alk-line: #d3cec3;
     --alk-line-dark: rgba(255, 255, 255, 0.16);
     --alk-bronze: #8b704f;
@@ -374,7 +374,7 @@ html.alkebulan-site .hero.luxury-home-hero {
 }
 
 .luxury-home-hero .hero-title em { display: block; margin-left: .34em; color: var(--alk-bronze); font-weight: 400; }
-.luxury-home-hero .hero-sub { max-width: 470px; margin: clamp(38px, 5vw, 68px) 0 0; color: var(--alk-muted); font-size: .86rem; line-height: 1.9; }
+.luxury-home-hero .hero-sub { max-width: 470px; margin: clamp(38px, 5vw, 68px) 0 0; color: var(--alk-muted); font-size: .86rem; line-height: 1.9; opacity: 1; }
 .luxury-home-hero .hero-buttons { justify-content: flex-start; margin-top: 34px; gap: 10px; }
 .luxury-home-hero .hero-buttons .btn-outline { color: var(--alk-ink); border-color: var(--alk-line); }
 .luxury-home-hero .hero-meta { display: grid; margin-top: auto; padding-top: 64px; grid-template-columns: 1fr 1fr; gap: 20px; color: var(--alk-muted); font-size: .51rem; font-weight: 600; letter-spacing: .13em; text-transform: uppercase; }
@@ -585,7 +585,7 @@ html.alkebulan-site footer.luxury-footer { position: relative; overflow: hidden;
 .luxury-footer .footer-contact-link { justify-self: end; padding-bottom: 9px; color: var(--alk-white); border-bottom: 1px solid rgba(255,255,255,.5); font-size: .58rem; font-weight: 600; letter-spacing: .1em; text-decoration: none; text-transform: uppercase; }
 .luxury-footer-grid { display: grid; padding-block: 56px 68px; grid-template-columns: repeat(4, 1fr); gap: 48px; }
 .luxury-footer-grid > div { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; }
-.luxury-footer-grid .footer-label { margin-bottom: 22px; color: rgba(255,255,255,.42); }
+.luxury-footer-grid .footer-label { margin-bottom: 22px; color: rgba(255,255,255,.58); }
 .luxury-footer-grid a,
 .luxury-footer-grid strong { margin-bottom: 9px; color: rgba(255,255,255,.75); font-size: .7rem; font-weight: 400; text-decoration: none; }
 .luxury-footer-grid a:hover { color: var(--alk-white); }
@@ -1090,6 +1090,7 @@ html.alkebulan-site .contact-submit-btn { min-height: 54px; background: var(--al
 html.alkebulan-site .map-section { background: var(--alk-paper-deep); }
 html.alkebulan-site .map-container { border-radius: 0; box-shadow: none; }
 html.alkebulan-site .map-header { background: var(--alk-ink); }
+html.alkebulan-site .map-header p { color: rgba(255,255,255,.75); }
 html.alkebulan-site .faq-section { background: var(--alk-white); }
 html.alkebulan-site .faq-container { max-width: 1000px; }
 html.alkebulan-site .faq-item { background: transparent; border: 0; border-bottom: 1px solid var(--alk-line); border-radius: 0; }

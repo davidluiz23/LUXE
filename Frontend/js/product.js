@@ -35,6 +35,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (!product) {
+        window.finishProductGridLoading?.(relatedGrid);
+        if (relatedGrid) relatedGrid.replaceChildren();
         const container = document.getElementById('productDetails');
         if (container) {
             const catalogUnavailable = window.LuxeCatalogStatus?.state === 'unavailable';

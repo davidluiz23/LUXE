@@ -1710,9 +1710,10 @@ function catalogProducts(value) {
 }
 
 let activeProductsList = catalogBackendConfigured ? [] : catalogProducts(products);
+let liveCatalogRequest = null;
 
 window.LuxeCatalogStatus = {
-    state: catalogBackendConfigured ? 'loading' : 'offline',
+    state: catalogBackendConfigured ? 'idle' : 'offline',
     source: catalogBackendConfigured ? 'supabase' : 'bundled',
     message: catalogBackendConfigured
         ? 'Loading the collection...'
@@ -1725,7 +1726,7 @@ function renderCatalogStatus() {
     let banner = document.getElementById('catalogStatusBanner');
     // Loading is already represented by the quiet, layout-stable product
     // placeholders. Avoid pushing every page down with a refresh banner.
-    if (status.state === 'loading' || status.state === 'ready') {
+    if (['idle', 'loading', 'ready'].includes(status.state)) {
         banner?.remove();
         return;
     }
@@ -1782,47 +1783,11 @@ function finishProductGridLoading(grid) {
     grid.setAttribute('aria-busy', 'false');
 }
 
-window.productsReady = (async function loadCatalog() {
-    const pageFile = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
-    let needsLiveCatalog = [
-        'index.html', 'shop.html', 'men.html', 'women.html',
-        'product.html', 'wishlist.html', 'cart.html', 'checkout.html',
-        'admin.html',
-    ].includes(pageFile);
-    if (!needsLiveCatalog) {
-        // Pages without product grids stay lightweight, but still fetch the
-        // live catalog when saved items cannot be resolved from the bundled
-        // fallback (badges, mini-cart and search previews).
-        try {
-            const savedEntries = [];
-            const readList = (key) => {
-                try {
-                    const parsed = JSON.parse(window.localStorage.getItem(key) || '[]');
-                    if (Array.isArray(parsed)) savedEntries.push(...parsed);
-                } catch { /* Ignore malformed storage. */ }
-            };
-            readList('luxe_cart');
-            readList('luxe_wishlist');
-            for (let index = 0; index < window.localStorage.length; index += 1) {
-                const key = window.localStorage.key(index);
-                if (key && key.indexOf('luxe_wishlist_') === 0) readList(key);
-            }
-            const savedIds = savedEntries
-                .map((entry) => Number(entry && (entry.id ?? entry.product_id)))
-                .filter((id) => Number.isFinite(id) && id > 0);
-            needsLiveCatalog = savedIds.some((id) =>
-                !products.some((product) => Number(product.id) === id),
-            );
-        } catch { /* Fall through to the bundled catalogue. */ }
-    }
+async function loadCatalog() {
+    let timeoutId;
     try {
-        if (!needsLiveCatalog) {
-            activeProductsList = products;
-            setCatalogStatus('ready', 'bundled', 'Bundled catalogue preview.');
-            return activeProductsList;
-        }
         if (catalogBackendConfigured) {
-            let timeoutId;
+            setCatalogStatus('loading', 'supabase', 'Loading the collection...');
             const timeoutResult = new Promise((resolve) => {
                 timeoutId = setTimeout(() => resolve({
                     data: null,
@@ -1865,9 +1830,29 @@ window.productsReady = (async function loadCatalog() {
         activeProductsList = [];
         setCatalogStatus('unavailable', 'supabase', 'The live catalog is temporarily unavailable. Please try again shortly.');
         console.warn('ALKEBULAN: product fetch failed.', e);
+    } finally {
+        clearTimeout(timeoutId);
     }
     return activeProductsList;
-})();
+}
+
+function ensureLiveCatalog() {
+    if (!liveCatalogRequest || window.LuxeCatalogStatus.state === 'unavailable') {
+        liveCatalogRequest = loadCatalog();
+        window.productsReady = liveCatalogRequest;
+    }
+    return liveCatalogRequest;
+}
+
+// Informational pages fetch products only when search is opened. Never present
+// starter inventory as live inventory just because a page has no product grid.
+const catalogPageFile = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
+const catalogPageNeedsData = [
+    'index.html', 'shop.html', 'men.html', 'women.html', 'product.html',
+    'wishlist.html', 'cart.html', 'checkout.html', 'admin.html',
+].includes(catalogPageFile);
+window.ensureLiveCatalog = ensureLiveCatalog;
+window.productsReady = catalogPageNeedsData ? ensureLiveCatalog() : Promise.resolve(activeProductsList);
 
 // Get ALL products
 function getProducts() {

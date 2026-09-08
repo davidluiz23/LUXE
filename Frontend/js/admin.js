@@ -241,9 +241,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("adminResetStatus");
   const resetSubmitButton =
     document.getElementById("adminResetSubmitBtn");
+  let resetReturnFocus = null;
 
   function openResetModal() {
     if (!resetModal) return;
+    resetReturnFocus = document.activeElement;
 
     const currentEmail =
       document.getElementById("adminEmail")?.value.trim() || "";
@@ -263,6 +265,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     resetModal.classList.add("visible");
     resetModal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("admin-modal-open");
 
     setTimeout(() => {
       resetEmailInput?.focus();
@@ -274,7 +277,25 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     resetModal.classList.remove("visible");
     resetModal.setAttribute("aria-hidden", "true");
+    document.body.classList.toggle("admin-modal-open", !!document.querySelector(".admin-modal-overlay.visible"));
+    if (resetReturnFocus instanceof HTMLElement) resetReturnFocus.focus();
   }
+
+  resetModal?.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab") return;
+    const focusable = [...resetModal.querySelectorAll('button:not([disabled]), input:not([disabled]), a[href]')]
+      .filter(element => !element.hidden && element.offsetParent !== null);
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (!first || !last) return;
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
 
   forgotPasswordLink?.addEventListener("click", (event) => {
     event.preventDefault();
@@ -349,6 +370,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         "[ALKEBULAN] Admin password reset request:",
         error.message
       );
+      if (resetStatus) {
+        resetStatus.textContent = "We could not request a reset email right now. Please try again.";
+        resetStatus.className = "admin-reset-status error";
+      }
+      return;
     }
 
     if (resetForm) {

@@ -12,9 +12,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="css/variables.css?v=20260830-1">
+    <link rel="stylesheet" href="css/variables.css?v=20260908-1">
     <link rel="stylesheet" href="css/style.css?v=20260830-1">
-    <link rel="stylesheet" href="css/admin.css?v=20260903-1">
+    <link rel="stylesheet" href="css/admin.css?v=20260908-1">
     <link rel="stylesheet" href="css/responsive.css?v=20260830-1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -35,7 +35,7 @@
             </nav>
 
             <div class="nav-icons">
-                <a href="index.html" class="user-icon"><i class="fas fa-arrow-left"></i></a>
+                <a href="index.html" class="user-icon" aria-label="Return to storefront"><i class="fas fa-arrow-left" aria-hidden="true"></i></a>
                 <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
             </div>
         </div>
@@ -157,7 +157,7 @@
                                 </div>
                             </div>
 
-                            <div class="admin-table-wrap">
+                            <div class="admin-table-wrap" tabindex="0" role="region" aria-label="Products">
                                 <table class="admin-table" id="productsTable">
                                     <thead>
                                         <tr>
@@ -319,7 +319,7 @@
                                 </button>
                             </form>
 
-                            <div class="admin-table-wrap">
+                            <div class="admin-table-wrap" tabindex="0" role="region" aria-label="Admin team">
                                 <table class="admin-table" id="teamTable">
                                     <thead>
                                         <tr>
@@ -352,7 +352,7 @@
                                 <button type="submit" class="btn btn-outline">Search</button>
                             </form>
 
-                            <div class="admin-table-wrap">
+                            <div class="admin-table-wrap" tabindex="0" role="region" aria-label="Customers">
                                 <table class="admin-table" id="customersTable">
                                     <thead><tr><th scope="col">Customer</th><th scope="col">Account</th><th scope="col">Online status</th><th scope="col">WhatsApp</th><th scope="col">Orders</th><th scope="col">Spent</th><th scope="col">Updates</th><th scope="col">Actions</th></tr></thead>
                                     <tbody id="customersTableBody"><tr><td colspan="8">Open this section to load customers.</td></tr></tbody>
@@ -420,7 +420,7 @@
                                 </div>
                             </form>
 
-                            <div class="admin-table-wrap">
+                            <div class="admin-table-wrap" tabindex="0" role="region" aria-label="Promo codes">
                                 <table class="admin-table" id="promotionsTable">
                                     <thead><tr><th scope="col">Code</th><th scope="col">Discount</th><th scope="col">Rules</th><th scope="col">Uses</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
                                     <tbody id="promotionsTableBody"><tr><td colspan="6">Open this section to load promo codes.</td></tr></tbody>
@@ -438,7 +438,7 @@
                                 </div>
                                 <button type="button" class="btn btn-outline" id="refreshActivityBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
                             </div>
-                            <div class="admin-table-wrap">
+                            <div class="admin-table-wrap" tabindex="0" role="region" aria-label="Admin activity">
                                 <table class="admin-table">
                                     <thead><tr><th scope="col">Administrator</th><th scope="col">Action</th><th scope="col">Target</th><th scope="col">Time</th></tr></thead>
                                     <tbody id="globalActivityTableBody"><tr><td colspan="4">Open this section to load activity.</td></tr></tbody>
@@ -681,12 +681,12 @@
     <div class="admin-toast" id="adminToast"></div>
 
     <script src="js/brand-config.js?v=20260830-1"></script>
-    <script src="js/icons.js?v=20260830-1"></script>
+    <script src="js/icons.js?v=20260908-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
-    <script src="js/supabase-client.js?v=20260903-3"></script>
-    <script src="js/products.js?v=20260903-1"></script>
+    <script src="js/supabase-client.js?v=20260908-1"></script>
+    <script src="js/products.js?v=20260908-1"></script>
     <script src="js/animation.js?v=20260830-1"></script>
-    <script src="js/app.js?v=20260903-1"></script>
-    <script src="js/admin.js?v=20260903-3"></script>
+    <script src="js/app.js?v=20260908-1"></script>
+    <script src="js/admin.js?v=20260908-1"></script>
 </body>
 </html>

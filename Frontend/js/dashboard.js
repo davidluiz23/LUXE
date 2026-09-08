@@ -39,17 +39,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (error || !data) throw error || new Error('Payment verification returned no result.');
 
             if (data.status === 'paid') {
-                window.saveCart?.([]);
-                window.updateCartCount?.();
+                window.completeCartOrder?.(paymentOrder.id, paymentOrder.order_items, user);
+                try {
+                    const attempt = JSON.parse(sessionStorage.getItem('luxe_checkout_attempt') || 'null');
+                    if (attempt?.orderId === paymentOrder.id) sessionStorage.removeItem('luxe_checkout_attempt');
+                } catch { /* Payment confirmation does not depend on browser storage. */ }
                 showDashboardBanner(`Payment confirmed for ${paymentOrder.order_number}.`, 'success');
+                const cleanParams = new URLSearchParams(returnParams);
+                ['payment', 'reference', 'trxref'].forEach(key => cleanParams.delete(key));
+                const query = cleanParams.toString();
+                window.history.replaceState({}, '', `dashboard.html${query ? `?${query}` : ''}`);
             } else {
                 showDashboardBanner('Your payment is not confirmed yet. Check your order status again shortly.', 'info');
             }
         } catch (error) {
             console.error('[ALKEBULAN] Payment return verification failed:', error);
             showDashboardBanner('We could not confirm this payment right now. Please check your order status or try again shortly.', 'error');
-        } finally {
-            window.history.replaceState({}, '', 'dashboard.html');
         }
     }
 
@@ -59,7 +64,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         : Promise.resolve(null);
     const ordersRequest = window.LuxeOrders
         ? window.LuxeOrders.getOrders(user.id)
-        : Promise.resolve([]);
+        : Promise.resolve({ data: [], error: { message: 'Order service unavailable.' } });
     const notificationsRequest = window.LuxeNotifications
         ? window.LuxeNotifications.getAll()
         : Promise.resolve({ data: [], error: null });
@@ -121,6 +126,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ---------------- Tab switching ----------------
     const navBtns = document.querySelectorAll('.dashboard-nav-btn');
     const panels = document.querySelectorAll('.dashboard-panel');
+    let notificationsMarkedRead = false;
+    async function markNotificationsRead() {
+        try {
+            const { error } = await window.LuxeNotifications.markAllRead();
+            if (error) throw error;
+            notificationsMarkedRead = true;
+            setNotificationBadge(0);
+            window.updateNavbarNotificationBadge?.(0, true);
+            document.querySelectorAll('.dashboard-notification.is-unread').forEach(item => item.classList.remove('is-unread'));
+        } catch (error) {
+            console.warn('[ALKEBULAN] Notifications could not be marked read:', error);
+            showDashboardBanner('Notifications could not be marked as read. Please try again.', 'error');
+        }
+    }
     navBtns.forEach(btn => {
         btn.addEventListener('click', async () => {
             navBtns.forEach(b => b.classList.remove('active'));
@@ -129,10 +148,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const panel = document.getElementById('panel-' + btn.dataset.tab);
             if (panel) panel.classList.add('active');
             if (btn.dataset.tab === 'notifications' && window.LuxeNotifications) {
-                await window.LuxeNotifications.markAllRead();
-                setNotificationBadge(0);
-                window.updateNavbarNotificationBadge?.(0, true);
-                document.querySelectorAll('.dashboard-notification.is-unread').forEach(item => item.classList.remove('is-unread'));
+                await markNotificationsRead();
             }
         });
     });
@@ -373,9 +389,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ---------------- Orders panel ----------------
     const ordersList = document.getElementById('ordersList');
     if (ordersList && window.LuxeOrders) {
-        const orders = await ordersRequest;
+        const { data: orders, error: ordersError } = await ordersRequest;
 
-        if (!orders || orders.length === 0) {
+        if (ordersError) {
+            ordersList.innerHTML = '<div class="orders-empty" role="alert"><p>Your orders could not be loaded. Please try again.</p><button type="button" class="btn btn-primary" data-reload-orders>Reload orders</button></div>';
+            ordersList.querySelector('[data-reload-orders]')?.addEventListener('click', () => window.location.reload());
+        } else if (!orders || orders.length === 0) {
             ordersList.innerHTML = `
                 <div class="orders-empty">
                     <i class="fas fa-box-open"></i>
@@ -384,6 +403,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             `;
         } else {
             ordersList.innerHTML = orders.map(order => renderOrderCard(order)).join('');
+            ordersList.addEventListener('click', async (event) => {
+                const button = event.target.closest('[data-resume-payment]');
+                if (!button || button.disabled) return;
+                button.disabled = true;
+                button.textContent = 'Opening payment…';
+                try {
+                    const { data, error } = await window.LuxePayments.initialize(button.dataset.resumePayment);
+                    if (error) throw error;
+                    const destination = new URL(data?.authorizationUrl);
+                    if (destination.protocol !== 'https:') throw new Error('Payment URL unavailable.');
+                    window.location.assign(destination.href);
+                } catch (error) {
+                    console.warn('[ALKEBULAN] Payment could not resume:', error);
+                    showDashboardBanner('Payment could not be opened. Please try again or contact client services.', 'error');
+                    button.disabled = false;
+                    button.textContent = 'Continue payment';
+                }
+            });
             const requestedOrder = String(returnParams.get('order') || '').trim().toLowerCase();
             if (requestedOrder) {
                 const targetOrder = [...ordersList.querySelectorAll('.order-card')].find(
@@ -407,23 +444,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             notificationsList.innerHTML = '<div class="orders-empty"><i class="fas fa-exclamation-circle"></i><p>Could not load notifications.</p></div>';
             return;
         }
-        setNotificationBadge(data.filter(item => !item.read_at).length);
+        setNotificationBadge(notificationsMarkedRead ? 0 : data.filter(item => !item.read_at).length);
         if (!data.length) {
             notificationsList.innerHTML = '<div class="orders-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet.</p></div>';
             return;
         }
         notificationsList.innerHTML = data.map(item => `
-            <article class="dashboard-notification ${item.read_at ? '' : 'is-unread'}" data-id="${escapeDashboardHtml(item.id)}">
+            <article class="dashboard-notification ${item.read_at || notificationsMarkedRead ? '' : 'is-unread'}" data-id="${escapeDashboardHtml(item.id)}">
                 <span class="notification-kind"><i class="fas ${item.kind === 'order' ? 'fa-box' : item.kind === 'welcome' ? 'fa-star' : 'fa-bullhorn'}"></i></span>
                 <div><h3>${escapeDashboardHtml(item.title)}</h3><p>${escapeDashboardHtml(item.message)}</p><time>${new Date(item.created_at).toLocaleString()}</time></div>
             </article>
         `).join('');
     }
     document.getElementById('markAllNotificationsRead')?.addEventListener('click', async () => {
-        await window.LuxeNotifications.markAllRead();
-        setNotificationBadge(0);
-        window.updateNavbarNotificationBadge?.(0, true);
-        document.querySelectorAll('.dashboard-notification.is-unread').forEach(item => item.classList.remove('is-unread'));
+        await markNotificationsRead();
     });
     await loadNotifications(notificationsRequest);
 
@@ -480,6 +514,9 @@ function renderOrderCard(order) {
 
     const allowedStatuses = ['pending_confirmation', 'awaiting_payment', 'processing', 'confirmed', 'shipped', 'delivered', 'cancelled'];
     const safeStatus = allowedStatuses.includes(order.status) ? order.status : 'processing';
+    const canResumePayment = order.payment_provider === 'paystack' && order.payment_status === 'pending'
+        && safeStatus === 'awaiting_payment' && !order.inventory_released_at
+        && (!order.inventory_reservation_expires_at || Date.parse(order.inventory_reservation_expires_at) > Date.now());
 
     return `
         <div class="order-card" data-order-number="${escapeDashboardHtml(order.order_number)}">
@@ -496,6 +533,7 @@ function renderOrderCard(order) {
             <div class="order-card-footer">
                 <span>ETA: ${eta}${safeTrackingUrl(order.waybill_url) ? ` · <a href="${escapeDashboardHtml(safeTrackingUrl(order.waybill_url))}" target="_blank" rel="noopener">Track parcel</a>` : ''}${Number(order.discount_amount || 0) > 0 ? ` · Promo ${escapeDashboardHtml(order.promotion_code || '')} saved $${Number(order.discount_amount).toFixed(2)} USD` : ''}</span>
                 <strong>Total: $${Number(order.total).toFixed(2)} USD</strong>
+                ${canResumePayment ? `<button type="button" class="btn btn-primary" data-resume-payment="${escapeDashboardHtml(order.id)}">Continue payment</button>` : ''}
             </div>
         </div>
     `;
@@ -509,6 +547,7 @@ function setNotificationBadge(count) {
 }
 
 function safeImageUrl(value) {
+    if (typeof value !== 'string' || !value.trim()) return '';
     try {
         const url = new URL(value, document.baseURI);
         const isSameOriginHttp = url.protocol === 'http:' && url.origin === window.location.origin;

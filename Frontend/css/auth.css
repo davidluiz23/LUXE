@@ -101,7 +101,7 @@
 }
 
 .checkbox-group a {
-    color: var(--accent);
+    color: var(--accent-text);
     text-decoration: none;
 }
 
@@ -119,7 +119,7 @@
 }
 
 .auth-switch a {
-    color: var(--accent);
+    color: var(--accent-text);
     text-decoration: none;
     font-weight: 500;
 }
@@ -127,7 +127,7 @@
 /* Welcoming login entry points */
 .login-eyebrow,
 .login-image-kicker {
-    color: var(--accent);
+    color: var(--accent-text);
     font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 0.16em;
@@ -317,7 +317,7 @@
 }
 
 .forgot-link:hover {
-    color: var(--accent);
+    color: var(--accent-text);
 }
 
 .auth-image {
@@ -354,7 +354,7 @@
 }
 
 .auth-benefits i {
-    color: var(--accent);
+    color: var(--accent-text);
     font-size: 1.2rem;
     width: 24px;
 }
@@ -542,7 +542,7 @@
     width: 60px;
     height: 60px;
     background: rgba(212, 175, 55, 0.15);
-    color: var(--accent);
+    color: var(--accent-text);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -573,7 +573,7 @@
 }
 
 .simulated-code-banner strong {
-    color: var(--accent);
+    color: var(--accent-text);
     font-size: 1.1rem;
     letter-spacing: 3px;
     margin-left: 5px;
@@ -609,7 +609,7 @@
 }
 
 .otp-resend a {
-    color: var(--accent);
+    color: var(--accent-text);
     text-decoration: none;
     font-weight: 600;
 }
@@ -659,7 +659,7 @@
 }
 
 .verification-method-option small {
-    color: #777;
+    color: var(--gray-text);
 }
 body.auth-modal-open {
     overflow: hidden;

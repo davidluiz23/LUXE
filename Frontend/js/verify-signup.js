@@ -14,6 +14,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   const form = document.getElementById("finishSignupForm");
   const errorBox = document.getElementById("finishSignupError");
   const query = new URLSearchParams(window.location.search);
+  let savedReturnTo = null;
+  try { savedReturnTo = sessionStorage.getItem("luxe_signup_return_to"); } catch { /* Storage is optional. */ }
+  const returnTo = (query.get("returnTo") || savedReturnTo) === "checkout.html" ? "checkout.html" : "index.html";
+  if (returnTo === "checkout.html") {
+    document.querySelectorAll('a[href="signup.html"], a[href="login.html"]').forEach((link) => {
+      link.href = `${link.getAttribute("href")}?returnTo=checkout.html`;
+    });
+  }
   const token = query.get("token")?.trim() || "";
 
   let verifiedEmail = "";
@@ -198,7 +206,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       setTimeout(() => {
-        window.location.href = "login.html";
+        window.location.href = `login.html${returnTo === "checkout.html" ? "?returnTo=checkout.html" : ""}`;
       }, 1800);
       return;
     }
@@ -218,7 +226,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (created) created.style.display = "block";
 
     setTimeout(() => {
-      window.location.href = "index.html";
+      try { sessionStorage.removeItem("luxe_signup_return_to"); } catch { /* Navigation still works without storage. */ }
+      window.location.href = returnTo;
     }, 1200);
   });
 });

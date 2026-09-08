@@ -161,6 +161,41 @@ function saveCart(cart) {
     }
 }
 
+function completeCartOrder(orderId, orderedItems, user) {
+    if (!orderId || !user?.id || !Array.isArray(orderedItems)) return false;
+    // Payment can finish after the shopper adds other items in another tab.
+    // Consume only purchased quantities, once per order and account.
+    const accountKey = cartStorageKeyForUser(user);
+    const receiptKey = `${accountKey}_completed_orders`;
+    try {
+        const receipts = JSON.parse(localStorage.getItem(receiptKey) || '[]');
+        if (!Array.isArray(receipts)) return false;
+        if (receipts.includes(String(orderId))) return true;
+        const purchased = normalizeCart(orderedItems.map((item) => ({ ...item, id: item.product_id ?? item.id })));
+        if (!purchased.length) return false;
+        const quantities = new Map(purchased.map((item) => [item.key, item.quantity]));
+        const cart = normalizeCart(JSON.parse(localStorage.getItem(accountKey) || '[]'));
+        const remaining = cart.flatMap((item) => {
+            const quantity = item.quantity - (quantities.get(item.key) || 0);
+            return quantity > 0 ? [{ ...item, quantity }] : [];
+        });
+        // Record first: a failed browser-storage write must never cause a later
+        // visit to an old payment URL to consume newly added items again.
+        localStorage.setItem(receiptKey, JSON.stringify([...receipts, String(orderId)]));
+        try {
+            localStorage.setItem(accountKey, JSON.stringify(remaining));
+        } catch (error) {
+            localStorage.setItem(receiptKey, JSON.stringify(receipts));
+            throw error;
+        }
+        updateCartCount();
+        return true;
+    } catch (error) {
+        console.warn('[ALKEBULAN] The completed order could not be removed from the cart:', error);
+        return false;
+    }
+}
+
 function cartProduct(productId) {
     return typeof window.getProductById === 'function'
         ? window.getProductById(productId)
@@ -528,6 +563,7 @@ window.mergeGuestCartIntoAccountCart = mergeGuestCartIntoAccountCart;
 window.getAvailableCartItems = getAvailableCartItems;
 window.loadCart = loadCart;
 window.saveCart = saveCart;
+window.completeCartOrder = completeCartOrder;
 window.addToCart = addToCart;
 window.removeFromCart = removeFromCart;
 window.updateCartQuantity = updateCartQuantity;

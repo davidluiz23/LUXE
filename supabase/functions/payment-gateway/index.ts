@@ -240,7 +240,13 @@ Deno.serve(async (request) => {
   const rawBody = await request.text();
   if (rawBody.length > 65_536) return json({ error: "request_too_large" }, 413, origin);
   let body: Record<string, unknown>;
-  try { body = JSON.parse(rawBody); } catch { return json({ error: "invalid_json" }, 400, origin); }
+  try {
+    const parsed = JSON.parse(rawBody);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return json({ error: "invalid_json" }, 400, origin);
+    }
+    body = parsed;
+  } catch { return json({ error: "invalid_json" }, 400, origin); }
 
   const action = String(body.action || "");
   if (!body.event && action === "config") {

@@ -40,6 +40,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const query = new URLSearchParams(window.location.search);
+  const checkoutReturn = query.get("returnTo") === "checkout.html";
+  if (checkoutReturn) {
+    document.querySelectorAll('a[href="signup.html"], a[href="login.html"]').forEach((link) => {
+      link.href = `${link.getAttribute("href")}?returnTo=checkout.html`;
+    });
+  }
 
   if (query.get("verified") === "true") {
     showAuthSuccess("Email verified successfully. You can now sign in.");
@@ -159,10 +165,11 @@ document.addEventListener("DOMContentLoaded", () => {
       showAuthSuccess("Verification email sent. Enter the six-digit code to continue.");
 
       sessionStorage.setItem("luxe_pending_signup_email", email);
+      sessionStorage.setItem("luxe_signup_return_to", checkoutReturn ? "checkout.html" : "index.html");
       signupForm.reset();
 
       setTimeout(() => {
-        window.location.href = "verify-signup.html";
+        window.location.href = `verify-signup.html${checkoutReturn ? "?returnTo=checkout.html" : ""}`;
       }, 900);
     });
   }

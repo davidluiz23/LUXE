@@ -74,6 +74,10 @@
             container.appendChild(createEmptyState("Loading the collection", "Search results will appear as soon as the catalogue is ready."));
             return;
         }
+        if (window.LuxeCatalogStatus?.state === 'unavailable') {
+            container.appendChild(createEmptyState("Collection temporarily unavailable", "Close and reopen search to try again."));
+            return;
+        }
         const matches = catalog.filter((product) => {
             const fields = [product.name, product.category, product.subcategory, product.brand, ...(product.tags || [])];
             return fields.some((field) => String(field || "").toLocaleLowerCase().includes(normalized));
@@ -149,6 +153,15 @@
             syncQueryState();
             renderResults(results, "", catalogPending);
             window.setTimeout(() => input?.focus(), 30);
+            if (window.ensureLiveCatalog) {
+                catalogPending = true;
+                Promise.resolve(window.ensureLiveCatalog())
+                    .catch(() => {})
+                    .finally(() => {
+                        catalogPending = false;
+                        if (!modal.hidden) updateSearch();
+                    });
+            }
         };
 
         const closeSearch = () => {

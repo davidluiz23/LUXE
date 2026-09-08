@@ -121,6 +121,7 @@
         hamburger?.classList.remove("is-active");
         hamburger?.setAttribute("aria-expanded", "false");
         mobileMenu.setAttribute("aria-hidden", "true");
+        mobileMenu.inert = true;
         if (restoreFocus && mobileViewport.matches) hamburger?.focus();
       };
 
@@ -134,6 +135,7 @@
         hamburger?.classList.toggle("is-active", isOpen);
         hamburger?.setAttribute("aria-expanded", String(isOpen));
         mobileMenu.setAttribute("aria-hidden", String(!isOpen));
+        mobileMenu.inert = !isOpen;
       };
 
       const menuObserver = new MutationObserver(syncMobileMenu);
@@ -152,7 +154,10 @@
         mobileClose.setAttribute("aria-label", "Close menu");
         mobileClose.addEventListener("click", () => closeMobileMenu({ restoreFocus: true }));
         mobileClose.addEventListener("keydown", (event) => {
-          if (event.key === "Enter" || event.key === " ") mobileClose.click();
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            mobileClose.click();
+          }
         });
       }
       if (mobileList) {

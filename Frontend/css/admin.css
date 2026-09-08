@@ -25,7 +25,7 @@ body.admin-page.mobile-nav-open {
 
 .admin-gate i {
     font-size: 2.5rem;
-    color: var(--accent);
+    color: var(--accent-text);
     margin-bottom: 18px;
 }
 
@@ -135,7 +135,7 @@ body.admin-page.mobile-nav-open {
 
 .admin-owner-avatar i {
     font-size: 2rem;
-    color: var(--accent);
+    color: var(--accent-text);
     margin: 0;
 }
 
@@ -170,7 +170,7 @@ body.admin-page.mobile-nav-open {
 
 .admin-owner-role.owner {
     background: rgba(212, 175, 55, 0.16);
-    color: #9B7418;
+    color: var(--accent-text);
 }
 
 .admin-owner-role.admin {
@@ -319,7 +319,7 @@ body.admin-page.mobile-nav-open {
     font-weight: 600;
 }
 
-.admin-badge.in-stock { background: #E8F8EF; color: #1E8E4F; }
+.admin-badge.in-stock { background: #E8F8EF; color: #1E7D49; }
 .admin-badge.out-stock { background: #FDECEA; color: #C0392B; }
 
 .admin-stock-control {
@@ -386,7 +386,7 @@ body.admin-page.mobile-nav-open {
 
 .admin-empty-state i {
     font-size: 2rem;
-    color: var(--accent);
+    color: var(--accent-text);
     margin-bottom: 12px;
     display: block;
 }
@@ -686,7 +686,7 @@ body.admin-page.mobile-nav-open {
 }
 
 .admin-owner-notice > i {
-    color: var(--accent);
+    color: var(--accent-text);
     font-size: 1.2rem;
     margin-top: 2px;
 }
@@ -702,7 +702,7 @@ body.admin-page.mobile-nav-open {
 .admin-you-badge {
     display: inline-block;
     background: rgba(212, 175, 55, 0.15);
-    color: var(--accent);
+    color: var(--accent-text);
     font-size: 0.68rem;
     font-weight: 700;
     padding: 2px 8px;
@@ -721,7 +721,7 @@ body.admin-page.mobile-nav-open {
 
 .admin-role-badge.owner {
     background: rgba(212, 175, 55, 0.16);
-    color: #9B7418;
+    color: var(--accent-text);
 }
 
 .admin-role-badge.admin {
@@ -830,7 +830,7 @@ body.admin-page.mobile-nav-open {
 .admin-delivery-result.is-error { color: #B33228; }
 
 .admin-contact-flags { display: flex; flex-wrap: wrap; gap: 5px; }
-.admin-contact-flag { padding: 3px 7px; border-radius: 999px; background: #F1F1F1; color: #777; font-size: .64rem; font-weight: 600; }
+.admin-contact-flag { padding: 3px 7px; border-radius: 999px; background: #F1F1F1; color: var(--gray-text); font-size: .64rem; font-weight: 600; }
 .admin-contact-flag.enabled { background: rgba(34, 168, 96, .11); color: #1E7D49; }
 
 .admin-account-status {
@@ -907,7 +907,7 @@ body.admin-page.mobile-nav-open {
 .admin-promo-status { display: inline-flex; padding: 3px 8px; border-radius: 999px; font-size: .66rem; font-weight: 700; }
 .admin-promo-status.active { background: rgba(34, 168, 96, .11); color: #1E7D49; }
 .admin-promo-status.scheduled { background: rgba(45, 108, 223, .1); color: #285DAE; }
-.admin-promo-status.paused, .admin-promo-status.expired { background: #F1F1F1; color: #777; }
+.admin-promo-status.paused, .admin-promo-status.expired { background: #F1F1F1; color: var(--gray-text); }
 
 @media (max-width: 600px) {
     .admin-search-row { grid-template-columns: 1fr; }
@@ -926,7 +926,7 @@ body.admin-page.mobile-nav-open {
     font-weight: 600;
 }
 
-.admin-protected i { color: var(--accent); }
+.admin-protected i { color: var(--accent-text); }
 
 .admin-update-item {
     padding: 16px 0;
@@ -1599,7 +1599,7 @@ body.admin-page.mobile-nav-open {
 }
 
 .admin-login-help a {
-    color: var(--accent);
+    color: var(--accent-text);
     font-size: 0.82rem;
     font-weight: 600;
     text-decoration: none;
@@ -1644,7 +1644,7 @@ body.admin-page.mobile-nav-open {
 }
 
 .admin-reset-icon i {
-    color: var(--accent);
+    color: var(--accent-text);
     font-size: 1.15rem;
 }
 
@@ -1692,7 +1692,7 @@ body.admin-page.mobile-nav-open {
 .admin-reset-status.success {
     display: block;
     background: #E8F8EF;
-    color: #1E8E4F;
+    color: #1E7D49;
 }
 
 .admin-reset-status.error {

@@ -361,7 +361,7 @@ body.product-image-viewer-open { overflow: hidden; }
 }
 
 .product-specs .spec-label {
-    color: #777777;
+    color: var(--gray-text);
     font-size: 0.85rem;
 }
 

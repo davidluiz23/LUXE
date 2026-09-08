@@ -57,6 +57,9 @@ Deno.serve(async (request) => {
     const rawBody = await request.text();
     if (rawBody.length > 16_384) return json({ error: "request_too_large" }, 413, origin);
     body = JSON.parse(rawBody || "{}");
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return json({ error: "invalid_json" }, 400, origin);
+    }
   }
   catch { return json({ error: "invalid_json" }, 400, origin); }
 

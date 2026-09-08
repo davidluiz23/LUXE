@@ -829,7 +829,7 @@ const LuxeOrders = {
   },
 
   async getOrders(userId) {
-    if (!supabaseClient || !userId) return [];
+    if (!supabaseClient || !userId) return { data: [], error: { message: "Please sign in to load orders." } };
 
     try {
       const { data, error } = await supabaseClient
@@ -840,13 +840,13 @@ const LuxeOrders = {
 
       if (error) {
         console.error("[ALKEBULAN] Failed to load orders:", error);
-        return [];
+        return { data: [], error };
       }
 
-      return data || [];
+      return { data: data || [], error: null };
     } catch (error) {
       console.error("[ALKEBULAN] Orders fetch error:", error);
-      return [];
+      return { data: [], error: { message: error?.message || "Unable to load orders." } };
     }
   },
 
@@ -855,7 +855,7 @@ const LuxeOrders = {
     try {
       const { data, error } = await supabaseClient
         .from("orders")
-        .select("id,order_number,payment_status")
+        .select("id,order_number,payment_status,order_items(product_id,quantity,selected_size,selected_color)")
         .eq("payment_reference", reference)
         .maybeSingle();
 

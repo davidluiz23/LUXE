@@ -21,7 +21,7 @@
 
   function rating(value, className = "luxe-rating-icons") {
     const count = Math.max(0, Math.min(5, Math.round(Number(value) || 0)));
-    return `<span class="${className}" aria-label="${Number(value || 0).toFixed(1)} out of 5">${Array.from({ length: count }, () => svg("star", "luxe-star-icon")).join("")}</span>`;
+    return `<span class="${className}" role="img" aria-label="${Number(value || 0).toFixed(1)} out of 5">${Array.from({ length: count }, () => svg("star", "luxe-star-icon")).join("")}</span>`;
   }
 
   window.LuxeIcons = Object.freeze({ svg, rating });
