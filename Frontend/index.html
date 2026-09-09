@@ -5,146 +5,96 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="assets/brand/alkebulan-mark.svg" type="image/svg+xml">
     <script src="js/utils.js?v=20260830-2"></script>
-    <title>ALKEBULAN | Clothing with Character</title>
-    <meta name="description" content="Explore the ALKEBULAN collection. Expressive clothing, distinctive artwork, and a different kind of everyday statement.">
+    <title>ALKEBULAN | Wear the story.</title>
+    <meta name="description" content="Culture lives on. Discover Ijele, Durbar and Dùn Dùn — the ALKEBULAN artwork collection.">
     <link rel="stylesheet" href="css/variables.css?v=20260908-1">
     <link rel="stylesheet" href="css/style.css?v=20260830-1">
     <link rel="stylesheet" href="css/responsive.css?v=20260908-2">
     <link id="alkebulanLuxuryStyles" rel="stylesheet" href="css/luxury.css?v=20260908-1">
     <link rel="stylesheet" href="css/desktop-responsive.css?v=20260831-2">
-    <script id="alkebulanLuxuryUi" src="js/luxury-ui.js?v=20260909-1" defer></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script id="alkebulanLuxuryUi" src="js/luxury-ui.js?v=20260909-2" defer></script>
     <link rel="stylesheet" href="css/storefront.css?v=20260909-1">
-    <link rel="stylesheet" href="css/home.css?v=20260909-1">
-    <script src="js/home-stage.js?v=20260909-1" defer></script>
+    <link rel="stylesheet" href="css/home.css?v=20260909-2">
+    <script src="js/home-stage.js?v=20260909-2" defer></script>
 </head>
 <body class="page-index">
     <a class="skip-to-content" href="#mainContent">Skip to content</a>
-
-    <!-- Navigation -->
     <header id="navbar">
         <div class="container nav-container">
-            <div class="logo">
-                <a href="index.html"><span>ALKEBULAN</span></a>
-            </div>
-            <nav class="nav-links" id="navLinks">
-                <ul>
-                    <li><a href="index.html" class="active">Home</a></li>
-                    <li><a href="shop.html">Shop</a></li>
-                    <li><a href="men.html">Men</a></li>
-                    <li><a href="women.html">Women</a></li>
-                    <li><a href="about.html">About</a></li>
-                    <li><a href="contact.html">Contact</a></li>
-                </ul>
-            </nav>
+            <div class="logo"><a href="index.html" aria-label="ALKEBULAN home"><span>ALKEBULAN</span></a></div>
+            <nav class="nav-links" id="navLinks" aria-label="Main navigation"><ul><li><a href="shop.html">Shop</a></li><li><a href="about.html">Our story</a></li></ul></nav>
             <div class="nav-icons">
-                <button type="button" class="search-icon" id="searchToggle" aria-label="Search"><i class="fas fa-search"></i></button>
-                <a href="wishlist.html" class="wishlist-icon"><i class="fas fa-heart"></i><span class="wishlist-count">0</span></a>
-                <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-bag"></i><span class="cart-count">0</span></a>
-                <a href="dashboard.html" class="user-icon"><i class="fas fa-user"></i></a>
-                <div class="hamburger" id="hamburger">
-                    <span></span><span></span><span></span>
-                </div>
+                <button type="button" class="search-icon" id="searchToggle" aria-label="Search"><i class="fas fa-search" aria-hidden="true"></i><span class="nav-label">Search</span></button>
+                <a href="cart.html" class="cart-icon" aria-label="Shopping bag"><i class="fas fa-shopping-bag" aria-hidden="true"></i><span class="nav-bag-label">Bag (<span class="cart-count">0</span>)</span></a>
+                <button type="button" class="hamburger" id="hamburger" aria-label="Open menu"><span></span><span></span><span></span></button>
             </div>
         </div>
         <div class="mobile-menu" id="mobileMenu">
-            <div class="mobile-close" id="mobileClose"><i class="fas fa-times"></i></div>
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="shop.html">Shop</a></li>
-                <li><a href="men.html">Men</a></li>
-                <li><a href="women.html">Women</a></li>
-                <li><a href="about.html">About</a></li>
-                <li><a href="contact.html">Contact</a></li>
-                <li><a href="signup.html">Sign Up</a></li>
-                <li><a href="wishlist.html">Wishlist</a></li>
-                <li><a href="cart.html">Cart</a></li>
-            </ul>
+            <button type="button" class="mobile-close" id="mobileClose" aria-label="Close menu"><i class="fas fa-times" aria-hidden="true"></i></button>
+            <ul><li><a href="shop.html">Shop</a></li><li><a href="about.html">Our story</a></li><li><a href="dashboard.html">Account</a></li><li><a href="wishlist.html">Saved pieces</a></li></ul>
         </div>
     </header>
 
     <main id="mainContent">
-    <section class="collection-opening" aria-labelledby="openingTitle">
-        <div class="opening-topline"><span>ALKEBULAN / CLOTHING WITH CHARACTER</span><a href="#collection">Explore the collection <span aria-hidden="true">↘</span></a></div>
-        <div class="opening-layout">
+        <section class="collection-opening" id="productStage" data-featured-artwork="ijele" aria-labelledby="openingTitle">
+            <span class="hero-wordmark" aria-hidden="true">ALKEBULAN</span>
             <div class="opening-copy">
-                <p class="opening-eyebrow"><span aria-hidden="true"></span> THE ART OF SELF-EXPRESSION</p>
-                <h1 id="openingTitle">Wear<br> the <em>story.</em></h1>
-                <p class="opening-description">Expressive by design.<br>A different kind of everyday statement.</p>
-                <a class="opening-cta" href="shop.html">Find your piece <span aria-hidden="true">↗</span></a>
-                <div class="opening-footnote"><span>ROOTED IN EXPRESSION.</span><span>WORN YOUR WAY.</span></div>
+                <p class="opening-eyebrow">Culture lives on <span aria-hidden="true"></span></p>
+                <h1 id="openingTitle">Wear<br>the story.</h1>
+                <p class="opening-description">More than clothing.<br>A deeper tomorrow.</p>
+                <a class="opening-cta" href="shop.html">Explore the collection <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a>
             </div>
-            <div class="product-stage" id="productStage">
-                <div class="stage-heading"><span>THE ARTWORK EDIT</span><span id="stageNumber" aria-hidden="true">01 / 03</span></div>
-                <div class="stage-perspective">
-                    <div class="stage-photo" id="stagePhoto"><img id="stageImage" src="assets/products/durbar.jpg" alt="Black tee with gold Durbar lettering and a mounted figure print" width="1280" height="854" fetchpriority="high" decoding="async"></div>
-                    <span class="stage-shadow" aria-hidden="true"></span>
+            <div class="stage-perspective">
+                <span class="stage-shadow" aria-hidden="true"></span>
+                <div class="stage-photo" id="stagePhoto"><img class="artwork-photo" id="stageImage" src="assets/products/ijele.jpg" alt="Black Ijele tee with warm lettering and intricate expressive artwork" width="1280" height="854" fetchpriority="high" decoding="async"></div>
+            </div>
+            <div class="stage-caption">
+                <span class="caption-rule" aria-hidden="true"></span>
+                <a id="stageLink" href="shop.html" aria-label="Explore Ijele"><span id="stageName" aria-live="polite" aria-atomic="true">Ijele</span></a>
+                <p id="stagePrice" hidden></p>
+                <span id="stageNumber" class="visually-hidden" aria-hidden="true">01 / 03</span>
+                <div class="artwork-selector" role="group" aria-label="Featured artwork">
+                    <button type="button" data-artwork="ijele" aria-pressed="true" aria-label="Show Ijele"><span></span></button>
+                    <button type="button" data-artwork="durbar" aria-pressed="false" aria-label="Show Durbar"><span></span></button>
+                    <button type="button" data-artwork="dun-dun" aria-pressed="false" aria-label="Show Dùn Dùn"><span></span></button>
                 </div>
-                <div class="stage-caption"><div aria-live="polite" aria-atomic="true"><span class="stage-caption-label">IN FOCUS</span><h2 id="stageName">Durbar</h2><p id="stagePrice" hidden></p></div><a id="stageLink" href="shop.html" aria-label="Shop the collection"><span aria-hidden="true">↗</span></a></div>
             </div>
-        </div>
-        <div class="opening-bottom"><span class="opening-index">THREE PRINTS. ONE POINT OF VIEW.</span><div class="artwork-selector" role="group" aria-label="Featured artwork"><button type="button" data-artwork="durbar" aria-pressed="true"><span>01</span> Durbar</button><button type="button" data-artwork="ijele" aria-pressed="false"><span>02</span> Ijele</button><button type="button" data-artwork="dun-dun" aria-pressed="false"><span>03</span> Dùn Dùn</button></div><a class="opening-scroll" href="#collection" aria-label="Scroll to the collection">A LITTLE FURTHER <span aria-hidden="true">↓</span></a></div>
-    </section>
+        </section>
 
-    <section class="collection-section" id="collection" aria-labelledby="collectionTitle">
-        <div class="collection-heading"><div><p class="editorial-kicker">THE COLLECTION</p><h2 id="collectionTitle">Make it your own.</h2></div><a class="editorial-link" href="shop.html">Shop all pieces <span aria-hidden="true">↗</span></a></div>
-        <div class="product-grid" id="productGrid" aria-label="Collection products"></div>
-        <noscript><p>Browse the <a href="shop.html">shop</a>. Enable JavaScript to load current products and use the bag.</p></noscript>
-    </section>
+        <section class="collection-section" id="collection" aria-labelledby="collectionTitle">
+            <div class="collection-heading"><h2 id="collectionTitle">The collection</h2><a class="editorial-link" href="shop.html">View all <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></div>
+            <div class="collection-grid" id="collectionGrid">
+                <a class="collection-card" data-collection-artwork="ijele" href="shop.html" aria-label="Explore Ijele">
+                    <div class="collection-card-image artwork-ijele"><div class="collection-card-photo"><img class="artwork-photo" src="assets/products/ijele.jpg" alt="Ijele graphic tee in black" width="1280" height="854" decoding="async"></div></div>
+                    <div class="collection-card-caption"><h3 class="collection-card-name">Ijele</h3><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></div>
+                </a>
+                <a class="collection-card" data-collection-artwork="durbar" href="shop.html" aria-label="Explore Durbar">
+                    <div class="collection-card-image artwork-durbar"><div class="collection-card-photo"><img class="artwork-photo" src="assets/products/durbar.jpg" alt="Durbar graphic tee in black with gold lettering and a mounted figure" width="1280" height="854" loading="lazy" decoding="async"></div></div>
+                    <div class="collection-card-caption"><h3 class="collection-card-name">Durbar</h3><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></div>
+                </a>
+                <a class="collection-card" data-collection-artwork="dun-dun" href="shop.html" aria-label="Explore Dùn Dùn">
+                    <div class="collection-card-image artwork-dun-dun"><div class="collection-card-photo"><img class="artwork-photo" src="assets/products/dun-dun.jpg" alt="Dùn Dùn graphic tee in black with yellow lettering and three drummers" width="1280" height="854" loading="lazy" decoding="async"></div></div>
+                    <div class="collection-card-caption"><h3 class="collection-card-name">Dùn Dùn</h3><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></div>
+                </a>
+            </div>
+        </section>
 
-    <section class="detail-editorial" aria-labelledby="detailTitle">
-        <div class="detail-image"><img src="assets/products/ijele.jpg" alt="A close look at the Ijele tee: warm lettering and expressive artwork on black" width="1280" height="854" loading="lazy" decoding="async"><span>ARTWORK STUDY / 02</span></div>
-        <div class="detail-copy"><p class="editorial-kicker">A CLOSER LOOK</p><h2 id="detailTitle">Not a<br>blank canvas.</h2><p>Bold lettering. Intricate imagery. A print that holds your attention, even up close.</p><p class="detail-name">Ijele. In every detail.</p><a class="editorial-link" id="detailLink" href="shop.html">Explore the collection <span aria-hidden="true">↗</span></a><div class="detail-brand" aria-hidden="true">ALKEBULAN</div></div>
-    </section>
-
-    <section class="store-services" aria-label="Shopping support">
-        <a href="shipping.html"><span class="service-number">01 / DELIVERY</span><h3>From us to you. <span aria-hidden="true">↗</span></h3><p>Explore shipping and delivery information.</p></a>
-        <a href="returns.html"><span class="service-number">02 / RETURNS</span><h3>A little reassurance. <span aria-hidden="true">↗</span></h3><p>Everything you need to know about returns.</p></a>
-        <a href="contact.html"><span class="service-number">03 / LET’S TALK</span><h3>Here to help. <span aria-hidden="true">↗</span></h3><p>A question about your piece? Get in touch.</p></a>
-    </section>
-
-    <section class="collection-newsletter" aria-labelledby="newsletterTitle"><div><p class="editorial-kicker">KEEP IN THE LOOP</p><h2 id="newsletterTitle">Good things.<br>In your inbox.</h2></div><div class="newsletter-signup"><p>Collection updates and new arrivals from ALKEBULAN.</p><form id="newsletterForm"><label class="visually-hidden" for="newsletterEmail">Email address</label><input type="email" id="newsletterEmail" autocomplete="email" placeholder="Your email address" required><button type="submit" aria-label="Join the mailing list">Join the list <span aria-hidden="true">↗</span></button></form><p class="newsletter-privacy">By signing up, you agree to our <a href="privacy.html">privacy policy</a>.</p></div></section>
+        <section class="detail-editorial" aria-labelledby="detailTitle">
+            <div class="detail-image"><img src="assets/products/durbar.jpg" alt="A closer look at the gold Durbar lettering and detailed artwork" width="1280" height="854" loading="lazy" decoding="async"></div>
+            <div class="detail-copy">
+                <p class="opening-eyebrow">Details matter <span aria-hidden="true"></span></p>
+                <h2 id="detailTitle">A closer<br>look.</h2>
+                <a class="opening-cta" id="detailLink" href="shop.html">Explore Durbar <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a>
+                <p class="detail-note"><span aria-hidden="true"></span>Same<br>roots.<br>New<br>generations.</p>
+            </div>
+        </section>
     </main>
 
-    <!-- Footer -->
-    <footer>
-        <div class="container footer-grid">
-            <div class="footer-col">
-                <h3>ALKEBULAN</h3>
-                <p>Premium clothing for the discerning.</p>
-            </div>
-            <div class="footer-col">
-                <h4>Quick Links</h4>
-                <a href="index.html">Home</a>
-                <a href="shop.html">Shop</a>
-                <a href="men.html">Men</a>
-                <a href="women.html">Women</a>
-                <a href="about.html">About</a>
-                <a href="contact.html">Contact</a>
-            </div>
-            <div class="footer-col">
-                <h4>Support</h4>
-                <a href="faq.html">FAQ</a>
-                <a href="returns.html">Returns</a>
-                <a href="shipping.html">Shipping</a>
-                <a href="privacy.html">Privacy</a>
-            </div>
-            <div class="footer-col">
-                <h4>Contact</h4>
-                <p><i class="fas fa-map-marker-alt"></i> Lagos, Nigeria</p>
-                <p><i class="fas fa-phone"></i> +234 810 346 3852</p>
-                <p><i class="fas fa-envelope"></i> hello@alkebulan.com</p>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 ALKEBULAN. All rights reserved.</p>
-        </div>
+    <footer class="home-footer" data-home-footer>
+        <a class="footer-wordmark" href="index.html" aria-label="ALKEBULAN home">ALKEBULAN</a>
+        <p>Clothing a wider tomorrow <span aria-hidden="true"></span></p>
     </footer>
 
-    <!-- Back to Top Button -->
-    <button type="button" id="backToTop" class="back-to-top" aria-label="Back to top"><i class="fas fa-arrow-up" aria-hidden="true"></i></button>
-
-    <!-- JavaScript -->
     <script src="js/brand-config.js?v=20260830-1"></script>
     <script src="js/icons.js?v=20260909-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>

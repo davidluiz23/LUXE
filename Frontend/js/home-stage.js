@@ -2,8 +2,8 @@
 (function initializeArtworkStage() {
     'use strict';
     const artwork = [
-        { key: 'durbar', name: 'Durbar', image: 'assets/products/durbar.jpg', match: /\bdurbar\b/, alt: 'Black tee with gold Durbar lettering and a mounted figure print' },
         { key: 'ijele', name: 'Ijele', image: 'assets/products/ijele.jpg', match: /\bijele\b/, alt: 'Black Ijele tee with warm lettering and intricate expressive artwork' },
+        { key: 'durbar', name: 'Durbar', image: 'assets/products/durbar.jpg', match: /\bdurbar\b/, alt: 'Black tee with gold Durbar lettering and a mounted figure print' },
         { key: 'dun-dun', name: 'Dùn Dùn', image: 'assets/products/dun-dun.jpg', match: /\bdun[\s-]+dun\b/, alt: 'Black Dùn Dùn tee with yellow lettering and a print of three drummers' },
     ];
     const normalize = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -11,12 +11,12 @@
     function init() {
         const stage = document.getElementById('productStage');
         if (!stage) return;
-        const photo = document.getElementById('stagePhoto');
         const image = document.getElementById('stageImage');
         const name = document.getElementById('stageName');
         const price = document.getElementById('stagePrice');
         const link = document.getElementById('stageLink');
         const selectors = [...document.querySelectorAll('[data-artwork]')];
+        const collectionLinks = [...document.querySelectorAll('[data-collection-artwork]')];
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
         const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
         let selected = artwork[0];
@@ -36,18 +36,27 @@
         function productUrl(product) { return `product.html?id=${encodeURIComponent(product.id)}`; }
         function updateDetails(item) {
             const product = matchingProduct(item);
-            name.textContent = product?.name || item.name;
+            name.textContent = item.name;
             const money = product && window.LuxeMoney?.forProduct?.(product);
             price.textContent = money ? [money.ngn, money.usd].filter(Boolean).join(' / ') : '';
             price.hidden = !price.textContent;
             link.href = product ? productUrl(product) : 'shop.html';
-            link.setAttribute('aria-label', product ? `View ${product.name}${product.inStock === false ? ' — sold out' : ''}` : 'Shop the collection');
+            link.setAttribute('aria-label', product ? `View ${product.name}${product.inStock === false ? ' — sold out' : ''}` : `Explore ${item.name} in the collection`);
             const detailProduct = matchingProduct(artwork[1]);
             const detailLink = document.getElementById('detailLink');
             if (detailLink) {
                 detailLink.href = detailProduct ? productUrl(detailProduct) : 'shop.html';
-                detailLink.firstChild.textContent = detailProduct ? `Explore ${detailProduct.name} ` : 'Explore the collection ';
+                detailLink.setAttribute('aria-label', detailProduct ? `Explore Durbar — ${detailProduct.name}` : 'Explore Durbar in the collection');
             }
+        }
+        function updateCollectionLinks() {
+            collectionLinks.forEach(anchor => {
+                const item = artwork.find(item => item.key === anchor.dataset.collectionArtwork);
+                if (!item) return;
+                const product = matchingProduct(item);
+                anchor.href = product ? productUrl(product) : 'shop.html';
+                anchor.setAttribute('aria-label', product ? `View ${product.name}${product.inStock === false ? ' — sold out' : ''}` : `Explore ${item.name} in the collection`);
+            });
         }
         function prepare(item) {
             if (!prepared.has(item.key)) {
@@ -138,6 +147,7 @@
         async function syncCatalog() {
             try { await window.productsReady; } catch (_) { /* The editorial stage also works offline. */ }
             updateDetails(selected);
+            updateCollectionLinks();
         }
         syncCatalog();
         window.addEventListener('luxe:catalog-status', syncCatalog);

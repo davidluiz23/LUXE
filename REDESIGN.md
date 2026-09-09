@@ -1,12 +1,12 @@
 # ALKEBULAN storefront redesign
 
-Implemented from `design (1).md` and the three supplied product photographs.
+Updated to follow the user's supplied homepage screenshot and the three original product photographs.
 
-The direction is a light collection display: an oversized headline on sage, a photographic product stage, open catalog spacing, rounded media, an authentic Ijele close-up, and a compact service/newsletter section. The existing brand mark is retained. Customer pages share the same type, forms, controls, and footer through `Frontend/css/storefront.css`; admin does not load that stylesheet.
+The homepage now uses one rounded sage hero with Ijele and “Wear the story.”, followed by three generously padded artwork cards in Ijele / Durbar / Dùn Dùn order, a compact Durbar close-up, and a minimal wordmark footer. The header shows Shop, Our story, Search, and Bag. Small screens use the existing accessible navigation drawer. Homepage presentation lives in `Frontend/css/home.css`; the shared shop, account, and checkout presentation remains in `Frontend/css/storefront.css`.
 
 The hero uses **photo-based depth**, with a single settle, a restrained pointer tilt, and a bounded scroll shift. It is not a 3D model or a 360-degree viewer. Selection is deliberate, keyboard accessible, and keeps image, label, destination, and any verified price together. Reduced motion disables decorative movement; touch does not depend on hovering. No animation library was added.
 
-The original JPEG files are copied intact to `Frontend/assets/products/`. They total 198,284 bytes; the initial Durbar image is 65,521 bytes. No generated artwork, inferred garment views, or new fabric/stock claims are used.
+The original JPEG files remain intact in `Frontend/assets/products/`. CSS silhouettes and shadows place those photographs on the hero and card surfaces; the feature panel crops the real Durbar photograph. The artwork and fabric perspective come from the supplied flat photographs, so they are not exact replicas of the reference's angled garment rendering. No generated artwork, inferred garment views, or new fabric/stock claims are used.
 
 ## Catalog and integrations
 
@@ -16,15 +16,22 @@ Existing product IDs, catalog data, variants, cart persistence, inventory, total
 
 ## Local review
 
-The homepage empty/error presentation is rendered by the existing catalog renderer in `app.js`, which avoids an initialization race between separate renderers. Retry reloads the page normally. The main shopping icons use the existing local SVG system so their visibility does not depend on a font CDN.
+The three homepage artwork previews are static and stay visible while the catalog loads or is unavailable. `home-stage.js` binds a hero, card, or detail link to a product only when its ALKEBULAN name matches uniquely. Other cases link to the real shop without invented prices or IDs. The main shopping icons use the existing local SVG system so their visibility does not depend on a font CDN.
 
 From this directory, run `npm run dev` and open <http://127.0.0.1:4173>. This is a static application, so there is no compilation step. `PORT` can override the preview port.
 
 Checks: `npm run check`, `npm test`, and `npm run test:browser`. Browser test files run sequentially to avoid competing Chromium instances on limited hardware. They include desktop/mobile accessibility, existing commerce/account flows, artwork selection, catalog matching and failure recovery, keyboard controls, and reduced motion. The signup test now waits for its existing authentication API to initialize before substituting the mock.
 
-Review captures are generated locally under `dist/review/` (ignored by Git). `home-live-desktop.png` shows the real catalog; the other captures use the clearly named audit fixture products. The supplied tees still require actual catalog entries and prices before they can be purchased as those products.
+Current reference-layout captures are `dist/review/home-reference-1122.png`, `home-reference-390.png`, and `home-reference-768.png` (ignored by Git). They display the supplied artwork with fixture-backed catalog fallback links. The supplied tees still require actual catalog entries and prices before they can be purchased as those products.
 
-## Validation completed
+## Reference update validation
+
+- Static syntax, duplicate-ID, local-reference and diff checks pass; all 13 unit tests pass.
+- All eight focused homepage browser cases verified, including unique catalog matching, fallback links, three usable previews offline, image switching, keyboard selection, reduced motion, responsive cards, and compact-header search/navigation behavior.
+- Homepage accessibility checks pass at 1440px and 390px. Header interactions cover 390px, 760px, 761px, and 1440px.
+- Desktop and mobile screenshots inspected, with adjustments to button contrast, the tablet navigation breakpoint, image silhouettes, and feature cropping.
+
+## Earlier storefront validation
 
 - Static validation: 28 frontend scripts and 22 HTML pages pass syntax, duplicate-ID, and local-reference checks; `git diff --check` passes.
 - All 13 existing unit tests pass.

@@ -1,149 +1,197 @@
-/* ALKEBULAN — the artwork edit. Original photographs, staged in depth. */
-html.alkebulan-site body.page-index { background:#fafaf7; }
+/* Reference composition: one sage stage, three artwork cards, one close-up. */
+html.alkebulan-site body.page-index { --home-gutter:clamp(20px,3.15vw,48px); --home-width:1400px; --alk-nav-height:50px; --home-paper:#fafaf8; background:var(--home-paper); color:#10110f; padding-top:0; font-family:Arial,Helvetica,sans-serif; }
 body.page-index main { display:block; }
-html.alkebulan-site body.page-index :is(.opening-topline a,.opening-cta,.opening-scroll,.stage-caption > a,.editorial-link,.store-services > a) { text-decoration:none; }
-body.page-index .skip-to-content { position:fixed;left:24px;top:-80px;z-index:9999;padding:12px 24px;border-radius:100px;background:#171917;color:#fff; }
-body.page-index .skip-to-content:focus { top:12px; }
 body.page-index .visually-hidden { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap; }
-html.alkebulan-site body.page-index :is(.collection-opening,.collection-section,.detail-editorial,.store-services,.collection-newsletter) { width:min(100% - 80px,1360px);margin-inline:auto; }
-body.page-index .opening-topline { display:flex;align-items:center;justify-content:space-between;gap:16px;padding:26px 2px 20px;font-size:10px;font-weight:600;letter-spacing:.13em; }
-body.page-index .opening-topline a { letter-spacing:0;font-size:12px; }
-body.page-index .opening-topline a span { margin-left:18px;font-size:20px; }
-body.page-index .opening-layout { display:grid;grid-template-columns:.92fr 1.08fr;gap:12px; }
-body.page-index .opening-copy { position:relative;min-height:592px;padding:42px 42px 30px;display:flex;flex-direction:column;align-items:flex-start;background:#b6c0a6;border-radius:28px;overflow:hidden; }
-body.page-index .opening-eyebrow { display:flex;align-items:center;gap:8px;margin:0 0 49px;font-size:10px;font-weight:600;letter-spacing:.11em; }
-body.page-index .opening-eyebrow > span { width:6px;height:6px;border-radius:50%;background:#171917; }
-html.alkebulan-site body.page-index .opening-copy h1 { margin:0;color:#171917;font-family:Arial,Helvetica,sans-serif;font-size:clamp(80px,8.8vw,130px);font-weight:500;line-height:.91;letter-spacing:-.078em; }
-body.page-index .opening-copy h1 em { font-family:Georgia,'Times New Roman',serif;font-weight:400;letter-spacing:-.077em; }
-body.page-index .opening-description { margin:26px 0;font-size:15px;line-height:1.6;letter-spacing:-.01em;color:#30362b; }
-html.alkebulan-site body.page-index .opening-cta { display:inline-flex;align-items:center;gap:28px;min-height:52px;padding:7px 8px 7px 23px;border-radius:100px;background:#171917;color:#fff;font-size:13px;font-weight:500;transition:background .2s,box-shadow .2s; }
-body.page-index .opening-cta > span { display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:#fafaf7;color:#171917;font-size:23px; }
-html.alkebulan-site body.page-index .opening-cta:hover { background:#35432d;box-shadow:0 5px 18px #17191720; }
-body.page-index .opening-footnote { display:flex;gap:22px;flex-wrap:wrap;margin-top:auto;padding-top:40px;font-size:9px;font-weight:600;letter-spacing:.09em; }
-body.page-index .product-stage { --depth-x:0deg;--depth-y:0deg;--depth-scroll:0px;position:relative;min-width:0;min-height:592px;overflow:hidden;border-radius:28px;background:#e1e6e9;isolation:isolate; }
-body.page-index .stage-heading { position:absolute;top:30px;left:30px;right:30px;z-index:3;display:flex;justify-content:space-between;font-size:9px;font-weight:600;letter-spacing:.12em;color:#4d575a; }
-body.page-index .stage-perspective { position:absolute;inset:46px 0 98px;display:grid;align-items:center;perspective:1100px; }
-body.page-index .stage-photo { position:relative;z-index:1;width:100%;aspect-ratio:1.25;transform:translate3d(0,var(--depth-scroll),16px) rotateX(var(--depth-x)) rotateY(var(--depth-y)) rotate(-5deg);transition:transform .6s cubic-bezier(.2,.7,.2,1); }
-body.page-index .stage-photo img { display:block;position:absolute;width:123%;max-width:none;height:100%;left:-11.5%;top:0;object-fit:cover; }
-body.page-index .product-stage[data-featured-artwork="ijele"] { background:#dcdbd9; }
-body.page-index .stage-shadow { position:absolute;width:47%;height:23px;left:26%;bottom:0;background:#39404728;border-radius:50%;filter:blur(13px);transform:scaleX(.85); }
-body.page-index .stage-caption { position:absolute;z-index:3;bottom:25px;left:30px;right:30px;display:flex;align-items:center;justify-content:space-between;gap:18px; }
-body.page-index .stage-caption-label { display:block;color:#535c60;font-size:9px;letter-spacing:.13em;margin-bottom:4px; }
-html.alkebulan-site body.page-index .stage-caption h2 { margin:0;font-family:Arial,sans-serif;font-size:29px;font-weight:500;letter-spacing:-.055em;line-height:1.1; }
-body.page-index #stagePrice { font-size:13px;margin:6px 0 0; }
-body.page-index .stage-caption > a { display:grid;place-items:center;flex:0 0 48px;height:48px;border:1px solid #a4adae;border-radius:50%;font-size:25px;transition:background .2s; }
-body.page-index .stage-caption > a:hover { background:#fafaf7; }
-body.page-index .opening-bottom { display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:100px;border-bottom:1px solid #dedfd8; }
-body.page-index .opening-index,body.page-index .opening-scroll { font-size:9px;font-weight:600;letter-spacing:.1em; }
-body.page-index .opening-scroll { display:flex;align-items:center;gap:18px; }
-body.page-index .opening-scroll span { font-size:19px; }
-body.page-index .artwork-selector { display:flex;padding:5px;gap:3px;border:1px solid #dedfd8;border-radius:100px; }
-html.alkebulan-site body.page-index .artwork-selector button { display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:40px;padding:8px 19px;background:transparent;color:#53584e;border:none;border-radius:100px;font-size:12px;cursor:pointer;transition:background .2s,color .2s; }
-body.page-index .artwork-selector button span { font-size:9px; }
-html.alkebulan-site body.page-index .artwork-selector button[aria-pressed="true"] { background:#171917;color:#fafaf7; }
-html.alkebulan-site body.page-index .artwork-selector button:hover:not([aria-pressed="true"]) { background:#e8eae2; }
-html.alkebulan-site body.page-index .collection-section { padding:83px 0 88px;scroll-margin-top:100px; }
-body.page-index .collection-heading { display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:34px; }
-body.page-index .editorial-kicker { margin:0 0 17px;font-size:10px;letter-spacing:.14em;font-weight:600; }
-html.alkebulan-site body.page-index .collection-heading h2 { font-family:Arial,sans-serif;font-size:clamp(36px,4vw,54px);font-weight:400;line-height:1.1;letter-spacing:-.06em;margin:0; }
-body.page-index .editorial-link { display:inline-flex;align-items:center;gap:36px;min-height:44px;border-bottom:1px solid #8b9187;font-size:13px; }
-body.page-index .editorial-link span { font-size:22px; }
-html.alkebulan-site body.page-index #productGrid { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:32px 18px; }
-body.page-index .collection-empty { grid-column:1/-1;padding:42px;border-radius:24px;background:#ecefe7;text-align:center; }
-body.page-index .collection-empty p { margin:0 0 14px; }
-html.alkebulan-site body.page-index .detail-editorial { display:grid;grid-template-columns:1.05fr 1fr;min-height:575px;overflow:hidden;background:#e5e1d9;border-radius:28px; }
-body.page-index .detail-image { position:relative;overflow:hidden;min-height:540px;background:#dcdad7; }
-body.page-index .detail-image img { position:absolute;width:210%;height:138%;max-width:none;object-fit:cover;left:-55%;top:-15%; }
-body.page-index .detail-image > span { position:absolute;bottom:27px;left:30px;color:#171917;font-size:9px;letter-spacing:.14em;background:#fafaf7e6;border-radius:100px;padding:9px 15px; }
-body.page-index .detail-copy { display:flex;flex-direction:column;align-items:flex-start;padding:55px 60px 25px; }
-html.alkebulan-site body.page-index .detail-copy h2 { margin:12px 0 25px;font-family:Arial,sans-serif;font-size:clamp(48px,5.2vw,76px);font-weight:400;line-height:.99;letter-spacing:-.065em; }
-body.page-index .detail-copy > p:not(.editorial-kicker) { max-width:285px;font-size:15px;color:#51534d;line-height:1.7; }
-body.page-index .detail-copy > .detail-name { margin-top:17px;color:#171917; }
-body.page-index .detail-copy .editorial-link { margin-top:25px; }
-body.page-index .detail-brand { margin-top:auto;padding-top:44px;font-weight:600;letter-spacing:-.06em;font-size:37px;color:#62645c; }
-html.alkebulan-site body.page-index .store-services { display:grid;grid-template-columns:repeat(3,1fr);gap:36px;padding:80px 0; }
-body.page-index .store-services > a { display:block;border-top:1px solid #cdcec5;padding-top:23px; }
-body.page-index .service-number { font-size:9px;letter-spacing:.13em;color:#62675f; }
-html.alkebulan-site body.page-index .store-services h3 { display:flex;justify-content:space-between;gap:12px;margin:22px 0 8px;font-family:Arial,sans-serif;font-size:24px;font-weight:400;letter-spacing:-.04em; }
-body.page-index .store-services h3 span { font-size:21px; }
-body.page-index .store-services p { color:#62675f;font-size:13px; }
-html.alkebulan-site body.page-index .collection-newsletter { display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:65px;margin-bottom:80px;padding:48px 56px;border-radius:28px;background:#e9ecdf; }
-html.alkebulan-site body.page-index .collection-newsletter h2 { margin:0;font-family:Arial,sans-serif;font-size:49px;font-weight:400;line-height:1.02;letter-spacing:-.055em; }
-body.page-index .newsletter-signup > p { font-size:14px;margin:0 0 23px; }
-html.alkebulan-site body.page-index #newsletterForm { display:flex;align-items:center;width:100%;gap:12px;border-bottom:1px solid #737d65;padding-bottom:9px; }
-html.alkebulan-site body.page-index #newsletterForm input { min-width:0;flex:1;padding:12px 0;border:none;border-radius:0;background:transparent;outline-offset:2px;font-size:16px;box-shadow:none; }
-body.page-index #newsletterForm input::placeholder { color:#59614f;opacity:1; }
-html.alkebulan-site body.page-index #newsletterForm button { border:none;border-radius:100px;padding:11px 17px;background:#171917;color:#fff;white-space:nowrap;font-size:12px;min-height:44px;cursor:pointer; }
-body.page-index #newsletterForm button span { margin-left:13px;font-size:18px; }
-body.page-index .newsletter-signup .newsletter-privacy { margin:13px 0 0;font-size:11px;color:#59614f; }
-body.page-index .newsletter-privacy a { text-decoration:underline; }
-body.page-index .newsletter-status { font-size:13px;margin-top:15px; }
-@media (prefers-reduced-motion:no-preference) {
-    body.page-index .stage-photo { animation:productSettle .85s cubic-bezier(.2,.7,.2,1); }
-    @keyframes productSettle { from { transform:translate3d(0,9px,0) rotate(-2deg); } }
+body.page-index .skip-to-content { position:fixed;left:24px;top:-80px;z-index:9999;padding:12px 24px;border-radius:100px;background:#171917;color:white; }
+body.page-index .skip-to-content:focus { top:12px; }
+html.alkebulan-site body.page-index :is(.collection-opening,.collection-section,.detail-editorial) { width:min(calc(100% - var(--home-gutter) * 2),var(--home-width));margin-inline:auto; }
+html.alkebulan-site body.page-index :is(.collection-card,.editorial-link,#stageLink,.footer-wordmark) { color:inherit;text-decoration:none; }
+html.alkebulan-site body.page-index .opening-cta { text-decoration:none; }
+body.page-index :is(.opening-cta,.editorial-link,.collection-card-caption) > svg { width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.5;flex-shrink:0; }
+
+/* A quiet masthead, with matching inset rules at the top and bottom. */
+html.alkebulan-site body.page-index #navbar,
+html.alkebulan-site body.page-index #navbar.luxury-navbar.scrolled { position:relative;inset:auto;height:var(--alk-nav-height);background:var(--home-paper) !important;border:0;box-shadow:none; }
+html.alkebulan-site body.page-index #navbar .nav-container { display:grid;grid-template-columns:1fr auto 1fr;gap:30px;width:min(calc(100% - (var(--home-gutter) + 14px) * 2),calc(var(--home-width) - 28px));height:100%;min-height:0;margin-inline:auto;padding:0;border-bottom:1px solid #cdd0c7; }
+html.alkebulan-site body.page-index .logo a { display:block;padding:0;color:#10110f;font-size:clamp(16px,1.75vw,23px);font-weight:700;letter-spacing:.27em;line-height:1;white-space:nowrap; }
+html.alkebulan-site body.page-index .logo .brand-mark { display:none; }
+html.alkebulan-site body.page-index .logo { grid-column:1;grid-row:1; }
+html.alkebulan-site body.page-index .nav-links { grid-column:2;grid-row:1; }
+html.alkebulan-site body.page-index .nav-links ul { gap:52px; }
+html.alkebulan-site body.page-index .nav-links a { display:flex;align-items:center;min-height:44px;padding:0;font-size:14px; }
+html.alkebulan-site body.page-index .nav-links a::after { display:none; }
+html.alkebulan-site body.page-index .nav-icons { grid-column:3;grid-row:1;justify-self:end;gap:26px; }
+html.alkebulan-site body.page-index .nav-icons :is(a,button.search-icon) { display:inline-flex;justify-content:center;align-items:center;gap:10px;width:auto;min-width:44px;height:44px;padding:0 4px;border-radius:0;font-size:14px;line-height:1;white-space:nowrap; }
+html.alkebulan-site body.page-index .nav-icons :is(a,button.search-icon):hover { background:transparent;opacity:.65; }
+html.alkebulan-site body.page-index .nav-icons .cart-count { display:inline !important;position:static;width:auto;height:auto;min-width:0;padding:0;margin:0;background:transparent;color:inherit;border:none;border-radius:0;font:inherit;box-shadow:none; }
+html.alkebulan-site body.page-index .nav-icons .sf-icon svg { width:22px;height:22px; }
+body.page-index .nav-scroll-progress { display:none; }
+html.alkebulan-site body.page-index .nav-icons a.notification-icon { display:none; }
+html.alkebulan-site body.page-index .mobile-menu:not(.active) { display:none; }
+
+/* CSS silhouettes preserve the supplied photographs and their artwork intact. */
+body.page-index .artwork-photo {
+    --shirt-outline:polygon(21.9% 22.6%,26.5% 21.1%,33.2% 18.74%,39.4% 16.4%,41.8% 14.5%,44.2% 15.6%,47.7% 15.9%,51% 15.6%,53.2% 14.8%,53.8% 14.2%,59.85% 16.4%,66.7% 18.74%,69.9% 21.1%,73.65% 23.42%,77.4% 25.76%,76.85% 28.1%,76.3% 30.44%,75.85% 32.79%,75.14% 35.13%,74.5% 37.47%,73.96% 39.81%,71.2% 41.3%,66% 42.15%,66.85% 44.5%,66.46% 46.84%,66.6% 49.2%,66.7% 51.5%,66.78% 56.2%,66.55% 63.23%,66.3% 65.57%,66.95% 67.91%,67% 72.6%,67.1% 77.3%,67.1% 82%,67.15% 85.4%,67% 86.4%,61% 87.1%,50% 87.65%,41% 87.45%,30.9% 86.85%,30.7% 82%,30.6% 77.3%,30.55% 72.6%,30.6% 67.9%,30.5% 63.23%,30.55% 58.55%,30.55% 53.86%,30.65% 49.18%,31.2% 46.84%,31.6% 44.5%,31.7% 42.15%,31.2% 41.1%,28% 40.6%,24.6% 39.8%,23.3% 37.47%,23.1% 35.13%,22.75% 32.79%,22.5% 30.44%,22.25% 28.1%,22.1% 25.76%);
+    clip-path:var(--shirt-outline);
+}
+body.page-index :is(.artwork-durbar,.artwork-dun-dun,[data-featured-artwork="durbar"],[data-featured-artwork="dun-dun"]) .artwork-photo {
+    --shirt-outline:polygon(19.85% 26.5%,29.8% 21.4%,31.5% 20.3%,39.8% 17.6%,41.9% 16.6%,43.8% 17.3%,46% 17.6%,48.4% 17.3%,50.9% 16%,53.5% 16.8%,59% 17.9%,61.2% 18.5%,70.5% 21.5%,73.5% 22.4%,72.8% 31.9%,71.9% 38%,66.8% 38.6%,65.4% 39.9%,63.5% 40.8%,63.8% 47%,64.3% 51%,63.9% 54%,64.3% 59%,64.2% 67%,64.5% 76.6%,64.5% 83.3%,55.2% 83.9%,47.6% 84.1%,39.2% 83.8%,30.2% 83.1%,29.8% 76.8%,30.3% 73%,30.5% 64%,30.6% 56%,30.5% 49%,30% 46.5%,30.9% 42.2%,28.8% 41.6%,26.6% 40.9%,22.4% 40.8%,21.1% 34%);
+}
+
+/* One continuous hero with room for both the headline and the garment. */
+html.alkebulan-site body.page-index .collection-opening { --depth-x:0deg;--depth-y:0deg;--depth-scroll:0px;position:relative;isolation:isolate;margin-top:14px;aspect-ratio:2.04;overflow:hidden;border-radius:30px;background:radial-gradient(ellipse at 30% 49%,#d5d8c5 0,#c1c7ae 33%,#a4ae91 77%,#a1ac8e 100%); }
+body.page-index .hero-wordmark { position:absolute;top:2%;right:2%;z-index:-1;color:#edf0dc;opacity:.34;font-size:clamp(100px,18.6vw,278px);font-weight:700;line-height:1.2;letter-spacing:-.08em;white-space:nowrap;transform:scale(.58,1.25);transform-origin:right top; }
+body.page-index .opening-copy { position:relative;z-index:2;width:49%;padding:6.5% 0 6% 4%; }
+body.page-index .opening-eyebrow { display:flex;align-items:center;gap:18px;margin:0 0 43px;color:#343a2f;font-size:clamp(9px,.86vw,12px);font-weight:400;line-height:1.5;letter-spacing:.32em;text-transform:uppercase;white-space:nowrap; }
+body.page-index .opening-eyebrow > span { width:54px;height:1px;background:#757d68; }
+html.alkebulan-site body.page-index .opening-copy h1 { margin:0;color:#0b0d0a;font-family:Arial,Helvetica,sans-serif;font-size:clamp(70px,9.9vw,149px);font-weight:500;line-height:.79;letter-spacing:-.075em; }
+body.page-index .opening-description { margin:29px 0 32px;color:#343a2f;font-size:clamp(9px,.9vw,12px);line-height:1.8;font-weight:400;letter-spacing:.32em;text-transform:uppercase; }
+html.alkebulan-site body.page-index .opening-cta { display:inline-flex;align-items:center;justify-content:center;gap:24px;min-height:49px;padding:11px 24px;background:#11140e;border-radius:999px;color:#fff;font-size:clamp(13px,1.4vw,18px);font-weight:400;line-height:1.3;transition:background .2s,transform .2s; }
+html.alkebulan-site body.page-index .opening-cta:hover { background:#323d29;transform:translateY(-2px); }
+body.page-index .stage-perspective { position:absolute;inset:1% 6.5% 3% 43%;perspective:1100px;pointer-events:none; }
+body.page-index .stage-photo { position:absolute;inset:0;z-index:1;filter:drop-shadow(9px 17px 8px #20261830);transform:translate3d(0,var(--depth-scroll),16px) rotateX(var(--depth-x)) rotateY(var(--depth-y)) rotate(-12deg);transition:transform .6s cubic-bezier(.2,.7,.2,1); }
+body.page-index .stage-photo img { position:absolute;display:block;width:171%;height:auto;max-width:none;left:-35.5%;top:-12.5%; }
+body.page-index :is([data-featured-artwork="durbar"],[data-featured-artwork="dun-dun"]) .stage-photo img { width:181%;left:-34.5%;top:-15%; }
+body.page-index .stage-shadow { position:absolute;bottom:-1%;left:10%;width:90%;height:6%;border-radius:50%;background:#313c22;opacity:.35;filter:blur(12px);transform:rotate(-2deg); }
+body.page-index .stage-caption { position:absolute;right:3.4%;bottom:7.3%;z-index:3;max-width:22%; }
+body.page-index .caption-rule { display:block;width:28px;height:1px;margin:0 0 15px 8px;background:#5d6652; }
+html.alkebulan-site body.page-index #stageLink { display:inline-flex;align-items:center;min-height:44px;padding-inline:8px;font-size:clamp(18px,1.8vw,24px);line-height:1.2;letter-spacing:-.04em; }
+body.page-index #stagePrice { margin:0 8px 4px;font-size:10px; }
+body.page-index .artwork-selector { display:flex;gap:0; }
+html.alkebulan-site body.page-index .artwork-selector button { display:grid;place-items:center;width:25px;height:44px;min-height:44px;padding:0;background:transparent;border:0;border-radius:10px;cursor:pointer; }
+body.page-index .artwork-selector button span { display:block;width:8px;height:8px;border-radius:50%;background:#879176;transition:background .2s,transform .2s; }
+body.page-index .artwork-selector button[aria-pressed="true"] span { background:#141a0f;transform:scale(1.2); }
+body.page-index .artwork-selector button:hover span { background:#424e34; }
+
+/* The entire card is a link; the product gets a spacious, quiet canvas. */
+html.alkebulan-site body.page-index .collection-section { padding:35px 0 28px;scroll-margin-top:24px; }
+body.page-index .collection-heading { display:flex;align-items:center;justify-content:space-between;gap:24px;padding-inline:14px;margin-bottom:15px; }
+html.alkebulan-site body.page-index .collection-heading h2 { margin:0;font-size:clamp(32px,4.1vw,61px);font-weight:600;line-height:1.1;letter-spacing:-.06em; }
+body.page-index .editorial-link { display:inline-flex;align-items:center;gap:20px;min-height:44px;font-size:14px;white-space:nowrap; }
+html.alkebulan-site body.page-index .collection-grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px; }
+body.page-index .collection-card { display:block;min-width:0; }
+body.page-index .collection-card-image { position:relative;aspect-ratio:1.14;overflow:hidden;border-radius:24px;background:radial-gradient(ellipse at 50% 48%,#e7e7de,#d8d9cd 79%); }
+body.page-index .collection-card-photo { position:absolute;inset:0;filter:drop-shadow(7px 13px 8px #333a2a38);transition:transform .35s ease; }
+body.page-index .collection-card-photo img { position:absolute;display:block;width:158%;max-width:none;height:auto;left:-29%;top:-10%; }
+body.page-index :is(.artwork-durbar,.artwork-dun-dun) .collection-card-photo img { width:168%;left:-28.5%;top:-13%; }
+body.page-index .collection-card:hover .collection-card-photo { transform:translateY(-3px) scale(1.025); }
+body.page-index .collection-card-caption { display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:8px 0 0; }
+html.alkebulan-site body.page-index .collection-card-name { margin:0;font-size:clamp(16px,1.55vw,21px);font-weight:400;line-height:1.4;letter-spacing:-.035em; }
+body.page-index .collection-card-caption > svg { width:20px;height:20px;margin-right:10px; }
+
+/* A close crop of the supplied Durbar print. */
+html.alkebulan-site body.page-index .detail-editorial { display:grid;grid-template-columns:1.09fr .91fr;aspect-ratio:3.67;min-height:0;overflow:hidden;border-radius:25px;background:radial-gradient(ellipse at 66% 50%,#eee9e1,#ddd7ce); }
+body.page-index .detail-image { position:relative;overflow:hidden;background:#10110f;border-radius:25px; }
+body.page-index .detail-image img { position:absolute;width:330%;max-width:none;height:auto;left:-110%;top:-150%;transform:rotate(-13deg);transform-origin:50% 30%; }
+body.page-index .detail-copy { position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:7% 14%; }
+body.page-index .detail-copy .opening-eyebrow { margin-bottom:18px;font-size:clamp(8px,.78vw,11px); }
+html.alkebulan-site body.page-index .detail-copy h2 { margin:0 0 17px;font-family:Arial,Helvetica,sans-serif;font-size:clamp(44px,6.1vw,90px);font-weight:500;line-height:.87;letter-spacing:-.073em; }
+html.alkebulan-site body.page-index .detail-copy .opening-cta { min-height:44px;padding:9px 21px;gap:24px;font-size:clamp(13px,1.35vw,18px); }
+body.page-index .detail-note { position:absolute;right:6%;bottom:15%;margin:0;color:#3d3c36;font-size:clamp(8px,.76vw,11px);line-height:1.8;letter-spacing:.24em;text-transform:uppercase; }
+body.page-index .detail-note > span { display:block;width:28px;height:1px;margin-bottom:18px;background:#77766d; }
+html.alkebulan-site body.page-index .home-footer { display:flex;align-items:center;justify-content:space-between;gap:24px;width:min(calc(100% - (var(--home-gutter) + 14px) * 2),calc(var(--home-width) - 28px));margin:18px auto 0;padding:10px 0 24px;border:0;border-top:1px solid #cdd0c7;background:transparent;color:#10110f; }
+html.alkebulan-site body.page-index .footer-wordmark { display:flex;align-items:center;min-height:32px;font-size:14px;font-weight:700;letter-spacing:.34em; }
+body.page-index .home-footer > p { display:flex;align-items:center;gap:12px;margin:0;color:#595d53;font-size:6px;letter-spacing:.32em;text-transform:uppercase; }
+body.page-index .home-footer > p > span { width:24px;height:1px;background:#6f7565; }
+
+@media (min-width:1500px) {
+    body.page-index .opening-eyebrow { margin-bottom:54px; }
+    body.page-index .opening-description { margin-block:38px; }
 }
 @media (max-width:1100px) {
-    html.alkebulan-site body.page-index :is(.collection-opening,.collection-section,.detail-editorial,.store-services,.collection-newsletter) { width:calc(100% - 48px); }
-    body.page-index .opening-copy { padding:33px 30px 27px;min-height:535px; }
-    body.page-index .product-stage { min-height:535px; }
-    body.page-index .opening-index { max-width:140px;line-height:1.6; }
-    body.page-index .opening-scroll { font-size:8px; }
-    body.page-index .detail-copy { padding:38px; }
-    body.page-index .detail-image { min-height:480px; }
-    html.alkebulan-site body.page-index .detail-editorial { min-height:480px; }
-    html.alkebulan-site body.page-index #productGrid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    html.alkebulan-site body.page-index #navbar .nav-container { gap:18px; }
+    html.alkebulan-site body.page-index .nav-links ul { gap:30px; }
+    html.alkebulan-site body.page-index .nav-icons { gap:16px; }
+    body.page-index .opening-eyebrow { margin-bottom:34px; }
+    body.page-index .opening-description { margin-block:26px; }
+    body.page-index .detail-copy { padding-left:12%; }
+    body.page-index .detail-note { right:5%;font-size:8px; }
+}
+@media (min-width:761px) and (max-width:1020px) {
+    html.alkebulan-site body.page-index .nav-links { display:block !important; }
+    html.alkebulan-site body.page-index .hamburger { display:none !important; }
+}
+@media (max-width:900px) and (min-width:761px) {
+    body.page-index .opening-eyebrow { margin-bottom:29px; }
+    body.page-index .opening-copy { padding-top:6%; }
+    html.alkebulan-site body.page-index .opening-copy h1 { font-size:9.8vw; }
+    body.page-index .opening-description { margin-block:22px;font-size:8px; }
+    html.alkebulan-site body.page-index .opening-cta { min-height:44px;font-size:12px;padding:9px 19px;gap:14px; }
+    body.page-index .detail-note { display:none; }
+    body.page-index .detail-copy .opening-eyebrow { margin-bottom:15px;letter-spacing:.2em; }
+    body.page-index .detail-copy .opening-eyebrow > span { width:30px; }
+    html.alkebulan-site body.page-index .detail-copy h2 { font-size:6vw;margin-bottom:12px; }
 }
 @media (max-width:760px) {
-    html.alkebulan-site body.page-index :is(.collection-opening,.collection-section,.detail-editorial,.store-services,.collection-newsletter) { width:calc(100% - 32px); }
-    body.page-index .opening-topline { padding:17px 1px;font-size:8px;letter-spacing:.09em; }
-    body.page-index .opening-topline > a { font-size:10px;white-space:nowrap; }
-    body.page-index .opening-topline > a span { margin-left:6px;font-size:16px; }
-    body.page-index .opening-layout { grid-template-columns:1fr;gap:9px; }
-    body.page-index .opening-copy { min-height:auto;padding:27px 27px 28px;border-radius:23px; }
-    body.page-index .opening-eyebrow { margin-bottom:24px;font-size:8px; }
-    html.alkebulan-site body.page-index .opening-copy h1 { font-size:clamp(65px,13vw,94px);line-height:.93; }
-    body.page-index .opening-copy h1 br { display:none; }
-    body.page-index .opening-description { font-size:15px;margin:17px 0 21px;line-height:1.55; }
-    body.page-index .opening-footnote { display:none; }
-    html.alkebulan-site body.page-index .opening-cta { min-height:46px;padding:6px 6px 6px 20px;font-size:12px; }
-    body.page-index .opening-cta > span { width:34px;height:34px;font-size:21px; }
-    body.page-index .product-stage { min-height:350px;border-radius:23px; }
-    body.page-index .stage-heading { top:21px;left:22px;right:22px;font-size:8px; }
-    body.page-index .stage-perspective { inset:22px 0 69px; }
-    body.page-index .stage-photo { width:100%;max-width:500px;justify-self:center;height:277px;aspect-ratio:auto; }
-    body.page-index .stage-photo img { width:115%;left:-7.5%;height:100%;object-fit:cover; }
-    body.page-index .stage-shadow { bottom:0;height:13px; }
-    body.page-index .stage-caption { left:22px;right:22px;bottom:19px; }
-    html.alkebulan-site body.page-index .stage-caption h2 { font-size:24px; }
-    body.page-index .stage-caption-label { font-size:8px; }
-    body.page-index .stage-caption > a { height:44px;flex-basis:44px;font-size:22px; }
-    body.page-index .opening-bottom { justify-content:center;min-height:89px;gap:0; }
-    body.page-index .opening-index,body.page-index .opening-scroll { display:none; }
-    body.page-index .artwork-selector { width:100%;max-width:430px;justify-content:center;gap:2px; }
-    html.alkebulan-site body.page-index .artwork-selector button { flex:1;min-height:44px;padding:7px 9px;font-size:12px;gap:7px; }
-    html.alkebulan-site body.page-index .collection-section { padding:51px 0 54px; }
-    body.page-index .collection-heading { align-items:flex-start;gap:14px;margin-bottom:24px; }
-    body.page-index .editorial-kicker { font-size:9px;margin-bottom:12px; }
-    html.alkebulan-site body.page-index .collection-heading h2 { font-size:36px;max-width:250px; }
-    body.page-index .collection-heading .editorial-link { flex-shrink:0;gap:11px;font-size:11px;margin-top:22px; }
-    html.alkebulan-site body.page-index #productGrid { grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 12px; }
-    html.alkebulan-site body.page-index .detail-editorial { grid-template-columns:1fr;border-radius:23px; }
-    body.page-index .detail-image { min-height:380px; }
-    body.page-index .detail-image img { width:185%;height:153%;left:-42.5%;top:-26%; }
-    body.page-index .detail-copy { padding:32px 28px; }
-    html.alkebulan-site body.page-index .detail-copy h2 { font-size:58px;margin:8px 0 23px; }
-    body.page-index .detail-brand { padding-top:35px;font-size:32px; }
-    html.alkebulan-site body.page-index .store-services { grid-template-columns:1fr;gap:31px;padding:54px 0; }
-    body.page-index .store-services > a { padding-top:19px; }
-    html.alkebulan-site body.page-index .store-services h3 { margin-top:14px; }
-    html.alkebulan-site body.page-index .collection-newsletter { grid-template-columns:1fr;gap:30px;padding:32px 26px;margin-bottom:52px;border-radius:23px; }
-    html.alkebulan-site body.page-index .collection-newsletter h2 { font-size:45px; }
-    body.page-index .newsletter-signup > p { font-size:13px;line-height:1.6; }
-    html.alkebulan-site body.page-index #newsletterForm { gap:5px; }
-    html.alkebulan-site body.page-index #newsletterForm button { padding:10px 13px; }
-    body.page-index #newsletterForm button span { margin-left:7px; }
+    html.alkebulan-site body.page-index { --home-gutter:20px;--alk-nav-height:70px; }
+    html.alkebulan-site body.page-index #navbar .nav-container { width:calc(100% - 40px);grid-template-columns:1fr auto;gap:12px; }
+    html.alkebulan-site body.page-index .logo a { font-size:16px;letter-spacing:.22em; }
+    html.alkebulan-site body.page-index .nav-links { display:none; }
+    html.alkebulan-site body.page-index .nav-icons { grid-column:2;gap:0; }
+    html.alkebulan-site body.page-index .nav-icons :is(a,button.search-icon) { width:40px;min-width:40px;padding:0; }
+    body.page-index .nav-label,body.page-index .nav-bag-label { display:none; }
+    html.alkebulan-site body.page-index .hamburger { display:flex;width:36px;height:44px;padding:10px 8px;background:transparent;border:0; }
+    html.alkebulan-site body.page-index .collection-opening { aspect-ratio:auto;min-height:680px;margin-top:14px;border-radius:24px; }
+    body.page-index .hero-wordmark { top:43%;right:3%;font-size:27vw; }
+    body.page-index .opening-copy { width:100%;padding:32px 26px 0; }
+    body.page-index .opening-eyebrow { gap:16px;margin-bottom:32px;font-size:8px;letter-spacing:.25em; }
+    body.page-index .opening-eyebrow > span { width:42px; }
+    html.alkebulan-site body.page-index .opening-copy h1 { font-size:clamp(70px,14.3vw,106px);line-height:.85;letter-spacing:-.075em; }
+    body.page-index .opening-description { margin:23px 0;font-size:8px;line-height:1.8;letter-spacing:.24em; }
+    html.alkebulan-site body.page-index .opening-cta { min-height:46px;gap:20px;padding:10px 20px;font-size:13px; }
+    body.page-index .opening-cta > svg { width:20px;height:20px; }
+    body.page-index .stage-perspective { inset:auto 12% 33px 2%;height:320px;max-width:390px;margin-inline:auto; }
+    body.page-index .stage-photo img { width:158%;left:-29%;top:-4%; }
+    body.page-index :is([data-featured-artwork="durbar"],[data-featured-artwork="dun-dun"]) .stage-photo img { width:165%;left:-26.5%;top:-6%; }
+    body.page-index .stage-shadow { bottom:0;left:18%;width:73%;height:15px;filter:blur(10px); }
+    body.page-index .stage-caption { right:5%;bottom:19px;max-width:45%; }
+    body.page-index .caption-rule { width:23px;margin-bottom:2px; }
+    html.alkebulan-site body.page-index #stageLink { font-size:18px;min-height:36px; }
+    html.alkebulan-site body.page-index .artwork-selector button { width:25px; }
+    body.page-index .artwork-selector button span { width:7px;height:7px; }
+    html.alkebulan-site body.page-index .collection-section { padding:33px 0 30px; }
+    body.page-index .collection-heading { padding-inline:0;gap:10px;margin-bottom:16px; }
+    html.alkebulan-site body.page-index .collection-heading h2 { font-size:clamp(28px,6.5vw,40px); }
+    body.page-index .editorial-link { gap:10px;font-size:12px; }
+    body.page-index .editorial-link > svg { width:19px;height:19px; }
+    html.alkebulan-site body.page-index .collection-grid { grid-template-columns:1fr;gap:24px; }
+    body.page-index .collection-card-image { aspect-ratio:1.14;border-radius:22px; }
+    html.alkebulan-site body.page-index .collection-card-name { font-size:18px; }
+    body.page-index .collection-card-caption { padding-top:9px; }
+    html.alkebulan-site body.page-index .detail-editorial { grid-template-columns:1fr;aspect-ratio:auto;border-radius:23px; }
+    body.page-index .detail-image { min-height:255px;border-radius:22px; }
+    body.page-index .detail-image img { width:330%;left:-110%;top:-115%; }
+    body.page-index .detail-copy { min-height:287px;padding:32px 28px; }
+    body.page-index .detail-copy .opening-eyebrow { margin-bottom:22px;font-size:8px; }
+    html.alkebulan-site body.page-index .detail-copy h2 { font-size:62px;margin-bottom:22px; }
+    html.alkebulan-site body.page-index .detail-copy .opening-cta { padding-inline:20px;font-size:13px;gap:20px; }
+    body.page-index .detail-note { right:7%;bottom:30%;font-size:7px; }
+    body.page-index .detail-note > span { margin-bottom:13px; }
+    html.alkebulan-site body.page-index .home-footer { width:calc(100% - 40px);gap:14px;margin-top:18px;padding-bottom:20px; }
+    html.alkebulan-site body.page-index .footer-wordmark { font-size:11px;letter-spacing:.25em; }
+    body.page-index .home-footer > p { font-size:5px;letter-spacing:.13em;gap:0; }
+    body.page-index .home-footer > p > span { display:none; }
+}
+@media (min-width:480px) and (max-width:760px) {
+    html.alkebulan-site body.page-index .collection-opening { min-height:780px; }
+    body.page-index .stage-perspective { height:390px;left:10%;right:10%; }
+    html.alkebulan-site body.page-index .collection-grid { grid-template-columns:repeat(3,minmax(0,1fr));gap:12px; }
+    body.page-index .collection-card-image { border-radius:17px; }
+    html.alkebulan-site body.page-index .collection-card-name { font-size:15px; }
+    body.page-index .detail-image { min-height:350px; }
+}
+@media (max-width:359px) {
+    html.alkebulan-site body.page-index { --home-gutter:16px; }
+    html.alkebulan-site body.page-index #navbar .nav-container { width:calc(100% - 32px);gap:4px; }
+    html.alkebulan-site body.page-index .logo a { font-size:14px;letter-spacing:.16em; }
+    body.page-index .opening-copy { padding-inline:22px; }
+    html.alkebulan-site body.page-index .opening-copy h1 { font-size:64px; }
+    html.alkebulan-site body.page-index .collection-opening { min-height:640px; }
+    body.page-index .stage-perspective { height:285px; }
+    body.page-index .detail-note { display:none; }
 }
 @media (prefers-reduced-motion:reduce) {
-    body.page-index .stage-photo { animation:none;transform:rotate(-5deg);transition:none; }
-    body.page-index .artwork-selector button { transition:none; }
+    body.page-index .stage-photo { transform:rotate(-12deg);transition:none; }
+    body.page-index .collection-card:hover .collection-card-photo { transform:none; }
+    html.alkebulan-site body.page-index .opening-cta:hover { transform:none; }
 }

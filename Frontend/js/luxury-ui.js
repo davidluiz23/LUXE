@@ -64,9 +64,12 @@
 
     header.classList.add("luxury-navbar");
     logo.setAttribute("aria-label", "ALKEBULAN home");
-    logo.innerHTML = `${brandMark()}<span>ALKEBULAN</span>`;
+    logo.innerHTML = `${page === "index" ? "" : brandMark()}<span>ALKEBULAN</span>`;
 
-    const navRoutes = [
+    const navRoutes = page === "index" ? [
+      ["Shop", "shop.html", "shop"],
+      ["Our story", "about.html", "about"],
+    ] : [
       ["New arrivals", "shop.html?sort=newest", "new"],
       ["Shop", "shop.html", "shop"],
       ["Men", "men.html", "men"],
@@ -93,7 +96,7 @@
     });
 
     const hamburger = $("#hamburger", navIcons);
-    const mobileViewport = window.matchMedia("(max-width: 1020px)");
+    const mobileViewport = window.matchMedia(page === "index" ? "(max-width: 760px)" : "(max-width: 1020px)");
     if (hamburger) {
       hamburger.setAttribute("role", "button");
       hamburger.setAttribute("tabindex", "0");
@@ -332,7 +335,7 @@
 
   function rebuildFooter() {
     const footer = $("footer");
-    if (!footer) return;
+    if (!footer || footer.hasAttribute("data-home-footer")) return;
     footer.classList.add("luxury-footer");
     footer.innerHTML = `
       <div class="container luxury-footer-top">
