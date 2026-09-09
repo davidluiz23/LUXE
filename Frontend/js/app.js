@@ -158,7 +158,25 @@ document.addEventListener('DOMContentLoaded', async function() {
             renderProducts(products, productGrid);
         } else {
             window.finishProductGridLoading?.(productGrid);
-            productGrid.innerHTML = '';
+            // The catalog renderer owns its empty/error state so an earlier
+            // presentation enhancement cannot be cleared during initialization.
+            const unavailable = window.LuxeCatalogStatus?.state === 'unavailable';
+            const empty = document.createElement('div');
+            empty.className = 'collection-empty';
+            const message = document.createElement('p');
+            message.textContent = unavailable
+                ? 'The collection couldn’t load. Please try again.'
+                : 'There are no published pieces to show just yet.';
+            const action = document.createElement('a');
+            action.className = 'editorial-link';
+            action.href = unavailable ? 'index.html#collection' : 'contact.html';
+            action.textContent = unavailable ? 'Try again ↗' : 'Get in touch ↗';
+            if (unavailable) action.addEventListener('click', event => {
+                event.preventDefault();
+                window.location.reload();
+            });
+            empty.append(message, action);
+            productGrid.replaceChildren(empty);
         }
     }
 

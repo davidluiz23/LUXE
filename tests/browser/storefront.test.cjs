@@ -169,12 +169,14 @@ test('signup from checkout preserves the destination through email verification'
   try {
     await page.click('.auth-switch a');
     assert.match(page.url(), /signup.html\?returnTo=checkout.html/);
+    await page.waitForFunction(() => typeof window.LuxeAuth?.requestSignupVerification === 'function');
     await page.evaluate(() => { window.LuxeAuth.requestSignupVerification = async () => ({data:{ok:true},error:null}); });
     await page.fill('#fullName','Audit Customer');
     await page.fill('#email','customer@example.com');
     await page.check('#terms');
     await page.click('#signupForm button[type="submit"]');
     await page.waitForURL('**/verify-signup.html?returnTo=checkout.html');
+    await page.waitForFunction(() => typeof window.LuxeAuth?.completeSignupWithCode === 'function');
     await page.evaluate(customer => {
       window.LuxeAuth.checkSignupCode = async () => ({data:{valid:true},error:null});
       window.LuxeAuth.completeSignupWithCode = async () => ({data:{ok:true,email:customer.email},error:null});

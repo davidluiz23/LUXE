@@ -5,22 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="assets/brand/alkebulan-mark.svg" type="image/svg+xml">
     <script src="js/utils.js?v=20260830-2"></script>
-    <title>ALKEBULAN | Premium Clothing</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>ALKEBULAN | Clothing with Character</title>
+    <meta name="description" content="Explore the ALKEBULAN collection. Expressive clothing, distinctive artwork, and a different kind of everyday statement.">
     <link rel="stylesheet" href="css/variables.css?v=20260908-1">
     <link rel="stylesheet" href="css/style.css?v=20260830-1">
-    <link rel="stylesheet" href="css/home.css?v=20260830-1">
     <link rel="stylesheet" href="css/responsive.css?v=20260908-2">
     <link id="alkebulanLuxuryStyles" rel="stylesheet" href="css/luxury.css?v=20260908-1">
     <link rel="stylesheet" href="css/desktop-responsive.css?v=20260831-2">
-    <script id="alkebulanLuxuryUi" src="js/luxury-ui.js?v=20260908-1" defer></script>
+    <script id="alkebulanLuxuryUi" src="js/luxury-ui.js?v=20260909-1" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/storefront.css?v=20260909-1">
+    <link rel="stylesheet" href="css/home.css?v=20260909-1">
+    <script src="js/home-stage.js?v=20260909-1" defer></script>
 </head>
 <body class="page-index">
-    <!-- Loader -->
-    <div id="loader"><div class="loader-spinner"></div></div>
+    <a class="skip-to-content" href="#mainContent">Skip to content</a>
 
     <!-- Navigation -->
     <header id="navbar">
@@ -64,154 +63,48 @@
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="hero luxury-home-hero" id="hero">
-        <div class="hero-layout">
-            <div class="hero-copy">
-                <p class="eyebrow hero-kicker">ALKEBULAN / THE CURRENT EDIT</p>
-                <h1 class="hero-title">Quiet <em>power.</em></h1>
-                <p class="hero-sub">A considered wardrobe for those who choose presence over noise. Modern silhouettes, enduring materials, and an uncompromising point of view.</p>
-                <div class="hero-buttons">
-                    <a href="shop.html" class="btn btn-primary">Discover the collection</a>
-                    <a href="#collections" class="btn btn-outline">Explore the edit</a>
-                </div>
-                <div class="hero-meta" aria-label="Collection details">
-                    <span>Lagos / Nigeria</span>
-                    <span>Season / 2026</span>
-                </div>
+    <main id="mainContent">
+    <section class="collection-opening" aria-labelledby="openingTitle">
+        <div class="opening-topline"><span>ALKEBULAN / CLOTHING WITH CHARACTER</span><a href="#collection">Explore the collection <span aria-hidden="true">↘</span></a></div>
+        <div class="opening-layout">
+            <div class="opening-copy">
+                <p class="opening-eyebrow"><span aria-hidden="true"></span> THE ART OF SELF-EXPRESSION</p>
+                <h1 id="openingTitle">Wear<br> the <em>story.</em></h1>
+                <p class="opening-description">Expressive by design.<br>A different kind of everyday statement.</p>
+                <a class="opening-cta" href="shop.html">Find your piece <span aria-hidden="true">↗</span></a>
+                <div class="opening-footnote"><span>ROOTED IN EXPRESSION.</span><span>WORN YOUR WAY.</span></div>
             </div>
-            <a class="hero-visual" href="shop.html?sort=newest" aria-label="Explore the latest ALKEBULAN edit">
-                <img src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1400&auto=format&fit=crop&q=88" alt="Woman in a tailored editorial look" width="1400" height="1750" fetchpriority="high" decoding="async">
-                <span class="hero-monogram" aria-hidden="true">
-                    <svg viewBox="0 0 72 72"><path d="M27 7h18l16 22-17 6c1.6-2.4 2.5-5.3 2.5-8.4C46.5 17.9 41.8 12 36 12s-10.5 5.9-10.5 14.6c0 3.1.9 6 2.5 8.4l-17-6L27 7Z"/><ellipse cx="36" cy="27" rx="9.2" ry="11.5"/><path d="m34 38-5 27H6l8-22 20-5Zm4 0 20 5 8 22H43l-5-27Z"/></svg>
-                </span>
-                <span class="hero-visual-label"><span>New season / Available now</span><span>View edit ↗</span></span>
-            </a>
+            <div class="product-stage" id="productStage">
+                <div class="stage-heading"><span>THE ARTWORK EDIT</span><span id="stageNumber" aria-hidden="true">01 / 03</span></div>
+                <div class="stage-perspective">
+                    <div class="stage-photo" id="stagePhoto"><img id="stageImage" src="assets/products/durbar.jpg" alt="Black tee with gold Durbar lettering and a mounted figure print" width="1280" height="854" fetchpriority="high" decoding="async"></div>
+                    <span class="stage-shadow" aria-hidden="true"></span>
+                </div>
+                <div class="stage-caption"><div aria-live="polite" aria-atomic="true"><span class="stage-caption-label">IN FOCUS</span><h2 id="stageName">Durbar</h2><p id="stagePrice" hidden></p></div><a id="stageLink" href="shop.html" aria-label="Shop the collection"><span aria-hidden="true">↗</span></a></div>
+            </div>
         </div>
+        <div class="opening-bottom"><span class="opening-index">THREE PRINTS. ONE POINT OF VIEW.</span><div class="artwork-selector" role="group" aria-label="Featured artwork"><button type="button" data-artwork="durbar" aria-pressed="true"><span>01</span> Durbar</button><button type="button" data-artwork="ijele" aria-pressed="false"><span>02</span> Ijele</button><button type="button" data-artwork="dun-dun" aria-pressed="false"><span>03</span> Dùn Dùn</button></div><a class="opening-scroll" href="#collection" aria-label="Scroll to the collection">A LITTLE FURTHER <span aria-hidden="true">↓</span></a></div>
     </section>
 
-    <div class="house-rail" role="region" tabindex="0" aria-label="Store services">
-        <span><i></i>Delivery options confirmed at checkout</span>
-        <span><i></i>Complimentary shipping over $200</span>
-        <span><i></i>Secure checkout</span>
-        <span><i></i>30-day returns</span>
-    </div>
-
-    <!-- Featured Categories -->
-    <section class="section categories" id="collections">
-        <div class="container">
-            <div class="section-heading-row">
-                <div><p class="section-kicker">The wardrobe / Curated</p><h2 class="section-title">Shop the edit</h2></div>
-                <a href="shop.html" class="text-link">View all pieces <span>↗</span></a>
-            </div>
-            <div class="category-grid">
-                <div class="category-card" data-edit="Menswear" style="background-image: url('https://images.unsplash.com/photo-1617137968427-85924c800a22?w=1100&auto=format&fit=crop&q=85');">
-                    <div class="category-overlay">
-                        <h3>Men</h3>
-                        <a href="men.html" class="btn btn-small">Explore menswear</a>
-                    </div>
-                </div>
-                <div class="category-card" data-edit="Womenswear" style="background-image: url('https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=900&auto=format&fit=crop&q=85');">
-                    <div class="category-overlay">
-                        <h3>Women</h3>
-                        <a href="women.html" class="btn btn-small">Explore womenswear</a>
-                    </div>
-                </div>
-                <div class="category-card" data-edit="Objects" style="background-image: url('https://images.unsplash.com/photo-1523381294911-8d3cead13475?w=900&auto=format&fit=crop&q=85');">
-                    <div class="category-overlay">
-                        <h3>Accessories</h3>
-                        <a href="shop.html?category=accessories" class="btn btn-small">Explore objects</a>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <section class="collection-section" id="collection" aria-labelledby="collectionTitle">
+        <div class="collection-heading"><div><p class="editorial-kicker">THE COLLECTION</p><h2 id="collectionTitle">Make it your own.</h2></div><a class="editorial-link" href="shop.html">Shop all pieces <span aria-hidden="true">↗</span></a></div>
+        <div class="product-grid" id="productGrid" aria-label="Collection products"></div>
+        <noscript><p>Browse the <a href="shop.html">shop</a>. Enable JavaScript to load current products and use the bag.</p></noscript>
     </section>
 
-    <!-- New Arrivals -->
-    <section class="section featured">
-        <div class="container">
-            <div class="section-heading-row">
-                <div><p class="section-kicker">Freshly selected / Available now</p><h2 class="section-title">New arrivals</h2></div>
-                <a href="shop.html?sort=newest" class="text-link">See the new edit <span>↗</span></a>
-            </div>
-            <div class="product-grid" id="productGrid"></div>
-        </div>
+    <section class="detail-editorial" aria-labelledby="detailTitle">
+        <div class="detail-image"><img src="assets/products/ijele.jpg" alt="A close look at the Ijele tee: warm lettering and expressive artwork on black" width="1280" height="854" loading="lazy" decoding="async"><span>ARTWORK STUDY / 02</span></div>
+        <div class="detail-copy"><p class="editorial-kicker">A CLOSER LOOK</p><h2 id="detailTitle">Not a<br>blank canvas.</h2><p>Bold lettering. Intricate imagery. A print that holds your attention, even up close.</p><p class="detail-name">Ijele. In every detail.</p><a class="editorial-link" id="detailLink" href="shop.html">Explore the collection <span aria-hidden="true">↗</span></a><div class="detail-brand" aria-hidden="true">ALKEBULAN</div></div>
     </section>
 
-    <!-- House Story -->
-    <section class="house-story">
-        <div class="house-story-image">
-            <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1200&auto=format&fit=crop&q=84" alt="Curated fashion rail in the ALKEBULAN studio" width="1200" height="900" loading="lazy" decoding="async">
-        </div>
-        <div class="house-story-copy">
-            <p class="section-kicker">The house / Lagos</p>
-            <h2>Made for a lasting impression.</h2>
-            <p>ALKEBULAN brings together expressive design and considered craftsmanship. Every selection is chosen to live beyond a single season.</p>
-            <a href="about.html" class="text-link">Discover our story <span>↗</span></a>
-        </div>
+    <section class="store-services" aria-label="Shopping support">
+        <a href="shipping.html"><span class="service-number">01 / DELIVERY</span><h3>From us to you. <span aria-hidden="true">↗</span></h3><p>Explore shipping and delivery information.</p></a>
+        <a href="returns.html"><span class="service-number">02 / RETURNS</span><h3>A little reassurance. <span aria-hidden="true">↗</span></h3><p>Everything you need to know about returns.</p></a>
+        <a href="contact.html"><span class="service-number">03 / LET’S TALK</span><h3>Here to help. <span aria-hidden="true">↗</span></h3><p>A question about your piece? Get in touch.</p></a>
     </section>
 
-    <!-- Why Choose Us -->
-    <section class="section why-choose">
-        <div class="container">
-            <div class="section-heading-row">
-                <div><p class="section-kicker">The standard / Always</p><h2 class="section-title">Considered service</h2></div>
-            </div>
-            <div class="features-grid">
-                <div class="feature">
-                    <i class="fas fa-truck"></i>
-                    <h4>Complimentary delivery</h4>
-                    <p>On orders over $200</p>
-                </div>
-                <div class="feature">
-                    <i class="fas fa-undo"></i>
-                    <h4>Considered returns</h4>
-                    <p>A clear 30-day return window</p>
-                </div>
-                <div class="feature">
-                    <i class="fas fa-lock"></i>
-                    <h4>Protected checkout</h4>
-                    <p>Secure, validated order handling</p>
-                </div>
-                <div class="feature">
-                    <i class="fas fa-headset"></i>
-                    <h4>Client services</h4>
-                    <p>Thoughtful help when you need it</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- House journal gallery -->
-    <section class="section instagram">
-        <div class="container">
-            <div class="section-heading-row">
-                <div><p class="section-kicker">House journal / In focus</p><h2 class="section-title">The visual diary</h2></div>
-                <a href="about.html" class="text-link">Discover the house <span>↗</span></a>
-            </div>
-            <div class="insta-grid">
-                <img src="https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=300&auto=format&fit=crop" alt="Neutral tailoring detail" width="300" height="300" loading="lazy" decoding="async">
-                <img src="https://images.unsplash.com/photo-1554568218-0f1715e72254?w=300&auto=format&fit=crop" alt="Contemporary wardrobe detail" width="300" height="300" loading="lazy" decoding="async">
-                <img src="https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=300&auto=format&fit=crop" alt="Layered fabric and silhouette" width="300" height="300" loading="lazy" decoding="async">
-                <img src="https://images.unsplash.com/photo-1554568218-0f1715e72254?w=300&auto=format&fit=crop" alt="Selected pieces from the current edit" width="300" height="300" loading="lazy" decoding="async">
-            </div>
-        </div>
-    </section>
-
-    <!-- Newsletter -->
-    <section class="section newsletter">
-        <div class="container" style="padding:0px, 5px, 0px ;">
-            <div class="newsletter-box">
-                <div><p class="section-kicker">Private list / Occasional notes</p><h2>Enter the world of ALKEBULAN.</h2></div>
-                <div><p>New arrivals, house stories, and private releases—sent with restraint.</p>
-                <form id="newsletterForm">
-                    <input type="email" placeholder="Email address" aria-label="Email address" required>
-                    <button type="submit" class="btn btn-primary">Join the list</button>
-                </form>
-                </div>
-            </div>
-        </div>
-    </section>
+    <section class="collection-newsletter" aria-labelledby="newsletterTitle"><div><p class="editorial-kicker">KEEP IN THE LOOP</p><h2 id="newsletterTitle">Good things.<br>In your inbox.</h2></div><div class="newsletter-signup"><p>Collection updates and new arrivals from ALKEBULAN.</p><form id="newsletterForm"><label class="visually-hidden" for="newsletterEmail">Email address</label><input type="email" id="newsletterEmail" autocomplete="email" placeholder="Your email address" required><button type="submit" aria-label="Join the mailing list">Join the list <span aria-hidden="true">↗</span></button></form><p class="newsletter-privacy">By signing up, you agree to our <a href="privacy.html">privacy policy</a>.</p></div></section>
+    </main>
 
     <!-- Footer -->
     <footer>
@@ -253,7 +146,7 @@
 
     <!-- JavaScript -->
     <script src="js/brand-config.js?v=20260830-1"></script>
-    <script src="js/icons.js?v=20260908-1"></script>
+    <script src="js/icons.js?v=20260909-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
     <script src="js/supabase-client.js?v=20260908-1"></script>
     <script src="js/updates-banner.js?v=20260903-1"></script>
@@ -262,6 +155,6 @@
     <script src="js/wishlist.js?v=20260903-1"></script>
     <script src="js/search.js?v=20260908-1"></script>
     <script src="js/animation.js?v=20260830-1"></script>
-    <script src="js/app.js?v=20260908-1"></script>
+    <script src="js/app.js?v=20260909-1"></script>
 </body>
 </html>

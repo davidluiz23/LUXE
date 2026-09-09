@@ -169,6 +169,7 @@
           ["Our story", "about.html"],
           ["Client services", "contact.html"],
           ["Account", "dashboard.html"],
+          ["Saved pieces", "wishlist.html"],
         ].map(([label, href]) => `<li><a href="${href}"><span>${label}</span></a></li>`).join("");
         mobileList.insertAdjacentHTML("beforebegin", `<div class="mobile-brand-lockup">${brandMark()}<span>ALKEBULAN</span></div>`);
         mobileList.insertAdjacentHTML("afterend", `<div class="mobile-menu-meta"><span>Lagos / NG</span><a href="contact.html">Client services</a></div>`);
@@ -317,6 +318,18 @@
     });
   }
 
+  function enhanceIcons() {
+    if (!window.LuxeIcons) return;
+    const icons = { 'fa-search': 'search', 'fa-shopping-bag': 'bag', 'fa-heart': 'heart', 'fa-eye': 'eye', 'fa-user': 'user', 'fa-times': 'close', 'fa-arrow-up': 'up', 'fa-plus': 'plus', 'fa-minus': 'minus', 'fa-trash': 'trash', 'fa-trash-alt': 'trash' };
+    $$('i[class*="fa-"]:not(.sf-icon)').forEach(element => {
+      const icon = Object.keys(icons).find(className => element.classList.contains(className));
+      if (!icon) return;
+      element.classList.add('sf-icon');
+      element.setAttribute('aria-hidden', 'true');
+      element.innerHTML = window.LuxeIcons.svg(icons[icon]);
+    });
+  }
+
   function rebuildFooter() {
     const footer = $("footer");
     if (!footer) return;
@@ -324,7 +337,7 @@
     footer.innerHTML = `
       <div class="container luxury-footer-top">
         <a href="index.html" class="footer-brand" aria-label="ALKEBULAN home">${brandMark()}<span>ALKEBULAN</span></a>
-        <p>Contemporary clothing selected with intention.<br>For a quieter kind of confidence.</p>
+        <p>Clothing with character.<br>Rooted in expression. Worn your way.</p>
         <a class="footer-contact-link" href="contact.html">Speak with client services <span aria-hidden="true">↗</span></a>
       </div>
       <div class="container luxury-footer-grid">
@@ -388,6 +401,7 @@
     releaseStaleScrollLocks();
     enhanceLoader();
     enhanceNavigation();
+    enhanceIcons();
     enhanceHeadings();
     rebuildFooter();
     addImageFallbacks();
@@ -397,10 +411,12 @@
     }
     enhanceProductCards();
     enhanceEmptyStates();
+    enhanceIcons();
 
     const observer = new MutationObserver(() => {
       enhanceProductCards();
       enhanceEmptyStates();
+      enhanceIcons();
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
