@@ -22,6 +22,7 @@
       shop: "The complete collection",
       men: "Menswear / Current edit",
       women: "Womenswear / Current edit",
+      videos: "Films / Current releases",
       product: "Selected piece / Details",
       cart: "Your selection",
       checkout: "Secure checkout",
@@ -64,20 +65,18 @@
 
     header.classList.add("luxury-navbar");
     logo.setAttribute("aria-label", "ALKEBULAN home");
-    logo.innerHTML = `${page === "index" ? "" : brandMark()}<span>ALKEBULAN</span>`;
+    logo.innerHTML = brandMark();
 
-    const navRoutes = page === "index" ? [
-      ["Shop", "shop.html", "shop"],
-      ["Our story", "about.html", "about"],
-    ] : [
-      ["New arrivals", "shop.html?sort=newest", "new"],
+    const renderedNavRoutes = [
       ["Shop", "shop.html", "shop"],
       ["Men", "men.html", "men"],
       ["Women", "women.html", "women"],
+      ["Videos", "videos.html", "videos"],
       ["Our story", "about.html", "about"],
+      ["Contact", "contact.html", "contact"],
     ];
     const newestIsActive = page === "shop" && new URLSearchParams(window.location.search).get("sort") === "newest";
-    navList.innerHTML = navRoutes.map(([label, href, route]) => {
+    navList.innerHTML = renderedNavRoutes.map(([label, href, route]) => {
       const active = route === "new"
         ? newestIsActive
         : page === route && !(route === "shop" && newestIsActive);
@@ -145,8 +144,10 @@
       menuObserver.observe(mobileMenu, { attributes: true, attributeFilter: ["class"] });
       hamburger?.addEventListener("click", () => {
         if (!mobileViewport.matches) return;
+        const openScrollPosition = window.scrollY;
         mobileMenu.classList.add("active");
         syncMobileMenu();
+        window.setTimeout(() => window.scrollTo(0, openScrollPosition), 50);
         mobileMenu.scrollTop = 0;
         mobileClose?.focus({ preventScroll: true });
       });
@@ -169,6 +170,7 @@
           ["Shop all", "shop.html"],
           ["Men", "men.html"],
           ["Women", "women.html"],
+          ["Videos", "videos.html"],
           ["Our story", "about.html"],
           ["Client services", "contact.html"],
           ["Account", "dashboard.html"],

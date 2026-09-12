@@ -265,7 +265,7 @@ html.alkebulan-site .mobile-menu a:hover { padding-left: 16px; background: rgba(
 html.alkebulan-site .mobile-menu-meta { display: flex; margin-top: 34px; justify-content: space-between; color: rgba(255,255,255,.56); font-size: 0.55rem; letter-spacing: .1em; text-transform: uppercase; }
 html.alkebulan-site .mobile-menu-meta a { display: inline; padding: 0 0 4px; border-bottom: 1px solid rgba(255,255,255,.35); border-radius: 0; font-family: var(--alk-sans); font-size: inherit; }
 html.alkebulan-site .mobile-menu-meta a:hover { padding-left: 0; background: transparent; color: var(--alk-white); }
-body.mobile-nav-open { overflow: hidden !important; }
+body.mobile-nav-open { overflow: clip !important; }
 body.mobile-nav-open::before { position: fixed; z-index: 1000; inset: 0; background: rgba(17,17,15,.42); content: ""; backdrop-filter: blur(3px); }
 
 /* Typography and controls */

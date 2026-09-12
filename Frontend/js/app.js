@@ -70,8 +70,10 @@ document.addEventListener('DOMContentLoaded', async function() {
             };
             hamburger.addEventListener('click', () => {
                 if (!mobileViewport.matches) return;
+                const openScrollPosition = window.scrollY;
                 mobileMenu.classList.add('active');
                 syncMenu();
+                window.setTimeout(() => window.scrollTo(0, openScrollPosition), 50);
                 mobileClose?.focus({ preventScroll: true });
             });
             hamburger.addEventListener('keydown', (event) => {

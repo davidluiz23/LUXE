@@ -25,7 +25,7 @@ body {
 
 /* Lock the document as well as the body while the navigation panel scrolls. */
 html:has(body.mobile-nav-open) {
-    overflow: hidden;
+    overflow: clip;
 }
 
 img,

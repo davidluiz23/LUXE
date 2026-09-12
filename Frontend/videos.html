@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang='en' class='alkebulan-site'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <link rel='icon' href='assets/brand/alkebulan-mark.svg' type='image/svg+xml' />
+    <script src='js/utils.js?v=20260830-2'></script>
+    <title>Videos | ALKEBULAN</title>
+    <meta name='description' content='ALKEBULAN films and campaign releases.' />
+    <link rel='stylesheet' href='css/variables.css?v=20260912-1' />
+    <link rel='stylesheet' href='css/style.css?v=20260830-1' />
+    <link rel='stylesheet' href='css/responsive.css?v=20260912-1' />
+    <link id='alkebulanLuxuryStyles' rel='stylesheet' href='css/luxury.css?v=20260912-1' />
+    <script id='alkebulanLuxuryUi' src='js/luxury-ui.js?v=20260912-1' defer></script>
+    <link rel='stylesheet' href='css/storefront.css?v=20260912-1' />
+  </head>
+  <body class='page-videos'>
+    <div id='loader' aria-hidden='true'><div class='loader-spinner'></div></div>
+    <header id='navbar'>
+      <div class='container nav-container'>
+        <div class='logo'><a href='index.html' aria-label='ALKEBULAN home'><span>ALKEBULAN</span></a></div>
+        <nav class='nav-links' id='navLinks' aria-label='Main navigation'>
+          <ul>
+            <li><a href='shop.html'>Shop</a></li>
+            <li><a href='men.html'>Men</a></li>
+            <li><a href='women.html'>Women</a></li>
+            <li><a href='videos.html' class='active'>Videos</a></li>
+            <li><a href='about.html'>Our story</a></li>
+            <li><a href='contact.html'>Contact</a></li>
+          </ul>
+        </nav>
+        <div class='nav-icons'>
+          <button type='button' class='search-icon' id='searchToggle' aria-label='Search'><i class='fas fa-search' aria-hidden='true'></i></button>
+          <a href='wishlist.html' class='wishlist-icon' aria-label='Saved pieces'><i class='fas fa-heart' aria-hidden='true'></i><span class='wishlist-count'>0</span></a>
+          <a href='cart.html' class='cart-icon' aria-label='Shopping bag'><i class='fas fa-shopping-bag' aria-hidden='true'></i><span class='cart-count'>0</span></a>
+          <a href='dashboard.html' class='user-icon' aria-label='Your account'><i class='fas fa-user' aria-hidden='true'></i></a>
+          <button type='button' class='hamburger' id='hamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
+        </div>
+      </div>
+      <div class='mobile-menu' id='mobileMenu'>
+        <button type='button' class='mobile-close' id='mobileClose' aria-label='Close menu'><i class='fas fa-times' aria-hidden='true'></i></button>
+        <ul>
+          <li><a href='index.html'>Home</a></li>
+          <li><a href='shop.html'>Shop</a></li>
+          <li><a href='videos.html'>Videos</a></li>
+          <li><a href='dashboard.html'>Account</a></li>
+        </ul>
+      </div>
+    </header>
+
+    <main id='mainContent'>
+      <section class='section videos-hero'>
+        <div class='container'>
+          <p class='page-kicker'>ALKEBULAN films</p>
+          <h1>Watch the work.</h1>
+          <p class='videos-intro'>Campaign films and studio releases will appear here when they are published.</p>
+        </div>
+      </section>
+
+      <section class='section videos-section' aria-labelledby='videosStatus'>
+        <div class='container'>
+          <div class='videos-empty' id='videosStatus'>
+            <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.5' stroke-linecap='round' aria-hidden='true'>
+              <circle cx='12' cy='12' r='8.75' />
+              <path d='m10.2 8.8 5.4 3.2-5.4 3.2V8.8Z' />
+            </svg>
+            <h2>No films published yet</h2>
+            <p>The collection is available now, and approved videos will be added to this page without changing navigation.</p>
+            <a class='videos-cta' href='shop.html'>Explore the collection</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class='container'>
+        <p>&copy; <span id='currentYear'>2026</span> ALKEBULAN. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script src='js/brand-config.js?v=20260830-1'></script>
+    <script src='js/icons.js?v=20260912-1'></script>
+    <script src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3'></script>
+    <script src='js/supabase-client.js?v=20260908-1'></script>
+    <script src='js/products.js?v=20260908-1'></script>
+    <script src='js/cart.js?v=20260908-1'></script>
+    <script src='js/wishlist.js?v=20260903-1'></script>
+    <script src='js/search.js?v=20260908-1'></script>
+    <script src='js/animation.js?v=20260830-1'></script>
+    <script src='js/app.js?v=20260912-1'></script>
+  </body>
+</html>

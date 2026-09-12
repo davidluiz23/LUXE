@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
 /* ========================================
    VARIABLES.CSS - Design Tokens
    (Previously this file was an accidental duplicate
@@ -6,18 +7,34 @@
    ======================================== */
 
 :root {
-    --primary: #111111;
-    --secondary: #FFFFFF;
-    --accent: #D4AF37;
-    --accent-text: #806116;
-    --light-bg: #F8F8F8;
-    --gray-text: #66645f;
-    --border-color: #E5E5E5;
+    --alk-canvas: #fafaf7;
+    --alk-surface: #f0f1eb;
+    --alk-surface-strong: #e5e8e6;
+    --alk-sage: #a9b497;
+    --alk-stone: #c7b8a6;
+    --alk-ink: #171917;
+    --alk-muted: #62675f;
+    --alk-line: #d9ddd5;
+    --alk-focus: #4e6148;
+    --alk-radius-sm: 12px;
+    --alk-radius-md: 20px;
+    --alk-radius-lg: 28px;
+    --alk-shadow: 0 18px 50px rgba(23, 25, 23, 0.08);
+    --font-display: 'Poppins', 'Manrope', system-ui, sans-serif;
+    --font-body: 'Manrope', 'Poppins', system-ui, sans-serif;
+    --font-editorial: 'Instrument Serif', Georgia, serif;
+    --primary: #171917;
+    --secondary: #fafaf7;
+    --accent: #a9b497;
+    --accent-text: #4e6148;
+    --light-bg: #f0f1eb;
+    --gray-text: #62675f;
+    --border-color: #d9ddd5;
 
-    --font-heading: 'Playfair Display', serif;
-    --font-body: 'Poppins', sans-serif;
+    --font-heading: var(--font-display);
+    --font-ui: var(--font-body);
 
-    --radius: 8px;
-    --shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
-    --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --radius: 16px;
+    --shadow: var(--alk-shadow);
+    --transition: 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
