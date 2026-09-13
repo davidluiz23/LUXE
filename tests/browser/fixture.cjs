@@ -14,7 +14,7 @@ const fixture = Array.from({length: 16}, (_, i) => ({
   tags: [i % 2 ? 'women' : 'men'], in_stock: i !== 15, stock_quantity: i === 15 ? 0 : 5,
   created_at: `2026-09-${String(i+1).padStart(2,'0')}T00:00:00Z`, description: 'A comfortable, carefully selected piece.'
 }));
-const mime = {'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml'};
+const mime = {'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.woff2':'font/woff2'};
 const server = http.createServer((req,res) => {
   let url = new URL(req.url, 'http://localhost');
   let file = path.resolve(frontend, '.' + decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname));

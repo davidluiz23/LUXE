@@ -95,28 +95,6 @@ html.alkebulan-site :focus-visible {
 }
 
 /* Loader */
-html.alkebulan-site #loader {
-    display: grid;
-    place-items: center;
-    background: var(--alk-ink);
-    color: var(--alk-white);
-    animation: luxuryLoaderExit 0.55s var(--alk-ease) 0.12s forwards;
-}
-
-.luxury-loader-lockup {
-    display: grid;
-    width: 180px;
-    justify-items: center;
-    gap: 14px;
-}
-
-.luxury-loader-mark { width: 42px; height: 42px; fill: currentColor; }
-.luxury-loader-lockup > span { font-size: 0.73rem; font-weight: 600; letter-spacing: 0.34em; }
-.luxury-loader-lockup > i { position: relative; display: block; width: 100%; height: 1px; overflow: hidden; background: rgba(255,255,255,.2); }
-.luxury-loader-lockup > i::after { position: absolute; inset: 0; background: var(--alk-white); content: ""; transform: translateX(-100%); animation: luxuryLoaderLine 0.75s var(--alk-ease) forwards; }
-
-@keyframes luxuryLoaderLine { to { transform: translateX(100%); } }
-@keyframes luxuryLoaderExit { to { opacity: 0; visibility: hidden; pointer-events: none; } }
 
 /* Navigation */
 html.alkebulan-site #navbar.luxury-navbar {

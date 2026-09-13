@@ -4,58 +4,42 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="assets/brand/alkebulan-mark.svg" type="image/svg+xml" />
+    <link rel="preload" href="assets/fonts/manrope-normal-400-700-latin-a30ddcd349.woff2" as="font" type="font/woff2" crossorigin>
     <script src="js/utils.js?v=20260830-2"></script>
     <meta
       name="description"
       content="How ALKEBULAN handles account, order, delivery and payment information."
     />
     <title>Privacy Notice | ALKEBULAN</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="css/variables.css?v=20260912-1" />
+    <link rel="stylesheet" href="css/variables.css?v=20260913-2" />
     <link rel="stylesheet" href="css/style.css?v=20260830-1" />
     <link rel="stylesheet" href="css/support.css?v=20260830-1" />
     <link rel="stylesheet" href="css/responsive.css?v=20260912-1" />
-    <link id="alkebulanLuxuryStyles" rel="stylesheet" href="css/luxury.css?v=20260913-1" />
-    <script id="alkebulanLuxuryUi" src="js/luxury-ui.js?v=20260913-1" defer></script>
+    <link id="alkebulanLuxuryStyles" rel="stylesheet" href="css/luxury.css?v=20260913-2" />
+    <script id="alkebulanLuxuryUi" src="js/luxury-ui.js?v=20260913-2" defer></script>
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      href="css/icons.css?v=20260913-2"
     />
-      <link rel="stylesheet" href="css/storefront.css?v=20260913-1" />
+      <link rel="stylesheet" href="css/storefront.css?v=20260913-2" />
   </head>
-  <body>
-    <div id="loader"><div class="loader-spinner"></div></div>
-    <header id="navbar">
+  <body class="page-privacy">
+    <header id="navbar" class="luxury-navbar">
       <div class="container nav-container">
         <div class="logo">
-          <a href="index.html"><span>ALKEBULAN</span></a>
+          <a href="index.html"><img class="brand-mark" src="assets/brand/alkebulan-mark.svg" width="34" height="34" alt="ALKEBULAN"></a>
         </div>
         <nav class="nav-links" id="navLinks" aria-label="Primary navigation">
-          <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="shop.html">Shop</a></li>
-            <li><a href="men.html">Men</a></li>
-            <li><a href="women.html">Women</a></li>
-            <li><a href="about.html">About</a></li>
-            <li><a href="contact.html">Contact</a></li>
-          </ul>
+          <ul><li><a href="shop.html">Shop</a></li><li><a href="men.html">Men</a></li><li><a href="women.html">Women</a></li><li><a href="videos.html">Videos</a></li><li><a href="about.html">Our story</a></li><li><a href="contact.html">Contact</a></li></ul>
         </nav>
         <div class="nav-icons">
           <button type="button" class="search-icon" id="searchToggle" aria-label="Search"
-            ><i class="fas fa-search"></i></button><a href="wishlist.html" class="wishlist-icon" aria-label="Wishlist"
-            ><i class="fas fa-heart"></i
-            ><span class="wishlist-count">0</span></a
+            ><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><a href="wishlist.html" class="wishlist-icon" aria-label="Wishlist"
+            ><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg><span class="wishlist-count">0</span></a
           ><a href="cart.html" class="cart-icon" aria-label="Cart"
-            ><i class="fas fa-shopping-bag"></i
-            ><span class="cart-count">0</span></a
+            ><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 8h12l1 13H5L6 8Z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/></svg><span class="cart-count">0</span></a
           ><a href="dashboard.html" class="user-icon" aria-label="Account"
-            ><i class="fas fa-user"></i
-          ></a>
+            ><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg></a>
           <div class="hamburger" id="hamburger">
             <span></span><span></span><span></span>
           </div>
@@ -63,7 +47,7 @@
       </div>
       <div class="mobile-menu" id="mobileMenu">
         <div class="mobile-close" id="mobileClose">
-          <i class="fas fa-times"></i>
+          <svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 6 12 12M6 18 18 6"/></svg>
         </div>
         <ul>
           <li><a href="index.html">Home</a></li>

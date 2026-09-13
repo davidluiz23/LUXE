@@ -43,18 +43,6 @@
     return labels[page] || "ALKEBULAN / 2026";
   }
 
-  function enhanceLoader() {
-    const loader = $("#loader");
-    if (!loader) return;
-    loader.setAttribute("aria-label", "Loading ALKEBULAN");
-    loader.innerHTML = `
-      <div class="luxury-loader-lockup">
-        ${brandMark("luxury-loader-mark")}
-        <span>ALKEBULAN</span>
-        <i aria-hidden="true"></i>
-      </div>`;
-  }
-
   function enhanceNavigation() {
     const header = $("#navbar");
     const logo = $(".logo a", header || document);
@@ -65,7 +53,9 @@
 
     header.classList.add("luxury-navbar");
     logo.setAttribute("aria-label", "ALKEBULAN home");
-    logo.innerHTML = brandMark() + (page === "index" ? '<span class="brand-wordmark">ALKEBULAN</span>' : '');
+    if (!$(".brand-mark", logo)) {
+      logo.innerHTML = brandMark() + (page === "index" ? '<span class="brand-wordmark">ALKEBULAN</span>' : '');
+    }
 
     const renderedNavRoutes = [
       ["Shop", "shop.html", "shop"],
@@ -76,12 +66,14 @@
       ["Contact", "contact.html", "contact"],
     ];
     const newestIsActive = page === "shop" && new URLSearchParams(window.location.search).get("sort") === "newest";
-    navList.innerHTML = renderedNavRoutes.map(([label, href, route]) => {
-      const active = route === "new"
-        ? newestIsActive
-        : page === route && !(route === "shop" && newestIsActive);
-      return `<li><a href="${href}"${active ? ' class="active"' : ""}>${label}</a></li>`;
-    }).join("");
+    const links = $$("a", navList);
+    links.forEach((link) => {
+      const route = renderedNavRoutes.find(([, href]) => href === link.getAttribute("href"))?.[2];
+      const active = page === route && !(route === "shop" && newestIsActive);
+      link.classList.toggle("active", active);
+      if (active) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    });
 
     const iconLabels = [
       [".search-icon", "Search"],
@@ -95,7 +87,7 @@
     });
 
     const searchToggle = $("#searchToggle", navIcons);
-    if (searchToggle && window.LuxeIcons) {
+    if (searchToggle && !$("svg", searchToggle) && window.LuxeIcons) {
       searchToggle.innerHTML = window.LuxeIcons.svg("search", "nav-svg-icon");
     }
 
@@ -266,9 +258,9 @@
       const info = $(".product-info", card);
       if (page !== "index") {
         const actions = $(".product-actions", card);
-        if (actions) card.appendChild(actions);
+        if (actions && actions.parentElement !== card) card.appendChild(actions);
         const category = $(".product-category", info || card);
-        if (category && info) info.prepend(category);
+        if (category && info && info.firstElementChild !== category) info.prepend(category);
       }
       const primaryImage = $(".product-image > img", card);
       if (primaryImage) {
@@ -420,7 +412,6 @@
     document.body.classList.add(`page-${page}`, "luxury-ready");
     document.body.id ||= "top";
     releaseStaleScrollLocks();
-    enhanceLoader();
     enhanceNavigation();
     enhanceIcons();
     enhanceHeadings();

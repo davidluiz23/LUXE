@@ -4,39 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="assets/brand/alkebulan-mark.svg" type="image/svg+xml">
+    <link rel="preload" href="assets/fonts/manrope-normal-400-700-latin-a30ddcd349.woff2" as="font" type="font/woff2" crossorigin>
     <script src="js/utils.js?v=20260830-2"></script>
     <title>Verify Email | ALKEBULAN Premium Clothing</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="css/variables.css?v=20260912-1">
+    <link rel="stylesheet" href="css/variables.css?v=20260913-2">
     <link rel="stylesheet" href="css/style.css?v=20260830-1">
     <link rel="stylesheet" href="css/auth.css?v=20260908-1">
     <link rel="stylesheet" href="css/responsive.css?v=20260912-1">
-    <link id="alkebulanLuxuryStyles" rel="stylesheet" href="css/luxury.css?v=20260913-1">
+    <link id="alkebulanLuxuryStyles" rel="stylesheet" href="css/luxury.css?v=20260913-2">
     <link rel="stylesheet" href="css/verify-signup.css?v=20260830-1">
-    <script id="alkebulanLuxuryUi" src="js/luxury-ui.js?v=20260913-1" defer></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="css/storefront.css?v=20260913-1" />
+    <script id="alkebulanLuxuryUi" src="js/luxury-ui.js?v=20260913-2" defer></script>
+    <link rel="stylesheet" href="css/icons.css?v=20260913-2">
+    <link rel="stylesheet" href="css/storefront.css?v=20260913-2" />
   </head>
 
-<body class="verify-signup-page">
-    <div id="loader"><div class="loader-spinner"></div></div>
-
-    <header id="navbar">
+<body class="verify-signup-page page-verify-signup">
+    <header id="navbar" class="luxury-navbar">
         <div class="container nav-container">
-            <div class="logo"><a href="index.html"><span>ALKEBULAN</span></a></div>
+            <div class="logo"><a href="index.html"><img class="brand-mark" src="assets/brand/alkebulan-mark.svg" width="34" height="34" alt="ALKEBULAN"></a></div>
             <nav class="nav-links" id="navLinks">
-                <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="shop.html">Shop</a></li>
-                    <li><a href="about.html">About</a></li>
-                </ul>
+                <ul><li><a href="shop.html">Shop</a></li><li><a href="men.html">Men</a></li><li><a href="women.html">Women</a></li><li><a href="videos.html">Videos</a></li><li><a href="about.html">Our story</a></li><li><a href="contact.html">Contact</a></li></ul>
             </nav>
             <div class="nav-icons">
-                <a href="login.html" class="user-icon"><i class="fas fa-user"></i></a>
+                <a href="login.html" class="user-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg></a>
             </div>
         </div>
     </header>

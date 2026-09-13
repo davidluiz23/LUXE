@@ -24,6 +24,18 @@ Checks: `npm run check`, `npm test`, and `npm run test:browser`. Browser test fi
 
 The obsolete `dist/review` screenshot folder has been moved out of the project into a system temporary backup. Development and GitHub Pages both serve `Frontend` directly; no `dist` output is needed. New review screenshots are written to the system temporary directory. The supplied tees still require actual catalog entries and prices before they can be purchased as those products.
 
+## Initial rendering cleanup — September 13, 2026
+
+Public pages now include their final page class, floating header, six navigation links, logo, and navigation SVGs directly in HTML. Initialization adds interaction without rebuilding the header. Closed menus are hidden before initialization, so their old drawer positioning cannot widen the page. The generic full-page spinner and its unused luxury styles are removed; catalog and image loading retain the ALKEBULAN card loaders.
+
+Repeated navbar dimensions, backgrounds, homepage navigation rules, and the obsolete homepage desktop stylesheet were removed. The remaining page styles provide their existing layouts, with the floating navbar defined in the shared storefront stylesheet.
+
+Text and icon fonts are hosted locally with their licenses. Pages preload their main text font; text faces use `font-display: optional` to prevent late font swaps. Duplicate Google Fonts links and the CSS import are removed. Local fonts use content hashes, and the changed shared assets use version `20260913-2` to avoid mixing cached versions. No CSS or font requests require a third-party CDN.
+
+Regression coverage checks the static HTML, local font references, and header geometry while the presentation script is deliberately delayed on desktop and mobile.
+
+Validation passes: the 13 existing unit checks, two new asset/template checks, static validation of 28 scripts and 23 pages, and four focused browser checks covering delayed initialization, responsive utilities, menu/search behavior, and the five product-grid routes.
+
 ## Navigation and collection update — September 13, 2026
 
 - The search control uses a single local SVG with centered, responsive sizing. The floating navigation has a translucent background and a subtle 8px blur. The old scrolling progress line is removed.

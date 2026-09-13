@@ -1,5 +1,5 @@
 /* Reference composition: one sage stage, three artwork cards, one close-up. */
-html.alkebulan-site body.page-index { --home-gutter:clamp(20px,3.15vw,48px); --home-width:1400px; --alk-nav-height:50px; --home-paper:#fafaf8; background:var(--home-paper); color:#10110f; padding-top:0; font-family:var(--font-body); }
+html.alkebulan-site body.page-index { --home-gutter:clamp(20px,3.15vw,48px); --home-width:1400px; --home-paper:#fafaf7; background:var(--home-paper); color:#10110f; padding-top:calc(var(--alk-nav-height) + clamp(8px,1.2vw,16px) + 8px); font-family:var(--font-body); letter-spacing:-.01em; }
 body.page-index main { display:block; }
 body.page-index .visually-hidden { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap; }
 body.page-index .skip-to-content { position:fixed;left:24px;top:-80px;z-index:9999;padding:12px 24px;border-radius:100px;background:#171917;color:white; }
@@ -8,9 +8,6 @@ html.alkebulan-site body.page-index :is(.collection-opening,.collection-section,
 html.alkebulan-site body.page-index :is(.collection-card,.editorial-link,#stageLink) { color:inherit;text-decoration:none; }
 html.alkebulan-site body.page-index .opening-cta { text-decoration:none; }
 body.page-index :is(.opening-cta,.editorial-link,.collection-card-caption) > svg { width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.5;flex-shrink:0; }
-
-/* Shared navigation supplies the floating masthead and utility controls. */
-html.alkebulan-site body.page-index .mobile-menu:not(.active) { display:none; }
 
 /* CSS silhouettes preserve the supplied photographs and their artwork intact. */
 body.page-index .artwork-photo {
@@ -167,38 +164,6 @@ html.alkebulan-site body.page-index .luxury-footer { margin-top:clamp(36px,5vw,7
 }
 
 /* Refined whole-site foundation: logo-led floating navigation and calmer typography. */
-html.alkebulan-site body.page-index {
-    --home-paper: #fafaf7;
-    --alk-nav-height: 68px;
-    padding-top: calc(var(--alk-nav-height) + clamp(8px, 1.2vw, 16px) + 8px);
-    font-family: var(--font-body);
-    letter-spacing: -0.01em;
-}
-html.alkebulan-site body.page-index #navbar,
-html.alkebulan-site body.page-index #navbar.luxury-navbar.scrolled {
-    position: fixed;
-    right: 0;
-    left: 0;
-    top: clamp(8px, 1.2vw, 16px);
-    width: min(calc(100% - clamp(24px, 4vw, 56px)), 1400px);
-    min-height: var(--alk-nav-height);
-    margin: 0 auto;
-    border: 1px solid rgba(23, 25, 23, 0.08);
-    border-radius: clamp(20px, 2.4vw, 30px);
-    background: rgba(250, 250, 247, 0.84);
-    box-shadow: 0 16px 44px rgba(23, 25, 23, 0.08);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-}
-html.alkebulan-site body.page-index #navbar .nav-container {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    gap: clamp(12px, 2vw, 28px);
-    width: 100%;
-    min-height: var(--alk-nav-height);
-    margin: 0;
-    padding: 8px 10px 8px 14px;
-    border-bottom: 0;
-}
 html.alkebulan-site body.page-index .logo { grid-column: 1; grid-row: 1; }
 html.alkebulan-site body.page-index .logo a { display: inline-flex; align-items: center; gap: 10px; width: auto; height: 48px; color: #171917; white-space: nowrap; }
 html.alkebulan-site body.page-index .logo .brand-mark { display: block; width: 34px; height: 34px; }
