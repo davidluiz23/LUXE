@@ -146,7 +146,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             panels.forEach(p => p.classList.remove('active'));
             btn.classList.add('active');
             const panel = document.getElementById('panel-' + btn.dataset.tab);
-            if (panel) panel.classList.add('active');
+            if (panel) {
+                panel.classList.add('active');
+                window.LuxeMotion?.enter(panel, { duration: 240, distance: 4 });
+            }
             if (btn.dataset.tab === 'notifications' && window.LuxeNotifications) {
                 await markNotificationsRead();
             }

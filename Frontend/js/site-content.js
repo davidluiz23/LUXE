@@ -17,6 +17,9 @@
     const clone = value => JSON.parse(JSON.stringify(value));
     let current = { content: clone(defaults), revision: null, updatedAt: null };
     let pending;
+    const preparedImages = new Map();
+    const imageRequests = new WeakMap();
+    const placeholder = 'assets/brand/product-placeholder.svg';
 
     function safeImage(value) {
         if (typeof value !== 'string' || !value || value.length > 2048 || /[\s<>"\\]/.test(value)) return '';
@@ -45,6 +48,37 @@
         const safe = safeImage(value);
         if (safe.startsWith('assets/')) return safe;
         return safe ? window.LuxeMedia?.cloudinaryUrl(safe, { width, crop: 'limit' }) || safe : '';
+    }
+    function prepareImage(url) {
+        if (!url) return Promise.resolve(false);
+        if (!preparedImages.has(url)) {
+            preparedImages.set(url, new Promise(resolve => {
+                const probe = new Image();
+                let complete = false;
+                const timer = setTimeout(() => finish(false), 12000);
+                function finish(ok) {
+                    if (complete) return;
+                    complete = true;
+                    clearTimeout(timer);
+                    probe.onload = probe.onerror = null;
+                    if (!ok) probe.removeAttribute('src');
+                    resolve(ok);
+                }
+                probe.onload = () => finish(true);
+                probe.onerror = () => finish(false);
+                probe.src = url;
+            }));
+        }
+        return preparedImages.get(url);
+    }
+    function resolveImage(element, url, apply) {
+        if (imageRequests.get(element)?.url === url) return;
+        const request = { url };
+        imageRequests.set(element, request);
+        prepareImage(url).then(ok => {
+            if (imageRequests.get(element) !== request) return;
+            apply(ok ? url : placeholder, !ok);
+        });
     }
     function publish(data) {
         if (!data || validate(data.content) || !Number.isSafeInteger(data.revision) || data.revision < 1) return false;
@@ -88,17 +122,26 @@
             const hero = document.querySelector(`.${key}-hero`);
             const settings = current.content.collections[key];
             if (hero) {
-                hero.style.backgroundImage = `linear-gradient(rgba(0,0,0,.4),rgba(0,0,0,.4)), url("${imageUrl(settings.image, Math.min(1920, Math.ceil(window.innerWidth * (window.devicePixelRatio || 1))))}")`;
+                const url = imageUrl(settings.image, Math.min(1920, Math.ceil(window.innerWidth * (window.devicePixelRatio || 1))));
+                resolveImage(hero, url, (source, fallback) => {
+                    hero.style.backgroundImage = `linear-gradient(rgba(0,0,0,.4),rgba(0,0,0,.4)), url("${source}")`;
+                    hero.dataset.imageFallback = String(fallback);
+                });
                 hero.style.backgroundPosition = `center ${settings.focusY ?? 50}%`;
             }
         }
         const detail = current.content.detail;
         const detailImage = document.querySelector('.detail-image img');
         if (detailImage) {
-            detailImage.src = imageUrl(detail.image);
+            resolveImage(detailImage, imageUrl(detail.image), (source, fallback) => {
+                detailImage.classList.remove('image-unavailable');
+                detailImage.removeAttribute('srcset');
+                detailImage.src = source;
+                detailImage.dataset.imageFallback = String(fallback);
+                detailImage.parentElement.classList.toggle('custom-detail-image', fallback || detail.image !== defaults.detail.image);
+            });
             detailImage.alt = detail.alt;
             detailImage.style.objectPosition = `center ${detail.focusY ?? 50}%`;
-            detailImage.parentElement.classList.toggle('custom-detail-image', detail.image !== defaults.detail.image);
         }
         const detailLink = document.getElementById('detailLink');
         if (detailLink) {
@@ -112,11 +155,16 @@
         const cached = JSON.parse(localStorage.getItem(cacheKey));
         if (cached && !validate(cached.content) && Number.isSafeInteger(cached.revision) && cached.revision > 0) current = cached;
     } catch { /* First visit or unavailable storage: keep the bundled images. */ }
-    window.LuxeSiteContent = { defaults: () => clone(defaults), snapshot: () => clone(current), validate, safeImage, imageUrl, load, save, applyImages };
+    window.LuxeSiteContent = { defaults: () => clone(defaults), snapshot: () => clone(current), validate, safeImage, imageUrl, prepareImage, load, save, applyImages };
     if (!document.body.classList.contains('admin-page')) {
         applyImages();
         load();
         window.addEventListener('luxe:catalog-status', applyImages);
         window.addEventListener('pageshow', event => { if (event.persisted) load(); });
+        window.addEventListener('online', () => {
+            preparedImages.clear();
+            document.querySelectorAll('[data-image-fallback="true"]').forEach(element => imageRequests.delete(element));
+            load();
+        });
     }
 })();

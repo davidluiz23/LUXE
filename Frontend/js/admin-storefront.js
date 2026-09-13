@@ -214,12 +214,14 @@
         try {
             const { data, error } = await contentApi.save(draft, revision);
             if (!allowed || access !== accessVersion) return;
-            if (error) throw new Error(error.message);
+            if (error) throw Object.assign(new Error(error.message), { code: error.code });
             revision = data.revision;
             dirty = false;
             status('storefrontStatus', 'Images saved. The homepage and collection pages will use them on their next load.');
         } catch (error) {
-            if (allowed && access === accessVersion) status('storefrontStatus', error.message.includes('CONTENT_CONFLICT')
+            if (allowed && access === accessVersion) status('storefrontStatus', error.code === 'REQUEST_TIMEOUT'
+                ? 'The save could not be confirmed. Your draft is still here. Reload published images before trying again.'
+                : error.message.includes('CONTENT_CONFLICT')
                 ? 'Another administrator saved newer images. Your draft is still here. Copy any changes you need, then use Reload published images before saving again.'
                 : `Images were not saved. Your changes are still here. ${error.message}`, true);
         } finally { editorBusy = false; updateEditorControls(); }

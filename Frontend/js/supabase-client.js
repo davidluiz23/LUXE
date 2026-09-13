@@ -1365,8 +1365,24 @@ const LuxeAdmins = {
 const LuxeStorefront = {
   async _rpc(name, args) {
     if (!supabaseClient) return { data: null, error: { message: "Backend not configured." } };
-    try { return await supabaseClient.rpc(name, args); }
+    const controller = typeof AbortController === "function" ? new AbortController() : null;
+    let timer;
+    try {
+      const request = supabaseClient.rpc(name, args);
+      const response = controller && typeof request.abortSignal === "function" ? request.abortSignal(controller.signal) : request;
+      const saving = name === "admin_save_storefront_content_v1";
+      const timeout = new Promise(resolve => {
+        timer = setTimeout(() => {
+          resolve({ data: null, error: { code: "REQUEST_TIMEOUT", message: saving
+            ? "The save could not be confirmed. Reload published images before trying again."
+            : "The connection took too long. Please try again." } });
+          controller?.abort();
+        }, saving ? 18000 : 12000);
+      });
+      return await Promise.race([response, timeout]);
+    }
     catch (error) { return { data: null, error: { message: error?.message || "Unable to connect to the store." } }; }
+    finally { clearTimeout(timer); }
   },
   getContent() { return this._rpc("get_storefront_content_v1"); },
   saveContent(content, revision) {

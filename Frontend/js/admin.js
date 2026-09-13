@@ -130,6 +130,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       panel.classList.toggle("active", panel.id === panelId);
     });
     window.LuxeAdminStorefront?.activate(panelId);
+    window.LuxeMotion?.enter(document.getElementById(panelId), { duration: 240, distance: 4 });
 
     if (panelId === "ordersPanel") {
       window.LuxeOrders.markAllAdminSeen().then(({ error } = {}) => {

@@ -77,6 +77,7 @@
         }
         function prepare(item) {
             if (!item) return Promise.resolve(false);
+            if (window.LuxeSiteContent?.prepareImage) return window.LuxeSiteContent.prepareImage(item.image);
             if (!prepared.has(item.image)) {
                 prepared.set(item.image, new Promise(resolve => {
                     const next = new Image();
@@ -108,38 +109,45 @@
             }, slideInterval);
         }
         async function select(item, { automatic = false } = {}) {
+            if (!item) return;
             const request = ++selectionRequest;
-            if (!(await prepare(item)) || request !== selectionRequest) return;
+            const loaded = await prepare(item);
+            if (request !== selectionRequest) return;
             // A slow image must not advance the stage after the visitor pauses it.
             if (automatic && !canRotate()) return;
-            if (item === selected) return;
-            const changedImage = item.image !== selected.image;
+            const source = loaded ? item.image : 'assets/brand/product-placeholder.svg';
+            if (item === selected && image.getAttribute('src') === source) return;
+            const changedImage = source !== image.getAttribute('src');
             stopTransition();
             outgoingPhoto.dataset.artworkPhoto = selected.photoKey || selected.key;
-            outgoingPhoto.dataset.customPhoto = String(!!selected.custom);
-            outgoingImage.src = selected.image;
+            outgoingPhoto.dataset.customPhoto = photo.dataset.customPhoto || 'false';
+            outgoingImage.src = image.getAttribute('src');
             selected = item;
             rotationIndex = artwork.indexOf(item);
             stage.dataset.featuredArtwork = item.key;
             photo.dataset.artworkPhoto = item.photoKey || item.key;
-            photo.dataset.customPhoto = String(!!item.custom);
-            image.src = item.image;
-            image.alt = item.alt;
+            photo.dataset.customPhoto = String(!!item.custom || !loaded);
+            image.classList.remove('image-unavailable');
+            image.src = source;
+            image.alt = loaded ? item.alt : `${item.name} — image unavailable`;
+            image.dataset.imageFallback = String(!loaded);
             document.getElementById('stageNumber').textContent = `${String(artwork.indexOf(item) + 1).padStart(2, '0')} / ${String(artwork.length).padStart(2, '0')}`;
             selectors.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.artwork === item.key)));
             updateDetails(item);
             if (changedImage && !reduced.matches && image.animate) {
                 outgoingPhoto.hidden = false;
-                const timing = { duration: 900, easing: 'cubic-bezier(.22, 1, .36, 1)' };
-                image.animate([
-                    { opacity: 0, transform: 'translate3d(32px, 10px, 0) rotate(4deg) scale(.96)' },
-                    { opacity: 1, transform: 'none' },
-                ], timing);
-                const exit = outgoingImage.animate([
-                    { opacity: 1, transform: 'none' },
-                    { opacity: 0, transform: 'translate3d(-32px, -8px, 0) rotate(-4deg) scale(1.02)' },
-                ], timing);
-                exit.onfinish = () => { outgoingPhoto.hidden = true; };
+                const timing = { duration: 650, easing: 'cubic-bezier(.22, 1, .36, 1)' };
+                try {
+                    image.animate([
+                        { opacity: 0, transform: 'translate3d(14px, 6px, 0) rotate(1deg) scale(.98)' },
+                        { opacity: 1, transform: 'none' },
+                    ], timing);
+                    const exit = outgoingImage.animate([
+                        { opacity: 1, transform: 'none' },
+                        { opacity: 0, transform: 'translate3d(-14px, -6px, 0) rotate(-1deg) scale(1.01)' },
+                    ], timing);
+                    exit.onfinish = () => { outgoingPhoto.hidden = true; };
+                } catch { outgoingPhoto.hidden = true; }
             }
         }
         selectorGroup.addEventListener('click', async event => {
@@ -271,6 +279,7 @@
             syncPlayback();
         }
         window.addEventListener('luxe:site-content', event => syncContent(event.detail));
+        window.addEventListener('online', () => { if (image.dataset.imageFallback === 'true') select(selected); });
         if (window.LuxeSiteContent) syncContent(window.LuxeSiteContent.snapshot().content);
 
         async function syncCatalog() {

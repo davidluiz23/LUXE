@@ -55,6 +55,7 @@ function sdkMock() {
     },
     async rpc(name,args) {
       window.__requests.push({rpc:name,args});
+      if(window.__holdRpc === name) await new Promise(resolve => { window.__releaseRpc = resolve; });
       if(name==='current_admin_role')return {data:window.__auditRole||null,error:null};
       if(name==='is_admin'||name==='is_owner')return {data:!!window.__auditRole,error:null};
       if(name==='commerce_public_settings')return {data:{whatsappVerificationRequired:false,whatsappDefaultCountryCode:'234'},error:null};
@@ -107,11 +108,12 @@ async function startFixture() {
   ].find(file => fs.existsSync(file));
   // Headless Chromium normally hides the scrollbars these layout checks need to see.
   const browser = await chromium.launch({ executablePath, headless: true, ignoreDefaultArgs: ['--hide-scrollbars'] });
-  async function openPage(name, {width = 390, state = {}, saved = {}} = {}) {
-    const context = await browser.newContext({ viewport: {width, height: 900}, serviceWorkers: 'block', reducedMotion: 'reduce' });
+  async function openPage(name, {width = 390, state = {}, saved = {}, reducedMotion = 'reduce'} = {}) {
+    const context = await browser.newContext({ viewport: {width, height: 900}, serviceWorkers: 'block', reducedMotion });
     await context.addInitScript(({products, state, saved}) => {
       window.__fixture = products;
       Object.assign(window, state);
+      if (state.__disableIntersectionObserver) delete window.IntersectionObserver;
       for (const [key, value] of Object.entries(saved)) if (localStorage.getItem(key) === null) localStorage.setItem(key, JSON.stringify(value));
     }, {products: fixture, state, saved});
     await context.route('**/*', async route => {
