@@ -16,7 +16,82 @@
       crossorigin
     />
     <script src="js/utils.js?v=20260830-2"></script>
-    <title>Contact Us | ALKEBULAN Premium Clothing</title>
+    <title>Contact Client Services & Concierge | ALKEBULAN</title>
+    <meta
+      name="description"
+      content="Contact ALKEBULAN client services for order inquiries, sizing assistance, and bespoke luxury tailoring in Lagos, Nigeria. Reach out via WhatsApp or email."
+    />
+    <meta
+      name="keywords"
+      content="Contact ALKEBULAN, customer support, Lagos luxury fashion concierge, order assistance"
+    />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
+    <link rel="canonical" href="https://alkebulan.boutique/contact.html" />
+    <link rel="manifest" href="site.webmanifest" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:site_name" content="ALKEBULAN" />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="Contact Client Services & Concierge | ALKEBULAN"
+    />
+    <meta
+      property="og:description"
+      content="Contact ALKEBULAN client services for order inquiries, sizing assistance, and bespoke luxury tailoring in Lagos, Nigeria. Reach out via WhatsApp or email."
+    />
+    <meta property="og:url" content="https://alkebulan.boutique/contact.html" />
+    <meta
+      property="og:image"
+      content="https://alkebulan.boutique/assets/products/ijele.jpg"
+    />
+    <meta property="og:image:width" content="1280" />
+    <meta property="og:image:height" content="854" />
+    <meta property="og:image:alt" content="ALKEBULAN Client Services" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Contact Client Services & Concierge | ALKEBULAN"
+    />
+    <meta
+      name="twitter:description"
+      content="Contact ALKEBULAN client services for order inquiries, sizing assistance, and bespoke luxury tailoring in Lagos, Nigeria. Reach out via WhatsApp or email."
+    />
+    <meta
+      name="twitter:image"
+      content="https://alkebulan.boutique/assets/products/ijele.jpg"
+    />
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "ContactPage",
+        "@id": "https://alkebulan.boutique/contact.html#webpage",
+        "url": "https://alkebulan.boutique/contact.html",
+        "name": "Contact Client Services | ALKEBULAN",
+        "description": "Have questions regarding orders, sizing, or custom inquiries? Reach out to our dedicated concierge team.",
+        "mainEntity": {
+          "@type": "ClothingStore",
+          "name": "ALKEBULAN",
+          "url": "https://alkebulan.boutique/",
+          "logo": "https://alkebulan.boutique/assets/brand/alkebulan-mark.svg",
+          "telephone": "+2348103463852",
+          "email": "hello@alkebulan.com",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Lagos",
+            "addressCountry": "NG"
+          },
+          "priceRange": "$$$$"
+        }
+      }
+    </script>
     <link rel="stylesheet" href="css/variables.css?v=20260913-2" />
     <link rel="stylesheet" href="css/style.css?v=20260830-1" />
     <link rel="stylesheet" href="css/contact.css?v=20260830-1" />
@@ -163,176 +238,178 @@
       </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="contact-hero">
-      <div class="contact-hero-content">
-        <h1>We're Here to Assist You</h1>
-        <p>
-          Have questions regarding orders, sizing, or custom inquiries? Reach
-          out to our dedicated concierge team.
-        </p>
-      </div>
-    </section>
-
-    <!-- Contact Grid -->
-    <section class="section">
-      <div class="container">
-        <div class="contact-grid">
-          <!-- Info Cards -->
-          <div class="contact-info-cards">
-            <div class="contact-info-card">
-              <div class="contact-info-icon">
-                <i class="fas fa-map-marker-alt"></i>
-              </div>
-              <div class="contact-info-text">
-                <h3>Based in Lagos</h3>
-                <p>
-                  ALKEBULAN operates from Lagos, Nigeria. Contact client
-                  services before planning an in-person visit.
-                </p>
-              </div>
-            </div>
-            <div class="contact-info-card">
-              <div class="contact-info-icon">
-                <i class="fas fa-phone-alt"></i>
-              </div>
-              <div class="contact-info-text">
-                <h3>Customer Support</h3>
-                <p>
-                  <a href="tel:+2348103463852">+234 810 346 3852</a><br />Phone
-                  and WhatsApp enquiries
-                </p>
-              </div>
-            </div>
-            <div class="contact-info-card">
-              <div class="contact-info-icon">
-                <i class="fas fa-envelope"></i>
-              </div>
-              <div class="contact-info-text">
-                <h3>Email Concierge</h3>
-                <p>
-                  <a href="mailto:hello@alkebulan.com">hello@alkebulan.com</a
-                  ><br />Order, sizing, delivery, and account help
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Form -->
-          <div class="contact-form-wrapper">
-            <h2>Send Us a Message</h2>
-            <p>
-              Fill out the form below and a representative will get back to you
-              shortly.
-            </p>
-            <div
-              id="formAlert"
-              role="status"
-              aria-live="polite"
-              tabindex="-1"
-              hidden
-            ></div>
-            <form id="contactForm">
-              <div class="form-group">
-                <label for="contactName">Full Name *</label>
-                <input
-                  type="text"
-                  id="contactName"
-                  placeholder="John Doe"
-                  required
-                />
-              </div>
-              <div class="form-group">
-                <label for="contactEmail">Email Address *</label>
-                <input
-                  type="email"
-                  id="contactEmail"
-                  placeholder="john@example.com"
-                  required
-                />
-              </div>
-              <div class="form-group">
-                <label for="contactSubject">Subject</label>
-                <select id="contactSubject">
-                  <option value="general">General Inquiry</option>
-                  <option value="order">Order Status & Tracking</option>
-                  <option value="returns">Returns & Exchanges</option>
-                  <option value="sizing">Sizing & Styling Advice</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="contactMessage">Message *</label>
-                <textarea
-                  id="contactMessage"
-                  rows="5"
-                  placeholder="How can we assist you today?"
-                  required
-                ></textarea>
-              </div>
-              <button type="submit" class="contact-submit-btn">
-                Send Message
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Location information -->
-    <section class="map-section">
-      <div class="container">
-        <div class="map-header">
-          <h2>Lagos, Nigeria</h2>
+    <main id="mainContent">
+      <section class="contact-hero">
+        <div class="contact-hero-content">
+          <h1>We're Here to Assist You</h1>
           <p>
-            Client services are available by phone, WhatsApp, and email. Any
-            collection or appointment details will be confirmed directly with
-            you.
+            Have questions regarding orders, sizing, or custom inquiries? Reach
+            out to our dedicated concierge team.
           </p>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- FAQ Accordion -->
-    <section class="faq-section">
-      <div class="container">
-        <h2 class="section-title text-center">Frequently Asked Questions</h2>
-        <div class="faq-container">
-          <div class="faq-item active">
-            <button type="button" class="faq-question">
-              <span>What is your return & exchange policy?</span>
-              <i class="fas fa-chevron-down" aria-hidden="true"></i>
-            </button>
-            <div class="faq-answer">
-              Eligible return requests can be made within 30 days of delivery.
-              Read the <a href="returns.html">returns guidance</a> and contact
-              us before sending an item back.
+      <!-- Contact Grid -->
+      <section class="section">
+        <div class="container">
+          <div class="contact-grid">
+            <!-- Info Cards -->
+            <h2 class="sr-only">Contact Channels</h2>
+            <div class="contact-info-cards">
+              <div class="contact-info-card">
+                <div class="contact-info-icon">
+                  <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <div class="contact-info-text">
+                  <h3>Based in Lagos</h3>
+                  <p>
+                    ALKEBULAN operates from Lagos, Nigeria. Contact client
+                    services before planning an in-person visit.
+                  </p>
+                </div>
+              </div>
+              <div class="contact-info-card">
+                <div class="contact-info-icon">
+                  <i class="fas fa-phone-alt"></i>
+                </div>
+                <div class="contact-info-text">
+                  <h3>Customer Support</h3>
+                  <p>
+                    <a href="tel:+2348103463852">+234 810 346 3852</a
+                    ><br />Phone and WhatsApp enquiries
+                  </p>
+                </div>
+              </div>
+              <div class="contact-info-card">
+                <div class="contact-info-icon">
+                  <i class="fas fa-envelope"></i>
+                </div>
+                <div class="contact-info-text">
+                  <h3>Email Concierge</h3>
+                  <p>
+                    <a href="mailto:hello@alkebulan.com">hello@alkebulan.com</a
+                    ><br />Order, sizing, delivery, and account help
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
-          <div class="faq-item">
-            <button type="button" class="faq-question">
-              <span>How long does shipping take?</span>
-              <i class="fas fa-chevron-down" aria-hidden="true"></i>
-            </button>
-            <div class="faq-answer">
-              Timing depends on destination, availability, and courier service.
-              The team confirms an estimated delivery window after reviewing
-              your order.
-            </div>
-          </div>
-          <div class="faq-item">
-            <button type="button" class="faq-question">
-              <span>Do you ship internationally?</span>
-              <i class="fas fa-chevron-down" aria-hidden="true"></i>
-            </button>
-            <div class="faq-answer">
-              Available destinations and courier options are confirmed during
-              checkout or by client services. Contact us if your destination is
-              not listed.
+
+            <!-- Form -->
+            <div class="contact-form-wrapper">
+              <h2>Send Us a Message</h2>
+              <p>
+                Fill out the form below and a representative will get back to
+                you shortly.
+              </p>
+              <div
+                id="formAlert"
+                role="status"
+                aria-live="polite"
+                tabindex="-1"
+                hidden
+              ></div>
+              <form id="contactForm">
+                <div class="form-group">
+                  <label for="contactName">Full Name *</label>
+                  <input
+                    type="text"
+                    id="contactName"
+                    placeholder="John Doe"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="contactEmail">Email Address *</label>
+                  <input
+                    type="email"
+                    id="contactEmail"
+                    placeholder="john@example.com"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="contactSubject">Subject</label>
+                  <select id="contactSubject">
+                    <option value="general">General Inquiry</option>
+                    <option value="order">Order Status & Tracking</option>
+                    <option value="returns">Returns & Exchanges</option>
+                    <option value="sizing">Sizing & Styling Advice</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="contactMessage">Message *</label>
+                  <textarea
+                    id="contactMessage"
+                    rows="5"
+                    placeholder="How can we assist you today?"
+                    required
+                  ></textarea>
+                </div>
+                <button type="submit" class="contact-submit-btn">
+                  Send Message
+                </button>
+              </form>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <!-- Location information -->
+      <section class="map-section">
+        <div class="container">
+          <div class="map-header">
+            <h2>Lagos, Nigeria</h2>
+            <p>
+              Client services are available by phone, WhatsApp, and email. Any
+              collection or appointment details will be confirmed directly with
+              you.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ Accordion -->
+      <section class="faq-section">
+        <div class="container">
+          <h2 class="section-title text-center">Frequently Asked Questions</h2>
+          <div class="faq-container">
+            <div class="faq-item active">
+              <button type="button" class="faq-question">
+                <span>What is your return & exchange policy?</span>
+                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+              </button>
+              <div class="faq-answer">
+                Eligible return requests can be made within 30 days of delivery.
+                Read the <a href="returns.html">returns guidance</a> and contact
+                us before sending an item back.
+              </div>
+            </div>
+            <div class="faq-item">
+              <button type="button" class="faq-question">
+                <span>How long does shipping take?</span>
+                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+              </button>
+              <div class="faq-answer">
+                Timing depends on destination, availability, and courier
+                service. The team confirms an estimated delivery window after
+                reviewing your order.
+              </div>
+            </div>
+            <div class="faq-item">
+              <button type="button" class="faq-question">
+                <span>Do you ship internationally?</span>
+                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+              </button>
+              <div class="faq-answer">
+                Available destinations and courier options are confirmed during
+                checkout or by client services. Contact us if your destination
+                is not listed.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
 
     <!-- Footer -->
     <footer>

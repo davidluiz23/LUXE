@@ -1,0 +1,18 @@
+{
+  "name": "ALKEBULAN Luxury Apparel",
+  "short_name": "ALKEBULAN",
+  "description": "Culture lives on. Discover Ijele, Durbar, and Dùn Dùn — the ALKEBULAN artwork luxury apparel collection.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "assets/brand/alkebulan-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

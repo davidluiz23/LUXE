@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     renderProductDetails(product);
     renderRelatedProducts(product);
+    updateProductSeo(product);
 });
 
 function escapeProductHtml(value) { return window.LuxeUtils.escapeHtml(value); }
@@ -510,3 +511,91 @@ window.addToWishlistHandler = function(id) {
         window.addToWishlist(id);
     }
 };
+
+
+// Dynamically update document title, social meta tags, and Schema.org Product JSON-LD
+function updateProductSeo(product) {
+    if (!product) return;
+    const productName = product.name || 'Luxury Apparel';
+    const brandName = product.brand || 'ALKEBULAN';
+    const titleText = `${productName} | ${brandName} Luxury Apparel`;
+    document.title = titleText;
+
+    const descText = product.description 
+        ? `${product.description.slice(0, 145)}... Handcrafted luxury by ALKEBULAN.` 
+        : `Discover ${productName} by ALKEBULAN. Premium African luxury apparel featuring intricate cultural storytelling and tailored craftsmanship.`;
+
+    // Update Meta Description
+    const metaDesc = document.getElementById('metaDescription') || document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', descText);
+
+    // Update Canonical
+    const canonical = document.getElementById('canonicalUrl') || document.querySelector('link[rel="canonical"]');
+    const currentUrl = `https://alkebulan.boutique/product.html?id=${encodeURIComponent(product.id)}`;
+    if (canonical) canonical.setAttribute('href', currentUrl);
+
+    // Update Open Graph
+    const ogTitle = document.getElementById('ogTitle') || document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute('content', titleText);
+
+    const ogDesc = document.getElementById('ogDescription') || document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', descText);
+
+    const ogUrl = document.getElementById('ogUrl') || document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute('content', currentUrl);
+
+    const imageUrl = product.image 
+        ? (product.image.startsWith('http') ? product.image : `https://alkebulan.boutique/${product.image.replace(/^\//, '')}`) 
+        : 'https://alkebulan.boutique/assets/products/ijele.jpg';
+
+    const ogImage = document.getElementById('ogImage') || document.querySelector('meta[property="og:image"]');
+    if (ogImage) ogImage.setAttribute('content', imageUrl);
+
+    // Update Twitter Cards
+    const twTitle = document.getElementById('twitterTitle') || document.querySelector('meta[name="twitter:title"]');
+    if (twTitle) twTitle.setAttribute('content', titleText);
+
+    const twDesc = document.getElementById('twitterDescription') || document.querySelector('meta[name="twitter:description"]');
+    if (twDesc) twDesc.setAttribute('content', descText);
+
+    const twImage = document.getElementById('twitterImage') || document.querySelector('meta[name="twitter:image"]');
+    if (twImage) twImage.setAttribute('content', imageUrl);
+
+    // Update Structured Data JSON-LD
+    let scriptTag = document.getElementById('productJsonLd');
+    if (!scriptTag) {
+        scriptTag = document.createElement('script');
+        scriptTag.id = 'productJsonLd';
+        scriptTag.type = 'application/ld+json';
+        document.head.appendChild(scriptTag);
+    }
+    const schemaData = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": productName,
+        "image": imageUrl,
+        "description": descText,
+        "sku": `ALK-${product.id}`,
+        "brand": {
+            "@type": "Brand",
+            "name": brandName
+        },
+        "offers": {
+            "@type": "Offer",
+            "url": currentUrl,
+            "priceCurrency": "USD",
+            "price": String(product.price || "180.00"),
+            "priceValidUntil": "2027-12-31",
+            "availability": product.inStock !== false ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            "itemCondition": "https://schema.org/NewCondition"
+        }
+    };
+    if (product.rating) {
+        schemaData.aggregateRating = {
+            "@type": "AggregateRating",
+            "ratingValue": String(product.rating),
+            "reviewCount": "12"
+        };
+    }
+    scriptTag.textContent = JSON.stringify(schemaData, null, 2);
+}

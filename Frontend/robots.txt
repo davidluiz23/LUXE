@@ -1,0 +1,22 @@
+# User-agent directives for ALKEBULAN (https://alkebulan.boutique)
+User-agent: *
+Allow: /
+Allow: /css/
+Allow: /js/
+Allow: /assets/
+
+# Disallow administrative, account, and transactional pages
+Disallow: /admin.html
+Disallow: /dashboard.html
+Disallow: /auth-callback.html
+Disallow: /checkout.html
+Disallow: /cart.html
+Disallow: /wishlist.html
+Disallow: /login.html
+Disallow: /signup.html
+Disallow: /reset-password.html
+Disallow: /verify-signup.html
+
+# Sitemap location
+Sitemap: https://alkebulan.boutique/sitemap.xml
+
