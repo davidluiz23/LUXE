@@ -1361,6 +1361,22 @@ const LuxeAdmins = {
   },
 };
 
+// Public imagery and admin-only audience totals share the existing authenticated client.
+const LuxeStorefront = {
+  async _rpc(name, args) {
+    if (!supabaseClient) return { data: null, error: { message: "Backend not configured." } };
+    try { return await supabaseClient.rpc(name, args); }
+    catch (error) { return { data: null, error: { message: error?.message || "Unable to connect to the store." } }; }
+  },
+  getContent() { return this._rpc("get_storefront_content_v1"); },
+  saveContent(content, revision) {
+    return this._rpc("admin_save_storefront_content_v1", { p_content: content, p_expected_revision: revision });
+  },
+  getAudience(days = 30) {
+    return this._rpc("admin_audience_metrics_v1", { p_days: [7, 30, 90].includes(Number(days)) ? Number(days) : 30 });
+  },
+};
+
 const LuxePresence = {
   _storageKey: "alkebulan_presence_session_id",
   _heartbeatTimer: null,
@@ -2844,6 +2860,7 @@ if (typeof window !== "undefined") {
   window.LuxePayments = LuxePayments;
   window.LuxeAdmins = LuxeAdmins;
   window.LuxePresence = LuxePresence;
+  window.LuxeStorefront = LuxeStorefront;
   window.LuxeCustomers = LuxeCustomers;
   window.LuxePromotions = LuxePromotions;
   window.LuxeMedia = LuxeMedia;

@@ -58,6 +58,24 @@ function sdkMock() {
       if(name==='current_admin_role')return {data:window.__auditRole||null,error:null};
       if(name==='is_admin'||name==='is_owner')return {data:!!window.__auditRole,error:null};
       if(name==='commerce_public_settings')return {data:{whatsappVerificationRequired:false,whatsappDefaultCountryCode:'234'},error:null};
+      if(name==='get_storefront_content_v1') {
+        if(window.__failSiteContent)return {data:null,error:{message:'Content service unavailable'}};
+        const stored=JSON.parse(localStorage.getItem('__auditPublishedContent') || 'null');
+        return {data:stored || window.__siteContent || {content:window.LuxeSiteContent.defaults(),revision:1,updatedAt:'2026-09-13T09:00:00Z'},error:null};
+      }
+      if(name==='admin_save_storefront_content_v1') {
+        if(!window.__auditRole)return {data:null,error:{message:'Admin access required'}};
+        if(window.__failContentSave)return {data:null,error:{message:window.__failContentSave}};
+        const data={content:args.p_content,revision:args.p_expected_revision+1,updatedAt:'2026-09-13T10:00:00Z'};
+        localStorage.setItem('__auditPublishedContent',JSON.stringify(data));
+        return {data,error:null};
+      }
+      if(name==='admin_audience_metrics_v1') {
+        if(!window.__auditRole)return {data:null,error:{message:'Admin access required'}};
+        if(window.__failAudience)return {data:null,error:{message:'Analytics connection unavailable'}};
+        const series=Array.from({length:args.p_days},(_,i)=>({date:new Date(Date.UTC(2026,8,13-args.p_days+1+i)).toISOString().slice(0,10),visitors:i<args.p_days-2?null:(i===args.p_days-1?8:30),registrations:i===args.p_days-1?2:0}));
+        return {data:{days:args.p_days,timezone:'Africa/Lagos',generatedAt:'2026-09-13T10:00:00Z',trackingStartedAt:'2026-09-12T09:00:00Z',visitors:32,visitorsToday:8,onlineNow:3,registeredAccounts:1342,bannedAccounts:7,series},error:null};
+      }
       if(name==='order_quote_secure_v1') {
         if(window.__holdQuote)await new Promise(r=>window.__releaseQuote=r);
         const subtotal=args.p_items.reduce((n,i)=>n+(window.__fixture.find(p=>p.id===i.product_id)?.price||0)*i.quantity,0);
@@ -104,6 +122,8 @@ async function startFixture() {
       return route.fulfill({status: 200, body: ''});
     });
     const page = await context.newPage(), errors = [];
+    page.setDefaultTimeout(20000);
+    page.setDefaultNavigationTimeout(60000);
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(base + '/' + name, {waitUntil: 'load'});
     return {page, context, errors};

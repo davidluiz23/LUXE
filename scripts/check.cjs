@@ -12,9 +12,10 @@ for (const file of [...fs.readdirSync(path.join(root, 'js')).map(name => `js/${n
 }
 for (const file of fs.readdirSync(root).filter(name => name.endsWith('.html'))) {
   const html = fs.readFileSync(path.join(root, file), 'utf8');
+  assert.match(html, /<\/html>\s*$/i, `${file}: truncated HTML document`);
   const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
   assert.equal(new Set(ids).size, ids.length, `${file}: duplicate element IDs`);
-  for (const [, ref] of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
+  for (const [, , ref] of html.matchAll(/(?:src|href)=(["'])(.*?)\1/g)) {
     if (/^(?:https?:|\/\/|data:|mailto:|tel:|#)/.test(ref)) continue;
     const target = ref.split(/[?#]/)[0];
     assert.ok(fs.existsSync(path.join(root, target)), `${file}: missing local asset ${target}`);

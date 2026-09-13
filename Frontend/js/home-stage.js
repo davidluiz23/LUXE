@@ -1,7 +1,7 @@
 // Presentation only: reference photography never creates or changes catalog data.
 (function initializeArtworkStage() {
     'use strict';
-    const artwork = [
+    const referenceArtwork = [
         { key: 'ijele', name: 'Ijele', image: 'assets/products/ijele.jpg', match: /\bijele\b/, alt: 'Black Ijele tee with warm lettering and intricate expressive artwork' },
         { key: 'durbar', name: 'Durbar', image: 'assets/products/durbar.jpg', match: /\bdurbar\b/, alt: 'Black tee with gold Durbar lettering and a mounted figure print' },
         { key: 'dun-dun', name: 'Dùn Dùn', image: 'assets/products/dun-dun.jpg', match: /\bdun[\s-]+dun\b/, alt: 'Black Dùn Dùn tee with yellow lettering and a print of three drummers' },
@@ -15,7 +15,9 @@
         const name = document.getElementById('stageName');
         const price = document.getElementById('stagePrice');
         const link = document.getElementById('stageLink');
-        const selectors = [...document.querySelectorAll('[data-artwork]')];
+        let artwork = referenceArtwork;
+        let selectors = [...document.querySelectorAll('[data-artwork]')];
+        const selectorGroup = document.querySelector('.artwork-selector');
         const collectionLinks = [...document.querySelectorAll('[data-collection-artwork]')];
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
         const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
@@ -36,6 +38,7 @@
         let rotationIndex = 0;
         let rotationTimer = 0;
         let paused = reduced.matches;
+        let reducedPlayback = false;
         let hovering = false;
         let focused = false;
         let visible = true;
@@ -46,6 +49,8 @@
 
         function products() { return window.getProducts?.() || []; }
         function matchingProduct(item) {
+            if (item.productId) return products().find(product => Number(product.id) === item.productId) || null;
+            if (!item.match) return null;
             // Ambiguous matches intentionally remain editorial previews.
             const matches = products().filter(product => normalize(product.brand).trim() === 'alkebulan' && item.match.test(normalize(product.name)));
             return matches.length === 1 ? matches[0] : null;
@@ -59,16 +64,11 @@
             price.hidden = !price.textContent;
             link.href = product ? productUrl(product) : 'shop.html';
             link.setAttribute('aria-label', product ? `View ${product.name}${product.inStock === false ? ' — sold out' : ''}` : `Explore ${item.name} in the collection`);
-            const detailProduct = matchingProduct(artwork[1]);
-            const detailLink = document.getElementById('detailLink');
-            if (detailLink) {
-                detailLink.href = detailProduct ? productUrl(detailProduct) : 'shop.html';
-                detailLink.setAttribute('aria-label', detailProduct ? `Explore Durbar — ${detailProduct.name}` : 'Explore Durbar in the collection');
-            }
+            window.LuxeSiteContent?.applyImages();
         }
         function updateCollectionLinks() {
             collectionLinks.forEach(anchor => {
-                const item = artwork.find(item => item.key === anchor.dataset.collectionArtwork);
+                const item = referenceArtwork.find(item => item.key === anchor.dataset.collectionArtwork);
                 if (!item) return;
                 const product = matchingProduct(item);
                 anchor.href = product ? productUrl(product) : 'shop.html';
@@ -76,24 +76,26 @@
             });
         }
         function prepare(item) {
-            if (!prepared.has(item.key)) {
-                prepared.set(item.key, new Promise(resolve => {
+            if (!item) return Promise.resolve(false);
+            if (!prepared.has(item.image)) {
+                prepared.set(item.image, new Promise(resolve => {
                     const next = new Image();
                     next.onload = () => resolve(true);
-                    next.onerror = () => { prepared.delete(item.key); resolve(false); };
+                    next.onerror = () => { prepared.delete(item.image); resolve(false); };
                     next.src = item.image;
                 }));
             }
-            return prepared.get(item.key);
+            return prepared.get(item.image);
         }
         function stopTransition() {
             [image, outgoingImage].forEach(element => element.getAnimations?.().forEach(animation => animation.cancel()));
             outgoingPhoto.hidden = true;
         }
-        function canRotate() { return !paused && !hovering && !focused && visible && !document.hidden; }
+        function canRotate() { return artwork.length > 1 && (!reduced.matches || reducedPlayback) && !paused && !hovering && !focused && visible && !document.hidden; }
         function syncPlayback() {
             clearTimeout(rotationTimer);
             const playing = canRotate();
+            playback.hidden = artwork.length < 2;
             stage.dataset.slideshowPlaying = String(playing);
             name.setAttribute('aria-live', playing ? 'off' : 'polite');
             playback.dataset.paused = String(!playing);
@@ -111,19 +113,22 @@
             // A slow image must not advance the stage after the visitor pauses it.
             if (automatic && !canRotate()) return;
             if (item === selected) return;
+            const changedImage = item.image !== selected.image;
             stopTransition();
-            outgoingPhoto.dataset.artworkPhoto = selected.key;
+            outgoingPhoto.dataset.artworkPhoto = selected.photoKey || selected.key;
+            outgoingPhoto.dataset.customPhoto = String(!!selected.custom);
             outgoingImage.src = selected.image;
             selected = item;
             rotationIndex = artwork.indexOf(item);
             stage.dataset.featuredArtwork = item.key;
-            photo.dataset.artworkPhoto = item.key;
+            photo.dataset.artworkPhoto = item.photoKey || item.key;
+            photo.dataset.customPhoto = String(!!item.custom);
             image.src = item.image;
             image.alt = item.alt;
-            document.getElementById('stageNumber').textContent = `0${artwork.indexOf(item) + 1} / 03`;
+            document.getElementById('stageNumber').textContent = `${String(artwork.indexOf(item) + 1).padStart(2, '0')} / ${String(artwork.length).padStart(2, '0')}`;
             selectors.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.artwork === item.key)));
             updateDetails(item);
-            if (!reduced.matches && image.animate) {
+            if (changedImage && !reduced.matches && image.animate) {
                 outgoingPhoto.hidden = false;
                 const timing = { duration: 900, easing: 'cubic-bezier(.22, 1, .36, 1)' };
                 image.animate([
@@ -137,25 +142,28 @@
                 exit.onfinish = () => { outgoingPhoto.hidden = true; };
             }
         }
-        selectors.forEach(button => {
-            button.addEventListener('click', async () => {
+        selectorGroup.addEventListener('click', async event => {
+                const button = event.target.closest('[data-artwork]');
+                if (!button) return;
                 clearTimeout(rotationTimer);
                 await select(artwork.find(item => item.key === button.dataset.artwork));
                 syncPlayback();
-            });
+        });
             // Native Tab/Enter/Space remain available; arrows make comparisons easy.
-            button.addEventListener('keydown', event => {
+        selectorGroup.addEventListener('keydown', event => {
+                const button = event.target.closest('[data-artwork]');
+                if (!button) return;
                 if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
                 event.preventDefault();
                 const current = selectors.indexOf(button);
                 const next = event.key === 'Home' ? 0 : event.key === 'End' ? selectors.length - 1 : (current + (event.key === 'ArrowRight' ? 1 : -1) + selectors.length) % selectors.length;
                 selectors[next].focus({ preventScroll: true });
                 selectors[next].click();
-            });
         });
         playback.hidden = false;
         playback.addEventListener('click', () => {
             paused = canRotate();
+            reducedPlayback = !paused && reduced.matches;
             // An explicit Play action can resume while this control has focus.
             if (!paused) hovering = focused = false;
             syncPlayback();
@@ -209,6 +217,7 @@
             stopTransition();
             resetDepth();
             paused = reduced.matches;
+            reducedPlayback = false;
             syncPlayback();
         });
         finePointer.addEventListener('change', () => {
@@ -234,6 +243,36 @@
         window.addEventListener('pageshow', syncPlayback);
         syncPlayback();
 
+        async function syncContent(content) {
+            if (!content?.slides?.length) return;
+            const nextArtwork = content.slides.map(slide => {
+                const reference = referenceArtwork.find(item => item.image === slide.image);
+                return { key: slide.id, photoKey: reference?.key, name: slide.title, image: window.LuxeSiteContent.imageUrl(slide.image), alt: slide.alt, productId: slide.productId, match: reference?.match, custom: !reference };
+            });
+            // Revalidating the same published document must not reset playback.
+            if (nextArtwork.length === artwork.length && nextArtwork.every((item, index) =>
+                ['key', 'name', 'image', 'alt'].every(key => item[key] === artwork[index][key])
+                && (item.productId || null) === (artwork[index].productId || null))) return;
+            artwork = nextArtwork;
+            selectorGroup.replaceChildren(...artwork.map(item => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.dataset.artwork = item.key;
+                button.setAttribute('aria-label', `Show ${item.name}`);
+                button.setAttribute('aria-pressed', 'false');
+                button.append(document.createElement('span'));
+                return button;
+            }));
+            selectors = [...selectorGroup.children];
+            clearTimeout(rotationTimer);
+            // Removed slides cannot keep playing; the first published slide opens next.
+            rotationIndex = 0;
+            await select(artwork[0]);
+            syncPlayback();
+        }
+        window.addEventListener('luxe:site-content', event => syncContent(event.detail));
+        if (window.LuxeSiteContent) syncContent(window.LuxeSiteContent.snapshot().content);
+
         async function syncCatalog() {
             try { await window.productsReady; } catch (_) { /* The editorial stage also works offline. */ }
             updateDetails(selected);
@@ -242,7 +281,7 @@
         syncCatalog();
         window.addEventListener('luxe:catalog-status', syncCatalog);
         // Warm the two small local references only after the opening image loads.
-        const warmImages = () => artwork.slice(1).forEach(prepare);
+        const warmImages = () => artwork.slice(1, 3).forEach(prepare);
         if (image.complete) warmImages();
         else image.addEventListener('load', warmImages, { once: true });
     }

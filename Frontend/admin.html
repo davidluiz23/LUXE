@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="css/variables.css?v=20260913-2">
     <link rel="stylesheet" href="css/style.css?v=20260830-1">
     <link rel="stylesheet" href="css/responsive.css?v=20260912-1">
-    <link rel="stylesheet" href="css/admin.css?v=20260912-1">
+    <link rel="stylesheet" href="css/admin.css?v=20260913-4">
     <link rel="stylesheet" href="css/icons.css?v=20260913-2">
 </head>
 
@@ -96,7 +96,13 @@
                         <div class="admin-owner-email" id="adminOwnerEmail"></div>
                     </div>
 
-                    <button type="button" class="admin-nav-btn active" data-panel="productsPanel">
+                    <button type="button" class="admin-nav-btn active" data-panel="overviewPanel">
+                        <i class="fas fa-chart-line" aria-hidden="true"></i> Overview
+                    </button>
+                    <button type="button" class="admin-nav-btn" data-panel="storefrontPanel">
+                        <i class="fas fa-images" aria-hidden="true"></i> Storefront Images
+                    </button>
+                    <button type="button" class="admin-nav-btn" data-panel="productsPanel">
                         <i class="fas fa-box"></i> Products
                     </button>
 
@@ -137,7 +143,48 @@
 
                 <div class="admin-main">
 
-                    <div class="admin-panel active" id="productsPanel">
+                    <section class="admin-panel active" id="overviewPanel" aria-labelledby="overviewTitle">
+                        <div class="admin-panel-card">
+                            <div class="admin-panel-header">
+                                <div><p class="admin-live-kicker">ALKEBULAN / At a glance</p><h2 id="overviewTitle">Store overview</h2><p>Visitors, registrations and account status.</p></div>
+                                <button type="button" class="btn btn-outline" id="refreshAudience">Refresh</button>
+                            </div>
+                            <p id="audienceStatus" class="admin-content-status" role="status">Loading store metrics…</p>
+                            <div class="admin-audience-stats">
+                                <article><span id="audienceVisitorLabel">Visitors · last 30 days</span><strong id="audienceVisitors">—</strong><small>Unique browsers in this period</small></article>
+                                <article><span>Online now</span><strong id="audienceOnline">—</strong><small>Active in the last 30 seconds</small></article>
+                                <article><span>Registered accounts</span><strong id="audienceRegistered">—</strong><small>All current site accounts</small></article>
+                                <article><span>Currently banned</span><strong id="audienceBanned">—</strong><small>Accounts with an active ban</small></article>
+                            </div>
+                            <div class="admin-chart-heading"><div><h3>Store traffic</h3><p>Daily visitors and new registrations</p></div><div class="admin-audience-ranges" role="group" aria-label="Chart period"><button type="button" data-audience-days="7" aria-pressed="false">7 days</button><button type="button" data-audience-days="30" aria-pressed="true">30 days</button><button type="button" data-audience-days="90" aria-pressed="false">90 days</button></div></div>
+                            <div class="admin-chart-legend"><span><i class="visitor-key" aria-hidden="true"></i> Visitors</span><span><i class="registration-key" aria-hidden="true"></i> Registrations</span></div>
+                            <div id="audienceChart" class="admin-audience-chart" aria-busy="true"></div>
+                            <p id="audienceTrackingNote" class="admin-chart-note">Visit history begins when daily tracking is enabled.</p>
+                            <div class="admin-account-breakdown"><h3>Account status now</h3><div id="audienceAccountChart"></div></div>
+                            <details class="admin-chart-data"><summary>View daily numbers</summary><div class="admin-table-wrap" tabindex="0" role="region" aria-label="Daily traffic and registrations"><table class="admin-table"><thead><tr><th scope="col">Date (Lagos)</th><th scope="col">Visitors</th><th scope="col">New registrations</th></tr></thead><tbody id="audienceDailyRows"></tbody></table></div></details>
+                            <p class="admin-chart-note">A visitor is a browser with a random stored ID. Return visits and tabs count once per day, and once per selected period in the visitor total. Different devices or cleared storage can count separately; blocked tracking is not recorded. Admin pages are excluded. Days use Lagos time (WAT); today is still in progress. Registration history counts accounts that still exist. Bans are current, including their expiry.</p>
+                        </div>
+                    </section>
+
+                    <section class="admin-panel" id="storefrontPanel" aria-labelledby="storefrontTitle">
+                        <div class="admin-panel-card">
+                            <div class="admin-panel-header"><div><p class="admin-live-kicker">ALKEBULAN / Art direction</p><h2 id="storefrontTitle">Storefront images</h2><p>Make the opening slideshow and collection pages your own.</p></div><a href="index.html" target="_blank" rel="noopener" class="btn btn-outline">View homepage</a></div>
+                            <p id="storefrontStatus" class="admin-content-status" role="status">Open this panel to load the published images.</p>
+                            <form id="storefrontForm">
+                                <fieldset id="storefrontFields" disabled>
+                                    <div class="admin-editor-heading"><div><h3>Homepage slideshow</h3><p>One to twelve pictures, switching every 5 seconds. Use the arrows to change the order.</p></div><button type="button" class="btn btn-outline" id="addStorefrontSlide">Add slide</button></div>
+                                    <div id="storefrontSlides" class="admin-slide-list"></div>
+                                    <div class="admin-editor-heading"><div><h3>Collection backgrounds</h3><p>Wide landscape images work best. Adjust the position to keep the subject in view.</p></div></div>
+                                    <div id="storefrontCollections" class="admin-collection-editors"></div>
+                                    <div class="admin-editor-heading"><div><h3>A closer look</h3><p>Replace the Durbar image and choose where its button leads.</p></div></div>
+                                    <div id="storefrontDetail"></div>
+                                </fieldset>
+                                <div class="admin-editor-actions"><button type="submit" class="btn btn-primary" id="saveStorefront" disabled>Save images</button><button type="button" class="btn btn-outline" id="reloadStorefront">Reload published images</button><span id="storefrontDraftNote">Changes go live when you save.</span></div>
+                            </form>
+                        </div>
+                    </section>
+
+                    <div class="admin-panel" id="productsPanel">
                         <div class="admin-panel-card">
                             <div class="admin-panel-header">
                                 <div>
@@ -682,10 +729,12 @@
     <script src="js/brand-config.js?v=20260830-1"></script>
     <script src="js/icons.js?v=20260913-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
-    <script src="js/supabase-client.js?v=20260912-2"></script>
+    <script src="js/supabase-client.js?v=20260913-3"></script>
     <script src="js/products.js?v=20260913-1"></script>
     <script src="js/animation.js?v=20260830-1"></script>
     <script src="js/app.js?v=20260913-1"></script>
-    <script src="js/admin.js?v=20260908-1"></script>
+    <script src="js/site-content.js?v=20260913-4"></script>
+    <script src="js/admin-storefront.js?v=20260913-4"></script>
+    <script src="js/admin.js?v=20260913-4"></script>
 </body>
 </html>

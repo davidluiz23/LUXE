@@ -129,6 +129,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.querySelectorAll(".admin-panel").forEach((panel) => {
       panel.classList.toggle("active", panel.id === panelId);
     });
+    window.LuxeAdminStorefront?.activate(panelId);
 
     if (panelId === "ordersPanel") {
       window.LuxeOrders.markAllAdminSeen().then(({ error } = {}) => {
@@ -157,6 +158,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!user) {
       currentAdminUserId = null;
       currentAdminRole = null;
+      window.LuxeAdminStorefront?.setAccess(false);
       loginGate.style.display = "block";
       deniedGate.style.display = "none";
       layout.classList.remove("visible");
@@ -169,6 +171,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (role !== "owner" && role !== "admin") {
       currentAdminUserId = null;
       currentAdminRole = null;
+      window.LuxeAdminStorefront?.setAccess(false);
       loginGate.style.display = "none";
       deniedGate.style.display = "block";
       layout.classList.remove("visible");
@@ -184,6 +187,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     loginGate.style.display = "none";
     deniedGate.style.display = "none";
     layout.classList.add("visible");
+    window.LuxeAdminStorefront?.setAccess(true);
 
     const emailEl = document.getElementById("adminOwnerEmail");
     if (emailEl) emailEl.textContent = user.email || "";
@@ -2383,6 +2387,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     if (initialPanel === "orders" || initialOrder) activatePanel("ordersPanel");
     else if (initialPanel === "presence") activatePanel("presencePanel");
+    else if (initialPanel === "storefront") activatePanel("storefrontPanel");
+    else if (initialPanel === "products") activatePanel("productsPanel");
     else loadOnlineVisitors({ render: false });
   }
 
