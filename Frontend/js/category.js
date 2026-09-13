@@ -200,6 +200,18 @@ function renderCategoryProducts(productsList, grid) {
           <h4 class="product-name"><a class="product-name-link" href="product.html?id=${productId}" style="color:inherit;text-decoration:none">${safeName}</a></h4>
           <p class="product-category">${safeCategory}${product.subcategory ? ` / ${safeSubcategory}` : ""}</p>
           <div class="product-price">${renderCategoryProductPrice(product)}</div>
+          ${
+            product.rating
+              ? `
+              <div class="product-rating" aria-label="Rated ${Math.max(0, Math.min(5, Number(product.rating) || 0)).toFixed(1)} out of 5">
+                  ${window.LuxeIcons?.rating(product.rating) || ""}
+                  <span class="rating-count">${product.reviewCount !== null && product.reviewCount !== undefined
+                    ? `${Math.max(0, Number(product.reviewCount) || 0)} review${Number(product.reviewCount) === 1 ? "" : "s"}`
+                    : `${Math.max(0, Math.min(5, Number(product.rating) || 0)).toFixed(1)} / 5`}</span>
+              </div>
+          `
+              : ""
+          }
         </div>
       </article>
     `;

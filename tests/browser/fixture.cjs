@@ -26,8 +26,12 @@ const server = http.createServer((req,res) => {
 function sdkMock() {
   window.__requests = [];
   const user = window.__auditUser || null;
-  const resolve = (table, single, operation) => {
+  const resolve = async (table, single, operation) => {
     window.__requests.push({table,operation});
+    if (table === 'products' && window.__holdProducts) {
+      window.__productsGate ||= new Promise(release => { window.__releaseProducts = release; });
+      await window.__productsGate;
+    }
     if (window.__failProducts && table === 'products') return {data:null,error:{message:'Catalog offline'}};
     if (window.__failNotificationWrite && table === 'user_notifications' && operation === 'update') return {data:null,error:{message:'Could not save'}};
     if (window.__failOrders && table === 'orders') return {data:null,error:{message:'Temporary network error'}};

@@ -19,8 +19,25 @@
         const collectionLinks = [...document.querySelectorAll('[data-collection-artwork]')];
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
         const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+        const photo = document.getElementById('stagePhoto');
+        const playback = document.getElementById('stagePlayback');
+        const outgoingPhoto = photo.cloneNode(true);
+        outgoingPhoto.removeAttribute('id');
+        outgoingPhoto.classList.add('stage-photo-outgoing');
+        outgoingPhoto.setAttribute('aria-hidden', 'true');
+        outgoingPhoto.hidden = true;
+        const outgoingImage = outgoingPhoto.querySelector('img');
+        outgoingImage.removeAttribute('id');
+        outgoingImage.alt = '';
+        photo.before(outgoingPhoto);
+        const slideInterval = 5000;
         let selected = artwork[0];
         let selectionRequest = 0;
+        let rotationIndex = 0;
+        let rotationTimer = 0;
+        let paused = reduced.matches;
+        let hovering = false;
+        let focused = false;
         let visible = true;
         let frame = 0;
         let pointerX = 0;
@@ -69,23 +86,63 @@
             }
             return prepared.get(item.key);
         }
-        async function select(item) {
+        function stopTransition() {
+            [image, outgoingImage].forEach(element => element.getAnimations?.().forEach(animation => animation.cancel()));
+            outgoingPhoto.hidden = true;
+        }
+        function canRotate() { return !paused && !hovering && !focused && visible && !document.hidden; }
+        function syncPlayback() {
+            clearTimeout(rotationTimer);
+            const playing = canRotate();
+            stage.dataset.slideshowPlaying = String(playing);
+            name.setAttribute('aria-live', playing ? 'off' : 'polite');
+            playback.dataset.paused = String(!playing);
+            playback.setAttribute('aria-label', playing ? 'Pause slideshow' : 'Play slideshow');
+            playback.title = playing ? 'Pause slideshow' : 'Play slideshow';
+            if (playing) rotationTimer = window.setTimeout(async () => {
+                rotationIndex = (rotationIndex + 1) % artwork.length;
+                await select(artwork[rotationIndex], { automatic: true });
+                syncPlayback();
+            }, slideInterval);
+        }
+        async function select(item, { automatic = false } = {}) {
             const request = ++selectionRequest;
             if (!(await prepare(item)) || request !== selectionRequest) return;
+            // A slow image must not advance the stage after the visitor pauses it.
+            if (automatic && !canRotate()) return;
+            if (item === selected) return;
+            stopTransition();
+            outgoingPhoto.dataset.artworkPhoto = selected.key;
+            outgoingImage.src = selected.image;
             selected = item;
+            rotationIndex = artwork.indexOf(item);
             stage.dataset.featuredArtwork = item.key;
+            photo.dataset.artworkPhoto = item.key;
             image.src = item.image;
             image.alt = item.alt;
             document.getElementById('stageNumber').textContent = `0${artwork.indexOf(item) + 1} / 03`;
             selectors.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.artwork === item.key)));
             updateDetails(item);
             if (!reduced.matches && image.animate) {
-                image.getAnimations().forEach(animation => animation.cancel());
-                image.animate([{ opacity: .65 }, { opacity: 1 }], { duration: 360, easing: 'ease-out' });
+                outgoingPhoto.hidden = false;
+                const timing = { duration: 900, easing: 'cubic-bezier(.22, 1, .36, 1)' };
+                image.animate([
+                    { opacity: 0, transform: 'translate3d(32px, 10px, 0) rotate(4deg) scale(.96)' },
+                    { opacity: 1, transform: 'none' },
+                ], timing);
+                const exit = outgoingImage.animate([
+                    { opacity: 1, transform: 'none' },
+                    { opacity: 0, transform: 'translate3d(-32px, -8px, 0) rotate(-4deg) scale(1.02)' },
+                ], timing);
+                exit.onfinish = () => { outgoingPhoto.hidden = true; };
             }
         }
         selectors.forEach(button => {
-            button.addEventListener('click', () => select(artwork.find(item => item.key === button.dataset.artwork)));
+            button.addEventListener('click', async () => {
+                clearTimeout(rotationTimer);
+                await select(artwork.find(item => item.key === button.dataset.artwork));
+                syncPlayback();
+            });
             // Native Tab/Enter/Space remain available; arrows make comparisons easy.
             button.addEventListener('keydown', event => {
                 if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
@@ -95,6 +152,28 @@
                 selectors[next].focus({ preventScroll: true });
                 selectors[next].click();
             });
+        });
+        playback.hidden = false;
+        playback.addEventListener('click', () => {
+            paused = canRotate();
+            // An explicit Play action can resume while this control has focus.
+            if (!paused) hovering = focused = false;
+            syncPlayback();
+        });
+        stage.addEventListener('pointerenter', () => {
+            hovering = finePointer.matches;
+            syncPlayback();
+        });
+        stage.addEventListener('pointerleave', () => { hovering = false; syncPlayback(); });
+        stage.addEventListener('focusin', event => {
+            if (event.target !== playback) focused = true;
+            syncPlayback();
+        });
+        stage.addEventListener('focusout', event => {
+            if (!stage.contains(event.relatedTarget)) {
+                focused = false;
+                syncPlayback();
+            }
         });
 
         function resetDepth() {
@@ -127,22 +206,33 @@
         reduced.addEventListener('change', () => {
             if (frame) cancelAnimationFrame(frame);
             frame = 0;
-            image.getAnimations?.().forEach(animation => animation.cancel());
+            stopTransition();
             resetDepth();
+            paused = reduced.matches;
+            syncPlayback();
         });
-        finePointer.addEventListener('change', resetDepth);
+        finePointer.addEventListener('change', () => {
+            resetDepth();
+            hovering = false;
+            syncPlayback();
+        });
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
                 if (frame) cancelAnimationFrame(frame);
                 frame = 0;
             } else scheduleDepth();
+            syncPlayback();
         });
         if ('IntersectionObserver' in window) {
             new IntersectionObserver(entries => {
                 visible = entries[0].isIntersecting;
                 if (visible) scheduleDepth();
+                syncPlayback();
             }).observe(stage);
         }
+        window.addEventListener('pagehide', () => { clearTimeout(rotationTimer); ++selectionRequest; stopTransition(); });
+        window.addEventListener('pageshow', syncPlayback);
+        syncPlayback();
 
         async function syncCatalog() {
             try { await window.productsReady; } catch (_) { /* The editorial stage also works offline. */ }

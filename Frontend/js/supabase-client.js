@@ -30,7 +30,7 @@ function pageUrl(relativePath) {
 }
 
 function safeAuthReturnPath(path) {
-  return path === "checkout.html" ? path : "index.html";
+  return ["checkout.html", "dashboard.html?tab=notifications"].includes(path) ? path : "index.html";
 }
 
 function oauthCallbackUrl(returnPath) {
@@ -2758,7 +2758,9 @@ function ensureNavbarNotificationControls() {
 function updateNavbarNotificationBadge(count, signedIn = true) {
   const safeCount = Math.max(0, Number(count) || 0);
   document.querySelectorAll(".notification-icon").forEach((link) => {
-    link.hidden = !signedIn;
+    link.hidden = !signedIn && !link.hasAttribute("data-always-visible");
+    link.href = signedIn ? "dashboard.html?tab=notifications" : "login.html?returnTo=dashboard.html%3Ftab%3Dnotifications";
+    link.setAttribute("aria-label", signedIn ? "Open notifications" : "Sign in to view notifications");
     const badge = link.querySelector(".navbar-notification-badge");
     if (!badge) return;
     badge.textContent = safeCount > 99 ? "99+" : String(safeCount);

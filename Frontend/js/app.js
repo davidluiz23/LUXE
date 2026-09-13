@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const hamburger = document.getElementById('hamburger');
         const mobileMenu = document.getElementById('mobileMenu');
         const mobileClose = document.getElementById('mobileClose');
-        const mobileViewport = window.matchMedia('(max-width: 1020px)');
+        const mobileViewport = window.matchMedia('(max-width: 1120px)');
         if (hamburger && mobileMenu) {
             const syncMenu = () => {
                 const isOpen = mobileMenu.classList.contains('active') && mobileViewport.matches;
@@ -131,26 +131,29 @@ document.addEventListener('DOMContentLoaded', async function() {
     const productGrid = currentPage === 'index.html' ? document.getElementById('productGrid') : null;
     if (productGrid) window.showProductGridLoading?.(productGrid, 8);
 
-    // Wait only before catalog-dependent rendering. Navigation and scrolling
-    // above remain usable even if the backend request is delayed.
-    if (window.productsReady) await window.productsReady;
-
     // Back to top
     const backBtn = document.getElementById('backToTop');
     if (backBtn) {
         backBtn.type = 'button';
         backBtn.setAttribute('aria-label', 'Back to top');
-        window.addEventListener('scroll', function() {
-            if (window.scrollY > 500) {
-                backBtn.classList.add('visible');
-            } else {
-                backBtn.classList.remove('visible');
-            }
-        });
+        const syncBackToTop = () => {
+            const visible = window.scrollY > 500;
+            backBtn.classList.toggle('visible', visible);
+            backBtn.tabIndex = visible ? 0 : -1;
+            backBtn.setAttribute('aria-hidden', String(!visible));
+        };
+        window.addEventListener('scroll', syncBackToTop, { passive: true });
+        window.addEventListener('pageshow', syncBackToTop);
+        syncBackToTop();
         backBtn.addEventListener('click', function() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            window.scrollTo({ top: 0, behavior: reducedMotion ? 'instant' : 'smooth' });
         });
     }
+
+    // Wait only before catalog-dependent rendering. Navigation and scrolling
+    // above remain usable even if the backend request is delayed.
+    if (window.productsReady) await window.productsReady;
 
     // Load home page featured products if grid exists
     if (productGrid) {

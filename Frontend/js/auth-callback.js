@@ -6,10 +6,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const action = document.getElementById("oauthCallbackAction");
   const query = new URLSearchParams(window.location.search);
   const fragment = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-  const returnTo = query.get("returnTo") === "checkout.html"
-    ? "checkout.html"
-    : "index.html";
-  if (action && returnTo === "checkout.html") action.href = "login.html?returnTo=checkout.html";
+  const returnTo = window.safeAuthReturnPath?.(query.get("returnTo")) || "index.html";
+  if (action && returnTo !== "index.html") action.href = `login.html?returnTo=${encodeURIComponent(returnTo)}`;
   const oauthError =
     query.get("error_description") ||
     fragment.get("error_description") ||

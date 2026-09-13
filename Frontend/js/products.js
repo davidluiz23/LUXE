@@ -1765,9 +1765,9 @@ function showProductGridLoading(grid, requestedCount = 8) {
 
     grid.classList.add('product-grid-loading');
     grid.setAttribute('aria-busy', 'true');
-    grid.innerHTML = `<span class="sr-only" role="status">Loading products</span>${Array.from({ length: count }, (_, index) => `
+    grid.innerHTML = `<span class="sr-only" role="status">Loading the ALKEBULAN collection</span>${Array.from({ length: count }, (_, index) => `
         <article class="product-card product-card-skeleton" aria-hidden="true" style="--skeleton-order:${index}">
-            <div class="product-image product-skeleton-image"></div>
+            <div class="product-image product-skeleton-image">${window.LuxeIcons?.loader() || ''}</div>
             <div class="product-info">
                 <span class="product-skeleton-line short"></span>
                 <span class="product-skeleton-line"></span>

@@ -65,7 +65,7 @@
 
     header.classList.add("luxury-navbar");
     logo.setAttribute("aria-label", "ALKEBULAN home");
-    logo.innerHTML = brandMark();
+    logo.innerHTML = brandMark() + (page === "index" ? '<span class="brand-wordmark">ALKEBULAN</span>' : '');
 
     const renderedNavRoutes = [
       ["Shop", "shop.html", "shop"],
@@ -94,8 +94,12 @@
       if (anchor) anchor.setAttribute("aria-label", label);
     });
 
+    const searchToggle = $("#searchToggle", navIcons);
+    if (searchToggle && window.LuxeIcons) {
+      searchToggle.innerHTML = window.LuxeIcons.svg("search", "nav-svg-icon");
+    }
+
     const hamburger = $("#hamburger", navIcons);
-    const mobileViewport = window.matchMedia(page === "index" ? "(max-width: 760px)" : "(max-width: 1020px)");
     if (hamburger) {
       hamburger.setAttribute("role", "button");
       hamburger.setAttribute("tabindex", "0");
@@ -111,28 +115,35 @@
     }
 
     if (mobileMenu) {
+      // Keep the overlay outside the blurred header's containing block.
+      const overlay = document.createElement("div");
+      overlay.className = "nav-menu-overlay";
+      overlay.hidden = true;
+      document.body.appendChild(overlay);
+      overlay.appendChild(mobileMenu);
       const mobileList = $("ul", mobileMenu);
       const mobileClose = $("#mobileClose", mobileMenu);
       mobileMenu.setAttribute("role", "dialog");
       mobileMenu.setAttribute("aria-modal", "true");
       mobileMenu.setAttribute("aria-label", "Site navigation");
+      let menuScrollPosition = 0;
 
       const closeMobileMenu = ({ restoreFocus = false } = {}) => {
+        const wasOpen = mobileMenu.classList.contains("active");
         mobileMenu.classList.remove("active");
         document.body.classList.remove("mobile-nav-open");
         hamburger?.classList.remove("is-active");
         hamburger?.setAttribute("aria-expanded", "false");
         mobileMenu.setAttribute("aria-hidden", "true");
         mobileMenu.inert = true;
-        if (restoreFocus && mobileViewport.matches) hamburger?.focus();
+        overlay.hidden = true;
+        if (wasOpen) window.scrollTo({ top: menuScrollPosition, behavior: "instant" });
+        if (restoreFocus) hamburger?.focus({ preventScroll: true });
       };
 
       const syncMobileMenu = () => {
-        const isOpen = mobileMenu.classList.contains("active") && mobileViewport.matches;
-        if (!mobileViewport.matches && mobileMenu.classList.contains("active")) {
-          closeMobileMenu();
-          return;
-        }
+        const isOpen = mobileMenu.classList.contains("active");
+        overlay.hidden = !isOpen;
         document.body.classList.toggle("mobile-nav-open", isOpen);
         hamburger?.classList.toggle("is-active", isOpen);
         hamburger?.setAttribute("aria-expanded", String(isOpen));
@@ -143,11 +154,11 @@
       const menuObserver = new MutationObserver(syncMobileMenu);
       menuObserver.observe(mobileMenu, { attributes: true, attributeFilter: ["class"] });
       hamburger?.addEventListener("click", () => {
-        if (!mobileViewport.matches) return;
-        const openScrollPosition = window.scrollY;
+        window.LuxeSearchController?.close({ restoreFocus: false });
+        menuScrollPosition = window.scrollY;
         mobileMenu.classList.add("active");
         syncMobileMenu();
-        window.setTimeout(() => window.scrollTo(0, openScrollPosition), 50);
+        window.scrollTo({ top: menuScrollPosition, behavior: "instant" });
         mobileMenu.scrollTop = 0;
         mobileClose?.focus({ preventScroll: true });
       });
@@ -184,8 +195,9 @@
       }
 
       document.addEventListener("keydown", (event) => {
-        if (!mobileMenu.classList.contains("active") || !mobileViewport.matches) return;
+        if (!mobileMenu.classList.contains("active")) return;
         if (event.key === "Escape") {
+          event.preventDefault();
           closeMobileMenu({ restoreFocus: true });
           return;
         }
@@ -206,23 +218,12 @@
       document.addEventListener("click", (event) => {
         if (!mobileMenu.classList.contains("active")) return;
         if (mobileMenu.contains(event.target) || hamburger?.contains(event.target)) return;
-        closeMobileMenu();
+        closeMobileMenu({ restoreFocus: true });
       });
-      mobileViewport.addEventListener("change", syncMobileMenu);
       syncMobileMenu();
-      window.LuxeMobileMenuController = true;
+      window.LuxeMobileMenuController = { close: closeMobileMenu };
     }
 
-    const progress = document.createElement("span");
-    progress.className = "nav-scroll-progress";
-    progress.setAttribute("aria-hidden", "true");
-    header.appendChild(progress);
-    const updateProgress = () => {
-      const available = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-      progress.style.transform = `scaleX(${Math.min(1, window.scrollY / available)})`;
-    };
-    updateProgress();
-    window.addEventListener("scroll", updateProgress, { passive: true });
   }
 
   function enhanceHeadings() {
@@ -249,27 +250,38 @@
 
   function enhanceProductCards() {
     const products = catalog();
-    $$(".product-card").forEach((card, index) => {
+    $$(".product-card, .wishlist-item").forEach((card, index) => {
       if (card.classList.contains("product-card-skeleton")) return;
       if (card.dataset.luxuryCard) {
         $(".luxury-card-meta", card)?.remove();
         return;
       }
       card.dataset.luxuryCard = "true";
+      card.classList.add("product-card");
       card.style.setProperty("--card-order", index);
       card.style.setProperty("--card-delay", `${Math.min(index, 8) * 45}ms`);
       const id = Number(card.dataset.id);
       const product = products.find((item) => Number(item.id) === id);
       const imageWrap = $(".product-image", card);
       const info = $(".product-info", card);
+      if (page !== "index") {
+        const actions = $(".product-actions", card);
+        if (actions) card.appendChild(actions);
+        const category = $(".product-category", info || card);
+        if (category && info) info.prepend(category);
+      }
       const primaryImage = $(".product-image > img", card);
       if (primaryImage) {
         card.classList.add("is-image-loading");
+        imageWrap.setAttribute("aria-busy", "true");
+        imageWrap.insertAdjacentHTML("beforeend", window.LuxeIcons?.loader() || "");
         const finishImageLoading = async () => {
           if (primaryImage.naturalWidth > 0 && typeof primaryImage.decode === "function") {
             try { await primaryImage.decode(); } catch (_) { /* The load event is still a safe fallback. */ }
           }
           card.classList.remove("is-image-loading");
+          imageWrap.setAttribute("aria-busy", "false");
+          $(".product-loading-lockup", imageWrap)?.remove();
         };
         if (primaryImage.complete) finishImageLoading();
         else {
@@ -303,6 +315,10 @@
           if (button.classList.contains("wishlist-btn")) button.setAttribute("aria-label", "Save piece");
           if (button.classList.contains("quick-view")) button.setAttribute("aria-label", "View piece");
         }
+        if (page !== "index" && button.classList.contains("add-cart") && product?.inStock !== false) {
+          const hasOptions = button.dataset.hasOptions === "true";
+          button.innerHTML = hasOptions ? "Options" : `${window.LuxeIcons?.svg("bag") || ""}<span>Add</span>`;
+        }
         if (button.classList.contains("add-cart") && product?.inStock === false) {
           button.disabled = true;
           button.setAttribute("aria-disabled", "true");
@@ -325,7 +341,7 @@
 
   function enhanceIcons() {
     if (!window.LuxeIcons) return;
-    const icons = { 'fa-search': 'search', 'fa-shopping-bag': 'bag', 'fa-heart': 'heart', 'fa-eye': 'eye', 'fa-user': 'user', 'fa-times': 'close', 'fa-arrow-up': 'up', 'fa-plus': 'plus', 'fa-minus': 'minus', 'fa-trash': 'trash', 'fa-trash-alt': 'trash' };
+    const icons = { 'fa-search': 'search', 'fa-shopping-bag': 'bag', 'fa-heart': 'heart', 'fa-eye': 'eye', 'fa-user': 'user', 'fa-bell': 'bell', 'fa-times': 'close', 'fa-arrow-up': 'up', 'fa-plus': 'plus', 'fa-minus': 'minus', 'fa-trash': 'trash', 'fa-trash-alt': 'trash' };
     $$('i[class*="fa-"]:not(.sf-icon)').forEach(element => {
       const icon = Object.keys(icons).find(className => element.classList.contains(className));
       if (!icon) return;
@@ -337,7 +353,7 @@
 
   function rebuildFooter() {
     const footer = $("footer");
-    if (!footer || footer.hasAttribute("data-home-footer")) return;
+    if (!footer) return;
     footer.classList.add("luxury-footer");
     footer.innerHTML = `
       <div class="container luxury-footer-top">

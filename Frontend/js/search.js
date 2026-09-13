@@ -139,6 +139,7 @@
         const modalContent = modal.querySelector(".search-modal-content");
         let catalogPending = Boolean(window.productsReady);
         let returnFocus = null;
+        let searchScrollPosition = 0;
 
         const syncQueryState = () => {
             const hasText = Boolean(input?.value.length);
@@ -147,11 +148,14 @@
         };
 
         const openSearch = () => {
+            window.LuxeMobileMenuController?.close?.();
             returnFocus = document.activeElement;
+            searchScrollPosition = window.scrollY;
             modal.hidden = false;
             document.body.classList.add("search-is-open");
             syncQueryState();
             renderResults(results, "", catalogPending);
+            window.scrollTo({ top: searchScrollPosition, behavior: "instant" });
             window.setTimeout(() => input?.focus(), 30);
             if (window.ensureLiveCatalog) {
                 catalogPending = true;
@@ -164,13 +168,16 @@
             }
         };
 
-        const closeSearch = () => {
+        const closeSearch = ({ restoreFocus = true } = {}) => {
+            const wasOpen = !modal.hidden;
             modal.hidden = true;
             document.body.classList.remove("search-is-open");
             if (input) input.value = "";
             syncQueryState();
-            if (returnFocus instanceof HTMLElement) returnFocus.focus();
+            if (wasOpen) window.scrollTo({ top: searchScrollPosition, behavior: "instant" });
+            if (restoreFocus && returnFocus instanceof HTMLElement) returnFocus.focus({ preventScroll: true });
         };
+        window.LuxeSearchController = { close: closeSearch };
 
         const updateSearch = () => {
             const query = input?.value.trim() || "";

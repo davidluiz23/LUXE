@@ -435,6 +435,14 @@ function renderRelatedProducts(product) {
                 <h4 class="product-name"><a class="product-name-link" href="product.html?id=${relatedId}" style="color:inherit;text-decoration:none">${safeName}</a></h4>
                 <p class="product-category">${escapeProductHtml(p.category || '')}</p>
                 <div class="product-price">${detailPriceMarkup(p)}</div>
+                ${p.rating ? `
+                    <div class="product-rating" aria-label="Rated ${Math.max(0, Math.min(5, Number(p.rating) || 0)).toFixed(1)} out of 5">
+                        ${window.LuxeIcons?.rating(p.rating) || ''}
+                        <span class="rating-count">${p.reviewCount !== null && p.reviewCount !== undefined
+                            ? `${Math.max(0, Number(p.reviewCount) || 0)} review${Number(p.reviewCount) === 1 ? '' : 's'}`
+                            : `${Math.max(0, Math.min(5, Number(p.rating) || 0)).toFixed(1)} / 5`}</span>
+                    </div>
+                ` : ''}
             </div>
         </article>`;
     }).join('');

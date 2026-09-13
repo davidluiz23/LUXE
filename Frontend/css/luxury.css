@@ -205,17 +205,6 @@ html.alkebulan-site .navbar-notification-badge {
     font-weight: 600;
 }
 
-.nav-scroll-progress {
-    position: absolute;
-    right: 0;
-    bottom: -1px;
-    left: 0;
-    height: 1px;
-    background: var(--alk-bronze);
-    transform: scaleX(0);
-    transform-origin: left;
-}
-
 html.alkebulan-site .hamburger { width: 40px; height: 40px; padding: 0 7px; justify-content: center; gap: 5px; color: var(--alk-ink); background: transparent; border: 0; border-radius: 0; box-shadow: none; transition: color var(--alk-fast) ease, transform var(--alk-fast) var(--alk-ease); }
 html.alkebulan-site .hamburger span { width: 21px; height: 1px; flex: 0 0 1px; background: currentColor; transform-origin: center; transition: transform .3s var(--alk-ease), opacity var(--alk-fast) ease; }
 html.alkebulan-site .hamburger:hover { color: var(--alk-bronze); background: transparent; }
@@ -266,7 +255,7 @@ html.alkebulan-site .mobile-menu-meta { display: flex; margin-top: 34px; justify
 html.alkebulan-site .mobile-menu-meta a { display: inline; padding: 0 0 4px; border-bottom: 1px solid rgba(255,255,255,.35); border-radius: 0; font-family: var(--alk-sans); font-size: inherit; }
 html.alkebulan-site .mobile-menu-meta a:hover { padding-left: 0; background: transparent; color: var(--alk-white); }
 body.mobile-nav-open { overflow: clip !important; }
-body.mobile-nav-open::before { position: fixed; z-index: 1000; inset: 0; background: rgba(17,17,15,.42); content: ""; backdrop-filter: blur(3px); }
+body.mobile-nav-open::before { position: fixed; z-index: 1000; inset: 0; background: rgba(17,17,15,.42); content: ""; backdrop-filter: blur(18px) saturate(.82); animation: search-backdrop-in .22s ease both; }
 
 /* Typography and controls */
 html.alkebulan-site .section { padding: clamp(78px, 9vw, 136px) 0; }
@@ -540,15 +529,31 @@ html.alkebulan-site .product-grid-loading .product-card-skeleton {
     animation: catalogSkeletonIn .52s var(--alk-ease) both;
     animation-delay: calc(var(--skeleton-order, 0) * 28ms);
 }
-html.alkebulan-site .product-skeleton-image { position: relative; isolation: isolate; }
-html.alkebulan-site .product-skeleton-image::before {
+html.alkebulan-site .product-skeleton-image { position: relative; isolation: isolate; aspect-ratio: 4 / 5; }
+html.alkebulan-site .product-loading-lockup {
     position: absolute;
-    z-index: 1;
+    z-index: 6;
     inset: 0;
-    background: linear-gradient(105deg, #e4e0d9 28%, #efebe4 48%, #e4e0d9 68%);
-    background-size: 200% 100%;
-    content: "";
-    animation: productCardSkeleton 2.2s var(--alk-ease-gentle) infinite;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: #edeae3;
+    color: var(--alk-ink);
+    pointer-events: none;
+}
+html.alkebulan-site .product-loading-mark { display: block; width: 40px; height: 40px; object-fit: contain; animation: productBrandBreathe 2s ease-in-out infinite; }
+html.alkebulan-site .product-loading-name { font-family: var(--alk-sans); font-size: .6rem; font-weight: 650; letter-spacing: .22em; }
+html.alkebulan-site .product-loading-track { position: relative; width: 64px; height: 2px; overflow: hidden; background: #17191714; }
+html.alkebulan-site .product-loading-track::after { position: absolute; inset: 0; content: ""; background: var(--alk-bronze); animation: productBrandProgress 1.6s ease-in-out infinite; }
+html.alkebulan-site .is-image-loading .luxury-card-status { opacity: 0; }
+@keyframes productBrandBreathe { 50% { opacity: .5; transform: scale(.94); } }
+@keyframes productBrandProgress { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) {
+    html.alkebulan-site .product-loading-mark,
+    html.alkebulan-site .product-loading-track::after { animation: none; }
+    html.alkebulan-site .product-loading-track::after { inset-inline: 20%; }
 }
 .product-skeleton-line {
     display: block;
@@ -563,10 +568,6 @@ html.alkebulan-site .product-skeleton-image::before {
 .product-skeleton-line.medium { width: 68%; }
 
 @keyframes productCardShimmer { to { transform: translateX(100%); } }
-@keyframes productCardSkeleton {
-    0% { background-position: 100% 0; }
-    100% { background-position: -100% 0; }
-}
 @keyframes catalogSkeletonIn {
     from { opacity: 0; }
     to { opacity: 1; }

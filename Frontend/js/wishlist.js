@@ -382,6 +382,7 @@ function wishlistMoney(product, oldPrice = false) {
 function renderWishlistPage() {
     const container = document.getElementById('wishlistGrid');
     if (!container) return;
+    window.finishProductGridLoading?.(container);
 
     const saved = loadWishlist();
     const wishlist = saved.filter((id) => !!wishlistProduct(id));
@@ -438,6 +439,14 @@ function renderWishlistPage() {
                         ${money.ngn && money.usd ? `<span class="product-price-secondary">${money.usd}</span>` : ''}
                         ${oldMoney.ngn || oldMoney.usd ? `<span class="old-price">${oldMoney.ngn || oldMoney.usd}</span>` : ''}
                     </div>
+                    ${product.rating ? `
+                        <div class="product-rating" aria-label="Rated ${Math.max(0, Math.min(5, Number(product.rating) || 0)).toFixed(1)} out of 5">
+                            ${window.LuxeIcons?.rating(product.rating) || ''}
+                            <span class="rating-count">${product.reviewCount !== null && product.reviewCount !== undefined
+                                ? `${Math.max(0, Number(product.reviewCount) || 0)} review${Number(product.reviewCount) === 1 ? '' : 's'}`
+                                : `${Math.max(0, Math.min(5, Number(product.rating) || 0)).toFixed(1)} / 5`}</span>
+                        </div>
+                    ` : ''}
                 </div>
             </article>`;
     }).join('');
@@ -467,7 +476,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateWishlistCount();
     syncWishlistButtons();
     const pendingRestore = restorePendingWishlistIntent();
-    if (document.getElementById('wishlistGrid')) {
+    const grid = document.getElementById('wishlistGrid');
+    if (grid) {
+        window.showProductGridLoading?.(grid, Math.max(2, Math.min(8, loadWishlist().length)));
         if (window.productsReady) await window.productsReady;
         await pendingRestore;
         renderWishlistPage();

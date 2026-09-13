@@ -10,22 +10,25 @@
     <link rel="stylesheet" href="css/variables.css?v=20260912-1">
     <link rel="stylesheet" href="css/style.css?v=20260830-1">
     <link rel="stylesheet" href="css/responsive.css?v=20260912-1">
-    <link id="alkebulanLuxuryStyles" rel="stylesheet" href="css/luxury.css?v=20260912-1">
+    <link id="alkebulanLuxuryStyles" rel="stylesheet" href="css/luxury.css?v=20260913-1">
     <link rel="stylesheet" href="css/desktop-responsive.css?v=20260831-2">
-    <script id="alkebulanLuxuryUi" src="js/luxury-ui.js?v=20260912-1" defer></script>
-    <link rel="stylesheet" href="css/storefront.css?v=20260912-1">
-    <link rel="stylesheet" href="css/home.css?v=20260912-1">
-    <script src="js/home-stage.js?v=20260909-2" defer></script>
+    <script id="alkebulanLuxuryUi" src="js/luxury-ui.js?v=20260913-1" defer></script>
+    <link rel="stylesheet" href="css/storefront.css?v=20260913-1">
+    <link rel="stylesheet" href="css/home.css?v=20260913-1">
+    <script src="js/home-stage.js?v=20260912-2" defer></script>
 </head>
 <body class="page-index">
+    <div id="loader"><div class="loader-spinner"></div></div>
     <a class="skip-to-content" href="#mainContent">Skip to content</a>
     <header id="navbar">
         <div class="container nav-container">
-            <div class="logo"><a href="index.html" aria-label="ALKEBULAN home"><span>ALKEBULAN</span></a></div>
+            <div class="logo"><a href="index.html" aria-label="ALKEBULAN home"><img class="brand-mark" src="assets/brand/alkebulan-mark.svg" width="34" height="34" alt=""><span class="brand-wordmark">ALKEBULAN</span></a></div>
             <nav class="nav-links" id="navLinks" aria-label="Main navigation"><ul><li><a href="shop.html">Shop</a></li><li><a href="about.html">Our story</a></li></ul></nav>
             <div class="nav-icons">
-                <button type="button" class="search-icon" id="searchToggle" aria-label="Search"><i class="fas fa-search" aria-hidden="true"></i><span class="nav-label">Search</span></button>
-                <a href="cart.html" class="cart-icon" aria-label="Shopping bag"><i class="fas fa-shopping-bag" aria-hidden="true"></i><span class="nav-bag-label">Bag (<span class="cart-count">0</span>)</span></a>
+                <button type="button" class="search-icon" id="searchToggle" aria-label="Search" title="Search"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button>
+                <a href="cart.html" class="cart-icon" aria-label="Shopping bag" title="Shopping bag"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12l1 13H5L6 8Z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/></svg><span class="cart-count">0</span></a>
+                <a href="login.html?returnTo=dashboard.html%3Ftab%3Dnotifications" class="notification-icon" data-always-visible aria-label="Sign in to view notifications" title="Notifications"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span class="navbar-notification-badge" hidden>0</span></a>
+                <a href="login.html" class="user-icon" aria-label="Sign in to your ALKEBULAN account" title="Your account"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg></a>
                 <button type="button" class="hamburger" id="hamburger" aria-label="Open menu"><span></span><span></span><span></span></button>
             </div>
         </div>
@@ -36,7 +39,7 @@
     </header>
 
     <main id="mainContent">
-        <section class="collection-opening" id="productStage" data-featured-artwork="ijele" aria-labelledby="openingTitle">
+        <section class="collection-opening" id="productStage" data-featured-artwork="ijele" aria-labelledby="openingTitle" aria-roledescription="carousel">
             <span class="hero-wordmark" aria-hidden="true">ALKEBULAN</span>
             <div class="opening-copy">
                 <p class="opening-eyebrow">Culture lives on <span aria-hidden="true"></span></p>
@@ -46,17 +49,23 @@
             </div>
             <div class="stage-perspective">
                 <span class="stage-shadow" aria-hidden="true"></span>
-                <div class="stage-photo" id="stagePhoto"><img class="artwork-photo" id="stageImage" src="assets/products/ijele.jpg" alt="Black Ijele tee with warm lettering and intricate expressive artwork" width="1280" height="854" fetchpriority="high" decoding="async"></div>
+                <div class="stage-photo" id="stagePhoto" data-artwork-photo="ijele"><img class="artwork-photo" id="stageImage" src="assets/products/ijele.jpg" alt="Black Ijele tee with warm lettering and intricate expressive artwork" width="1280" height="854" fetchpriority="high" decoding="async"></div>
             </div>
             <div class="stage-caption">
                 <span class="caption-rule" aria-hidden="true"></span>
                 <a id="stageLink" href="shop.html" aria-label="Explore Ijele"><span id="stageName" aria-live="polite" aria-atomic="true">Ijele</span></a>
                 <p id="stagePrice" hidden></p>
-                <span id="stageNumber" class="visually-hidden" aria-hidden="true">01 / 03</span>
-                <div class="artwork-selector" role="group" aria-label="Featured artwork">
-                    <button type="button" data-artwork="ijele" aria-pressed="true" aria-label="Show Ijele"><span></span></button>
-                    <button type="button" data-artwork="durbar" aria-pressed="false" aria-label="Show Durbar"><span></span></button>
-                    <button type="button" data-artwork="dun-dun" aria-pressed="false" aria-label="Show Dùn Dùn"><span></span></button>
+                <div class="stage-controls">
+                    <span id="stageNumber" class="stage-number" aria-hidden="true">01 / 03</span>
+                    <div class="artwork-selector" role="group" aria-label="Featured artwork">
+                        <button type="button" data-artwork="ijele" aria-pressed="true" aria-label="Show Ijele"><span></span></button>
+                        <button type="button" data-artwork="durbar" aria-pressed="false" aria-label="Show Durbar"><span></span></button>
+                        <button type="button" data-artwork="dun-dun" aria-pressed="false" aria-label="Show Dùn Dùn"><span></span></button>
+                    </div>
+                    <button type="button" id="stagePlayback" class="stage-playback" aria-label="Pause slideshow" title="Pause slideshow" hidden>
+                        <svg class="playback-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5v14M15 5v14"/></svg>
+                        <svg class="playback-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 10 7-10 7Z"/></svg>
+                    </button>
                 </div>
             </div>
         </section>
@@ -90,21 +99,28 @@
         </section>
     </main>
 
-    <footer class="home-footer" data-home-footer>
-        <a class="footer-wordmark" href="index.html" aria-label="ALKEBULAN home">ALKEBULAN</a>
-        <p>Clothing a wider tomorrow <span aria-hidden="true"></span></p>
+    <footer class="luxury-footer">
+        <div class="container">
+            <a class="footer-brand" href="index.html" aria-label="ALKEBULAN home">ALKEBULAN</a>
+            <p>Clothing with character. Rooted in expression. Worn your way.</p>
+            <nav aria-label="Footer navigation"><a href="shop.html">Shop</a> · <a href="about.html">Our story</a> · <a href="contact.html">Contact</a> · <a href="shipping.html">Shipping</a> · <a href="returns.html">Returns</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></nav>
+        </div>
     </footer>
 
+    <button type="button" id="backToTop" class="back-to-top" aria-label="Back to top">
+        <i class="fas fa-arrow-up" aria-hidden="true"></i>
+    </button>
+
     <script src="js/brand-config.js?v=20260830-1"></script>
-    <script src="js/icons.js?v=20260912-1"></script>
+    <script src="js/icons.js?v=20260913-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
-    <script src="js/supabase-client.js?v=20260908-1"></script>
+    <script src="js/supabase-client.js?v=20260912-2"></script>
     <script src="js/updates-banner.js?v=20260903-1"></script>
-    <script src="js/products.js?v=20260908-1"></script>
+    <script src="js/products.js?v=20260913-1"></script>
     <script src="js/cart.js?v=20260908-1"></script>
-    <script src="js/wishlist.js?v=20260903-1"></script>
-    <script src="js/search.js?v=20260908-1"></script>
+    <script src="js/wishlist.js?v=20260913-1"></script>
+    <script src="js/search.js?v=20260913-1"></script>
     <script src="js/animation.js?v=20260830-1"></script>
-    <script src="js/app.js?v=20260912-1"></script>
+    <script src="js/app.js?v=20260913-1"></script>
 </body>
 </html>

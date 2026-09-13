@@ -422,7 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       setTimeout(() => {
         const returnTo = query.get("returnTo");
-        window.location.href = returnTo === "checkout.html" ? returnTo : "index.html";
+        window.location.href = window.safeAuthReturnPath?.(returnTo) || "index.html";
       }, 1000);
     });
   }

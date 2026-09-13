@@ -32,5 +32,13 @@
     return `<span class="${className}" role="img" aria-label="${Number(value || 0).toFixed(1)} out of 5">${Array.from({ length: count }, () => svg("star", "luxe-star-icon")).join("")}</span>`;
   }
 
-  window.LuxeIcons = Object.freeze({ svg, rating });
+  function loader() {
+    return `<span class="product-loading-lockup" aria-hidden="true">
+      <img class="product-loading-mark" src="assets/brand/alkebulan-mark.svg" alt="" width="40" height="40">
+      <span class="product-loading-name">ALKEBULAN</span>
+      <span class="product-loading-track"></span>
+    </span>`;
+  }
+
+  window.LuxeIcons = Object.freeze({ svg, rating, loader });
 })();
