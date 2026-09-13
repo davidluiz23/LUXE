@@ -1,201 +1,372 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="alkebulan-site">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="assets/brand/alkebulan-mark.svg" type="image/svg+xml">
-    <link rel="preload" href="assets/fonts/manrope-normal-400-700-latin-a30ddcd349.woff2" as="font" type="font/woff2" crossorigin>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      href="assets/brand/alkebulan-mark.svg"
+      type="image/svg+xml"
+    />
+    <link
+      rel="preload"
+      href="assets/fonts/manrope-normal-400-700-latin-a30ddcd349.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     <script src="js/utils.js?v=20260830-2"></script>
     <title>Contact Us | ALKEBULAN Premium Clothing</title>
-    <link rel="stylesheet" href="css/variables.css?v=20260913-2">
-    <link rel="stylesheet" href="css/style.css?v=20260830-1">
-    <link rel="stylesheet" href="css/contact.css?v=20260830-1">
-    <link rel="stylesheet" href="css/responsive.css?v=20260912-1">
-    <link id="alkebulanLuxuryStyles" rel="stylesheet" href="css/luxury.css?v=20260913-5">
-    <script id="alkebulanLuxuryUi" src="js/luxury-ui.js?v=20260913-2" defer></script>
-    <link rel="stylesheet" href="css/icons.css?v=20260913-2">
+    <link rel="stylesheet" href="css/variables.css?v=20260913-2" />
+    <link rel="stylesheet" href="css/style.css?v=20260830-1" />
+    <link rel="stylesheet" href="css/contact.css?v=20260830-1" />
+    <link rel="stylesheet" href="css/responsive.css?v=20260912-1" />
+    <link
+      id="alkebulanLuxuryStyles"
+      rel="stylesheet"
+      href="css/luxury.css?v=20260913-5"
+    />
+    <script
+      id="alkebulanLuxuryUi"
+      src="js/luxury-ui.js?v=20260913-2"
+      defer
+    ></script>
+    <link rel="stylesheet" href="css/icons.css?v=20260913-2" />
     <link rel="stylesheet" href="css/storefront.css?v=20260913-2" />
   </head>
-<body class="page-contact">
+  <body class="page-contact">
     <!-- Navigation -->
     <header id="navbar" class="luxury-navbar">
-        <div class="container nav-container">
-            <div class="logo"><a href="index.html"><img class="brand-mark" src="assets/brand/alkebulan-mark.svg" width="34" height="34" alt="ALKEBULAN"></a></div>
-            <nav class="nav-links" id="navLinks">
-                <ul><li><a href="shop.html">Shop</a></li><li><a href="men.html">Men</a></li><li><a href="women.html">Women</a></li><li><a href="videos.html">Videos</a></li><li><a href="about.html">Our story</a></li><li><a href="contact.html" class="active">Contact</a></li></ul>
-            </nav>
-            <div class="nav-icons">
-                <button type="button" class="search-icon" id="searchToggle" aria-label="Search"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button>
-                <a href="wishlist.html" class="wishlist-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg><span class="wishlist-count">0</span></a>
-                <a href="cart.html" class="cart-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 8h12l1 13H5L6 8Z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/></svg><span class="cart-count">0</span></a>
-                <a href="dashboard.html" class="user-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg></a>
-                <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
-            </div>
+      <div class="container nav-container">
+        <div class="logo">
+          <a href="index.html"
+            ><img
+              class="brand-mark"
+              src="assets/brand/alkebulan-mark.svg"
+              width="34"
+              height="34"
+              alt="ALKEBULAN"
+          /></a>
         </div>
-        <div class="mobile-menu" id="mobileMenu">
-            <div class="mobile-close" id="mobileClose"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 6 12 12M6 18 18 6"/></svg></div>
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="shop.html">Shop</a></li>
-                <li><a href="men.html">Men</a></li>
-                <li><a href="women.html">Women</a></li>
-                <li><a href="about.html">About</a></li>
-                <li><a href="contact.html">Contact</a></li>
-                <li><a href="signup.html">Sign Up</a></li>
-                <li><a href="wishlist.html">Wishlist</a></li>
-                <li><a href="cart.html">Cart</a></li>
-            </ul>
+        <nav class="nav-links" id="navLinks">
+          <ul>
+            <li><a href="shop.html">Shop</a></li>
+            <li><a href="men.html">Men</a></li>
+            <li><a href="women.html">Women</a></li>
+            <li><a href="videos.html">Videos</a></li>
+            <li><a href="about.html">Our story</a></li>
+            <li><a href="contact.html" class="active">Contact</a></li>
+          </ul>
+        </nav>
+        <div class="nav-icons">
+          <button
+            type="button"
+            class="search-icon"
+            id="searchToggle"
+            aria-label="Search"
+          >
+            <svg
+              class="nav-svg-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <circle cx="10.5" cy="10.5" r="6.5" />
+              <path d="m16 16 5 5" />
+            </svg>
+          </button>
+          <a href="wishlist.html" class="wishlist-icon"
+            ><svg
+              class="nav-svg-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"
+              /></svg
+            ><span class="wishlist-count">0</span></a
+          >
+          <a href="cart.html" class="cart-icon"
+            ><svg
+              class="nav-svg-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M6 8h12l1 13H5L6 8Z" />
+              <path d="M9 10V6a3 3 0 0 1 6 0v4" /></svg
+            ><span class="cart-count">0</span></a
+          >
+          <a href="dashboard.html" class="user-icon"
+            ><svg
+              class="nav-svg-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M20 21a8 8 0 0 0-16 0" />
+              <circle cx="12" cy="7" r="4" /></svg
+          ></a>
+          <div class="hamburger" id="hamburger">
+            <span></span><span></span><span></span>
+          </div>
         </div>
+      </div>
+      <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-close" id="mobileClose">
+          <svg
+            class="nav-svg-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path d="m6 6 12 12M6 18 18 6" />
+          </svg>
+        </div>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="shop.html">Shop</a></li>
+          <li><a href="men.html">Men</a></li>
+          <li><a href="women.html">Women</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="signup.html">Sign Up</a></li>
+          <li><a href="wishlist.html">Wishlist</a></li>
+          <li><a href="cart.html">Cart</a></li>
+        </ul>
+      </div>
     </header>
 
     <!-- Hero Section -->
     <section class="contact-hero">
-        <div class="container">
-            <h1>We're Here to Assist You</h1>
-            <p>Have questions regarding orders, sizing, or custom inquiries? Reach out to our dedicated concierge team.</p>
-        </div>
+      <div class="contact-hero-content">
+        <h1>We're Here to Assist You</h1>
+        <p>
+          Have questions regarding orders, sizing, or custom inquiries? Reach
+          out to our dedicated concierge team.
+        </p>
+      </div>
     </section>
 
     <!-- Contact Grid -->
     <section class="section">
-        <div class="container">
-            <div class="contact-grid">
-                <!-- Info Cards -->
-                <div class="contact-info-cards">
-                    <div class="contact-info-card">
-                        <div class="contact-info-icon"><i class="fas fa-map-marker-alt"></i></div>
-                        <div class="contact-info-text">
-                            <h3>Based in Lagos</h3>
-                            <p>ALKEBULAN operates from Lagos, Nigeria. Contact client services before planning an in-person visit.</p>
-                        </div>
-                    </div>
-                    <div class="contact-info-card">
-                        <div class="contact-info-icon"><i class="fas fa-phone-alt"></i></div>
-                        <div class="contact-info-text">
-                            <h3>Customer Support</h3>
-                            <p><a href="tel:+2348103463852">+234 810 346 3852</a><br>Phone and WhatsApp enquiries</p>
-                        </div>
-                    </div>
-                    <div class="contact-info-card">
-                        <div class="contact-info-icon"><i class="fas fa-envelope"></i></div>
-                        <div class="contact-info-text">
-                            <h3>Email Concierge</h3>
-                            <p><a href="mailto:hello@alkebulan.com">hello@alkebulan.com</a><br>Order, sizing, delivery, and account help</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Form -->
-                <div class="contact-form-wrapper">
-                    <h2>Send Us a Message</h2>
-                    <p>Fill out the form below and a representative will get back to you shortly.</p>
-                    <div id="formAlert" role="status" aria-live="polite" tabindex="-1" hidden></div>
-                    <form id="contactForm">
-                        <div class="form-group">
-                            <label for="contactName">Full Name *</label>
-                            <input type="text" id="contactName" placeholder="John Doe" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="contactEmail">Email Address *</label>
-                            <input type="email" id="contactEmail" placeholder="john@example.com" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="contactSubject">Subject</label>
-                            <select id="contactSubject">
-                                <option value="general">General Inquiry</option>
-                                <option value="order">Order Status & Tracking</option>
-                                <option value="returns">Returns & Exchanges</option>
-                                <option value="sizing">Sizing & Styling Advice</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="contactMessage">Message *</label>
-                            <textarea id="contactMessage" rows="5" placeholder="How can we assist you today?" required></textarea>
-                        </div>
-                        <button type="submit" class="contact-submit-btn">Send Message</button>
-                    </form>
-                </div>
+      <div class="container">
+        <div class="contact-grid">
+          <!-- Info Cards -->
+          <div class="contact-info-cards">
+            <div class="contact-info-card">
+              <div class="contact-info-icon">
+                <i class="fas fa-map-marker-alt"></i>
+              </div>
+              <div class="contact-info-text">
+                <h3>Based in Lagos</h3>
+                <p>
+                  ALKEBULAN operates from Lagos, Nigeria. Contact client
+                  services before planning an in-person visit.
+                </p>
+              </div>
             </div>
+            <div class="contact-info-card">
+              <div class="contact-info-icon">
+                <i class="fas fa-phone-alt"></i>
+              </div>
+              <div class="contact-info-text">
+                <h3>Customer Support</h3>
+                <p>
+                  <a href="tel:+2348103463852">+234 810 346 3852</a><br />Phone
+                  and WhatsApp enquiries
+                </p>
+              </div>
+            </div>
+            <div class="contact-info-card">
+              <div class="contact-info-icon">
+                <i class="fas fa-envelope"></i>
+              </div>
+              <div class="contact-info-text">
+                <h3>Email Concierge</h3>
+                <p>
+                  <a href="mailto:hello@alkebulan.com">hello@alkebulan.com</a
+                  ><br />Order, sizing, delivery, and account help
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form -->
+          <div class="contact-form-wrapper">
+            <h2>Send Us a Message</h2>
+            <p>
+              Fill out the form below and a representative will get back to you
+              shortly.
+            </p>
+            <div
+              id="formAlert"
+              role="status"
+              aria-live="polite"
+              tabindex="-1"
+              hidden
+            ></div>
+            <form id="contactForm">
+              <div class="form-group">
+                <label for="contactName">Full Name *</label>
+                <input
+                  type="text"
+                  id="contactName"
+                  placeholder="John Doe"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="contactEmail">Email Address *</label>
+                <input
+                  type="email"
+                  id="contactEmail"
+                  placeholder="john@example.com"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="contactSubject">Subject</label>
+                <select id="contactSubject">
+                  <option value="general">General Inquiry</option>
+                  <option value="order">Order Status & Tracking</option>
+                  <option value="returns">Returns & Exchanges</option>
+                  <option value="sizing">Sizing & Styling Advice</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="contactMessage">Message *</label>
+                <textarea
+                  id="contactMessage"
+                  rows="5"
+                  placeholder="How can we assist you today?"
+                  required
+                ></textarea>
+              </div>
+              <button type="submit" class="contact-submit-btn">
+                Send Message
+              </button>
+            </form>
+          </div>
         </div>
+      </div>
     </section>
 
     <!-- Location information -->
     <section class="map-section">
-        <div class="container">
-            <div class="map-header">
-                <h2>Lagos, Nigeria</h2>
-                <p>Client services are available by phone, WhatsApp, and email. Any collection or appointment details will be confirmed directly with you.</p>
-            </div>
+      <div class="container">
+        <div class="map-header">
+          <h2>Lagos, Nigeria</h2>
+          <p>
+            Client services are available by phone, WhatsApp, and email. Any
+            collection or appointment details will be confirmed directly with
+            you.
+          </p>
         </div>
+      </div>
     </section>
 
     <!-- FAQ Accordion -->
     <section class="faq-section">
-        <div class="container">
-            <h2 class="section-title text-center">Frequently Asked Questions</h2>
-            <div class="faq-container">
-                <div class="faq-item active">
-                    <button type="button" class="faq-question">
-                        <span>What is your return & exchange policy?</span>
-                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
-                    </button>
-                    <div class="faq-answer">
-                        Eligible return requests can be made within 30 days of delivery. Read the <a href="returns.html">returns guidance</a> and contact us before sending an item back.
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <button type="button" class="faq-question">
-                        <span>How long does shipping take?</span>
-                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
-                    </button>
-                    <div class="faq-answer">
-                        Timing depends on destination, availability, and courier service. The team confirms an estimated delivery window after reviewing your order.
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <button type="button" class="faq-question">
-                        <span>Do you ship internationally?</span>
-                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
-                    </button>
-                    <div class="faq-answer">
-                        Available destinations and courier options are confirmed during checkout or by client services. Contact us if your destination is not listed.
-                    </div>
-                </div>
+      <div class="container">
+        <h2 class="section-title text-center">Frequently Asked Questions</h2>
+        <div class="faq-container">
+          <div class="faq-item active">
+            <button type="button" class="faq-question">
+              <span>What is your return & exchange policy?</span>
+              <i class="fas fa-chevron-down" aria-hidden="true"></i>
+            </button>
+            <div class="faq-answer">
+              Eligible return requests can be made within 30 days of delivery.
+              Read the <a href="returns.html">returns guidance</a> and contact
+              us before sending an item back.
             </div>
+          </div>
+          <div class="faq-item">
+            <button type="button" class="faq-question">
+              <span>How long does shipping take?</span>
+              <i class="fas fa-chevron-down" aria-hidden="true"></i>
+            </button>
+            <div class="faq-answer">
+              Timing depends on destination, availability, and courier service.
+              The team confirms an estimated delivery window after reviewing
+              your order.
+            </div>
+          </div>
+          <div class="faq-item">
+            <button type="button" class="faq-question">
+              <span>Do you ship internationally?</span>
+              <i class="fas fa-chevron-down" aria-hidden="true"></i>
+            </button>
+            <div class="faq-answer">
+              Available destinations and courier options are confirmed during
+              checkout or by client services. Contact us if your destination is
+              not listed.
+            </div>
+          </div>
         </div>
+      </div>
     </section>
 
     <!-- Footer -->
     <footer>
-        <div class="container footer-grid">
-            <div class="footer-col">
-                <h3>ALKEBULAN</h3>
-                <p>Premium clothing for the discerning.</p>
-            </div>
-            <div class="footer-col">
-                <h4>Quick Links</h4>
-                <a href="index.html">Home</a>
-                <a href="shop.html">Shop</a>
-                <a href="men.html">Men</a>
-                <a href="women.html">Women</a>
-                <a href="about.html">About</a>
-                <a href="contact.html">Contact</a>
-            </div>
-            <div class="footer-col">
-                <h4>Support</h4>
-                <a href="faq.html">FAQ</a>
-                <a href="returns.html">Returns</a>
-                <a href="shipping.html">Shipping</a>
-                <a href="privacy.html">Privacy</a>
-            </div>
-            <div class="footer-col">
-                <h4>Contact</h4>
-                <p><i class="fas fa-map-marker-alt"></i> Lagos, Nigeria</p>
-                <p><i class="fas fa-phone"></i> +234 810 346 3852</p>
-                <p><i class="fas fa-envelope"></i> hello@alkebulan.com</p>
-            </div>
+      <div class="container footer-grid">
+        <div class="footer-col">
+          <h3>ALKEBULAN</h3>
+          <p>Premium clothing for the discerning.</p>
         </div>
-        <div class="footer-bottom"><p>&copy; 2026 ALKEBULAN. All rights reserved.</p></div>
+        <div class="footer-col">
+          <h4>Quick Links</h4>
+          <a href="index.html">Home</a>
+          <a href="shop.html">Shop</a>
+          <a href="men.html">Men</a>
+          <a href="women.html">Women</a>
+          <a href="about.html">About</a>
+          <a href="contact.html">Contact</a>
+        </div>
+        <div class="footer-col">
+          <h4>Support</h4>
+          <a href="faq.html">FAQ</a>
+          <a href="returns.html">Returns</a>
+          <a href="shipping.html">Shipping</a>
+          <a href="privacy.html">Privacy</a>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <p><i class="fas fa-map-marker-alt"></i> Lagos, Nigeria</p>
+          <p><i class="fas fa-phone"></i> +234 810 346 3852</p>
+          <p><i class="fas fa-envelope"></i> hello@alkebulan.com</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 ALKEBULAN. All rights reserved.</p>
+      </div>
     </footer>
 
     <!-- JavaScript -->
@@ -211,5 +382,5 @@
     <script src="js/animation.js?v=20260913-5"></script>
     <script src="js/contact.js?v=20260830-1"></script>
     <script src="js/app.js?v=20260913-1"></script>
-</body>
+  </body>
 </html>
