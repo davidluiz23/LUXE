@@ -56,6 +56,9 @@
     if (!$(".brand-mark", logo)) {
       logo.innerHTML = brandMark() + (page === "index" ? '<span class="brand-wordmark">ALKEBULAN</span>' : '');
     }
+    if (!$(".brand-wordmark", logo)) {
+      logo.insertAdjacentHTML('beforeend', '<span class="brand-wordmark">ALKEBULAN</span>');
+    }
 
     const renderedNavRoutes = [
       ["Shop", "shop.html", "shop"],
@@ -346,6 +349,7 @@
   function rebuildFooter() {
     const footer = $("footer");
     if (!footer) return;
+    if (footer.hasAttribute("data-culture-footer")) return;
     footer.classList.add("luxury-footer");
     footer.innerHTML = `
       <div class="container luxury-footer-top">

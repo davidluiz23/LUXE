@@ -84,7 +84,6 @@ if (typeof window !== "undefined") {
           },
         },
       );
-      console.log("[ALKEBULAN] Supabase client initialized.");
     } catch (error) {
       console.error("[ALKEBULAN] Supabase initialization failed:", error);
     }
@@ -2561,7 +2560,6 @@ const testSupabaseConnection = async () => {
       return false;
     }
 
-    console.log("[ALKEBULAN] Supabase connection looks healthy.");
     return true;
   } catch (error) {
     console.error("[ALKEBULAN] Supabase connection test failed:", error);

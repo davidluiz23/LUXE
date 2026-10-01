@@ -33,7 +33,7 @@ html.alkebulan-site body:not(.page-admin) {
   --gray-text: #62675f;
   --border-color: #d9ddd5;
   --font-heading: var(--font-display);
-  --font-body: var(--font-ui);
+  /* Inherit --font-body; assigning --font-ui here creates a token cycle. */
   background: var(--alk-paper);
   color: var(--alk-ink);
   font-family: var(--alk-sans);
@@ -2230,4 +2230,50 @@ html.alkebulan-site .nav-menu-overlay .mobile-menu-meta {
     .mobile-menu.active {
     animation: none;
   }
+}
+
+/* The story uses supplied artwork and the same restrained clay palette. */
+html.alkebulan-site body.page-about .story-img-container { padding:7px;border-radius:28px;background:var(--alk-surface);box-shadow:var(--alk-shadow); }
+html.alkebulan-site body.page-about .story-img-container img { aspect-ratio:4/3;object-fit:contain;border-radius:22px; }
+html.alkebulan-site body.page-about .story-grid { padding-block:0;gap:clamp(28px,5vw,72px); }
+html.alkebulan-site body.page-about .story-text h2 { font-family:var(--font-display);font-weight:600;letter-spacing:-.04em;line-height:1.15; }
+html.alkebulan-site body.page-about .clay-story { background:var(--alk-warm-paper);scroll-margin-top:110px; }
+html.alkebulan-site body.page-about .clay-story-art { border:1px solid #e7d8c8;border-radius:28px;background:radial-gradient(ellipse,#e6c6a5,#f5eadd 65%); }
+html.alkebulan-site body.page-about .clay-story-art img { display:block;width:100%;max-height:620px;height:auto;object-fit:contain; }
+html.alkebulan-site body.page-about .clay-story-label { color:var(--alk-deep-clay);font-size:12px;font-weight:650;letter-spacing:.14em;text-transform:uppercase; }
+html.alkebulan-site body.page-about .story-text p a { color:var(--alk-deep-clay);text-decoration:underline;text-underline-offset:3px; }
+html.alkebulan-site body.page-about .clay-story .btn { margin-top:12px; }
+html.alkebulan-site body.page-about .value-card { text-align:left; }
+html.alkebulan-site body.page-about .value-icon { color:var(--alk-deep-clay);background:var(--alk-warm-paper); }
+@media(max-width:760px) {
+  html.alkebulan-site body.page-about .story-grid { grid-template-columns:minmax(0,1fr); }
+  html.alkebulan-site body.page-about .clay-story-art img { max-height:470px; }
+  html.alkebulan-site body:not(.page-admin) :is(input,select,textarea) { font-size:16px; }
+}
+
+/* Keep small choice controls out of the large text-input geometry. The label
+   supplies the touch target while the native checked/focus state stays clear. */
+html.alkebulan-site body:not(.page-admin) :is(.auth-form, .dashboard-profile-form) input:is([type="checkbox"], [type="radio"]) {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 0;
+  flex: 0 0 20px;
+  padding: 0;
+  margin-block: 0;
+  border-radius: 5px !important;
+  accent-color: #4e6148;
+}
+html.alkebulan-site body:not(.page-admin) :is(.auth-form, .dashboard-profile-form) input[type="radio"] {
+  border-radius: 50% !important;
+}
+html.alkebulan-site body:not(.page-admin) :is(.checkbox-label, .checkbox-group) {
+  min-height: 44px;
+  align-items: center;
+}
+html.alkebulan-site body:not(.page-admin) .luxury-footer-grid .footer-location strong {
+  font-family: var(--font-body);
+  font-size: .88rem;
+  font-weight: 500;
+  letter-spacing: 0;
 }

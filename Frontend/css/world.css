@@ -1,0 +1,203 @@
+/* One homepage world. Existing shopping and account styles retain their scope. */
+html.alkebulan-site body.world-home {
+  --world-ink: #f0eadf;
+  --world-muted: #c2b7a7;
+  --world-base: #211e1a;
+  --world-accent: #c9875e;
+  --world-gutter: 64px;
+  --world-display: 112px;
+  --world-heading: 88px;
+  padding: 0;
+  background: var(--world-base);
+  color: var(--world-ink);
+  overflow-x: clip;
+}
+html.alkebulan-site body.world-home:not(.search-is-open):not(.filters-open):not(.mobile-nav-open) { overflow-y: visible !important; }
+.world-home .skip-to-content { position: fixed; left: 24px; top: 0; z-index: 15000; padding: 12px 20px; background: #f0eadf; color: #211e1a; transform: translateY(-150%); }
+.world-home .skip-to-content:focus { transform: translateY(0); }
+.world-noscript-nav { position: absolute; top: 84px; left: 24px; z-index: 10; display: flex; gap: 24px; color: #f0eadf; font-size: 14px; }
+html.alkebulan-site body.world-home .scroll-world a { text-decoration: none; }
+html.alkebulan-site body.world-home .scroll-world button { font-weight: 400; border-radius: 2px !important; }
+html.alkebulan-site body.world-home :focus-visible { outline-color: #dfaa7e !important; }
+html.alkebulan-site body.world-home main,
+html.alkebulan-site body.world-home main > :first-child { padding: 0; margin: 0; }
+html.alkebulan-site body.world-home #navbar.luxury-navbar,
+html.alkebulan-site body.world-home #navbar.luxury-navbar.scrolled {
+  top: 0; left: 0; width: 100%; max-width: none; height: 96px;
+  border: 0; border-radius: 0; box-shadow: none; transform: none;
+  background: linear-gradient(#211e1aec, #211e1a00); backdrop-filter: none;
+  color: var(--world-ink);
+}
+html.alkebulan-site body.world-home .nav-container {
+  display: flex; width: calc(100% - var(--world-gutter) * 2); max-width: none;
+  height: 96px; gap: 40px; padding: 0; margin: 0 auto;
+  border-bottom: 1px solid #f0eadf24;
+}
+html.alkebulan-site body.world-home .logo { order: 0; flex: 1; position: static; transform: none; }
+html.alkebulan-site body.world-home .logo a { display: inline-flex; width: auto; align-items: center; color: var(--world-ink); gap: 10px; }
+html.alkebulan-site body.world-home .logo .brand-wordmark { display: inline; }
+html.alkebulan-site body.world-home .brand-mark { width: 28px; height: 28px; filter: brightness(0) invert(.93); }
+html.alkebulan-site body.world-home .brand-wordmark { display: inline; font: 600 18px/1 'Manrope', sans-serif; letter-spacing: -.04em; color: inherit; }
+html.alkebulan-site body.world-home .nav-links { order: 1; position: static; transform: none; }
+html.alkebulan-site body.world-home .nav-links ul { gap: 26px; }
+html.alkebulan-site body.world-home .nav-links a { font: 400 13px/1.4 'Manrope', sans-serif; color: var(--world-ink); text-transform: none; letter-spacing: 0; padding-inline: 0; }
+html.alkebulan-site body.world-home .nav-links a[href$="videos.html"]::before { display: none; }
+html.alkebulan-site body.world-home .nav-links a:hover { background: #f0eadf0d; }
+html.alkebulan-site body.world-home .nav-icons { order: 2; gap: 4px; }
+html.alkebulan-site body.world-home .nav-icons :is(a, button) { color: var(--world-ink); background: transparent; width: 48px; height: 48px; }
+html.alkebulan-site body.world-home .nav-icons svg { color: var(--world-ink); }
+html.alkebulan-site body.world-home .nav-icons .cart-count { color: var(--world-ink); background: var(--world-base); border-color: #f0eadf60; }
+html.alkebulan-site body.world-home .hamburger span { background: var(--world-ink); }
+html.alkebulan-site body.world-home .back-to-top { background: #f0eadf; color: #211e1a; bottom: 78px; }
+.world-home .scroll-world { position: relative; isolation: isolate; }
+.world-home .scroll-world:has(.world-viewport[data-hover="inspect"]), .world-home .scroll-world:has(.world-viewport[data-hover="artwork"]) { cursor: pointer; }
+.world-sticky { position: sticky; top: 0; height: 100vh; height: 100svh; margin-bottom: -100vh; margin-bottom: -100svh; overflow: hidden; pointer-events: none; }
+.world-viewport, .world-poster, .world-scrim { position: absolute; inset: 0; }
+.world-viewport canvas { width: 100%; height: 100%; display: block; opacity: 0; transition: opacity 550ms ease; }
+[data-world-state="ready"] .world-viewport canvas { opacity: 1; }
+.world-poster { background: var(--world-base); }
+.world-poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.world-scrim { background: linear-gradient(90deg, #211e1a80, transparent 58%), linear-gradient(0deg, #211e1a99, transparent 22%, transparent 85%, #211e1a30); }
+.world-home .world-chapter {
+  position: relative; z-index: 2; min-height: 100vh; min-height: 100svh;
+  display: flex; align-items: center; padding: 148px var(--world-gutter) 130px;
+  scroll-margin-top: 0; pointer-events: none;
+}
+.world-chapter :is(a, button) { pointer-events: auto; }
+.world-home .world-copy { position: relative; width: 100%; }
+.world-home .world-kicker { font: 400 13px/1.6 'Manrope', sans-serif; color: var(--world-muted); letter-spacing: .03em; margin: 0 0 32px; }
+.world-home .world-copy :is(h1,h2) { color: var(--world-ink); font: 400 var(--world-heading)/1 'Manrope', sans-serif; letter-spacing: -.065em; margin: 0; max-width: 10ch; text-transform: none; }
+.world-home .world-copy h1 { font-size: var(--world-display); }
+.world-home .world-copy h1 > span { display: block; }
+.world-home .world-copy em { display: inline-block; font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; letter-spacing: -.035em; }
+.world-home .world-copy h1 em { display: block; font-size: 1.12em; color: #dba67c; }
+.world-home .world-description { max-width: 34ch; margin: 32px 0 0; color: var(--world-muted); font: 400 16px/1.75 'Manrope', sans-serif; text-wrap: pretty; }
+.world-home .world-description-small { margin-top: 20px; }
+.world-home :is(.world-primary, .world-text-link, .world-light-control, .world-motion-toggle, .world-artwork-selector button) { font-family: 'Manrope', sans-serif; touch-action: manipulation; user-select: none; transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, opacity 160ms ease; }
+.world-home .world-primary { display: inline-flex; align-items: center; gap: 44px; min-height: 56px; padding: 16px 20px; margin-top: 36px; background: #f0eadf; color: #211e1a; font-size: 14px; border-radius: 2px; font-weight: 600; }
+.world-arrow { font-size: 23px; line-height: 1; }
+.world-home .world-text-link { display: inline-flex; align-items: center; gap: 26px; min-height: 48px; margin-top: 28px; color: var(--world-ink); font-size: 14px; border-bottom: 1px solid #f0eadf70; }
+.world-home .world-object-note { position: absolute; right: var(--world-gutter); bottom: 136px; border-left: 1px solid #dba67c80; padding-left: 18px; color: var(--world-muted); }
+.world-object-note > span { font-size: 12px; letter-spacing: .07em; }
+.world-home .world-object-note p { margin: 8px 0 0; font: 400 13px/1.6 'Manrope', sans-serif; }
+.world-home .world-scroll-cue { position: absolute; bottom: 60px; left: var(--world-gutter); display: inline-flex; align-items: center; gap: 20px; min-height: 48px; color: var(--world-muted); font-size: 12px; }
+.world-scroll-cue > span { font-size: 23px; }
+.world-home .world-location { position: absolute; bottom: 77px; right: var(--world-gutter); color: var(--world-muted); font-size: 12px; }
+.world-home .world-form .world-copy, .world-home .world-expression .world-copy { margin-left: 59%; width: 41%; }
+.world-light-control { display: flex; align-items: center; gap: 12px; padding: 0 0 0 12px; min-height: 48px; margin-top: 28px; border: 1px solid #dba67c66; border-radius: 2px; color: var(--world-ink); background: #211e1a44; font-size: 13px; }
+.world-light-control > span:last-child { padding: 0 16px; }
+.light-dot { width: 8px; height: 8px; border: 1px solid #dba67c; border-radius: 50%; }
+.world-light-control[aria-pressed="true"] .light-dot { background: #dba67c; box-shadow: 0 0 0 4px #dba67c1a; }
+.world-light-control[hidden] { display: none; }
+.world-home .world-light-control + .world-text-link { margin-top: 18px; }
+.world-fallback-form { position: absolute; left: 0; top: 10%; width: 55%; height: 85%; margin: 0; }
+.world-fallback-form img { width: 100%; height: 100%; object-fit: contain; }
+[data-world-state="ready"] .world-fallback-form { visibility: hidden; }
+.world-photo-fallback { position: absolute; left: var(--world-gutter); width: 49%; margin: 0; }
+.world-photo-fallback img { display: block; width: 100%; height: auto; aspect-ratio: 1.499; object-fit: contain; background: #dad8d4; }
+[data-world-state="ready"] .world-photo-fallback { opacity: 0; pointer-events: none; }
+[data-world-state="ready"] .world-photo-fallback[data-failed="true"] { opacity: 1; }
+.world-artwork-selector { display: flex; flex-wrap: wrap; gap: 0 20px; margin-top: 24px; max-width: 100%; }
+.world-artwork-selector[hidden] { display: none; }
+.world-artwork-selector button { background: transparent; border: 0; border-bottom: 1px solid transparent; color: var(--world-muted); min-height: 48px; padding: 0 2px; font-size: 14px; }
+.world-artwork-selector button[aria-pressed="true"] { color: var(--world-ink); border-bottom-color: #dba67c; }
+.world-artwork-selector button[aria-busy="true"] { opacity: .55; }
+.world-home .world-artwork-link { gap: 4px; }
+.world-artwork-link .world-arrow { margin-left: 36px; }
+.world-home .world-artwork-status { min-height: 20px; margin: 8px 0 -16px; font-size: 12px; color: var(--world-muted); max-width: 34ch; }
+.world-artwork-price { margin-top: 12px; font-size: 13px; }
+.world-home .world-exhibit-note { position: absolute; bottom: 100px; left: var(--world-gutter); font-size: 12px; color: var(--world-muted); }
+.world-home .world-departure .world-copy { width: 100%; }
+.world-home .world-departure h2 { font-size: 104px; }
+.world-home .world-departure .world-description { color: var(--world-ink); }
+.world-home .world-final-link { font-size: 16px; gap: 64px; }
+.world-interface { position: fixed; z-index: 15; bottom: 0; left: var(--world-gutter); right: var(--world-gutter); display: flex; align-items: center; justify-content: space-between; height: 64px; border-top: 1px solid #f0eadf24; background: linear-gradient(0deg, #211e1af5, #211e1a00); }
+.world-interface[hidden] { display: none; }
+.world-chapter-nav { display: flex; gap: 24px; }
+.world-chapter-nav a { display: flex; align-items: center; min-height: 48px; gap: 8px; font-size: 11px; color: #c2b7a7; }
+.chapter-line { width: 22px; height: 1px; background: #c2b7a759; }
+.world-chapter-nav [aria-current="step"] { color: #f0eadf; }
+.world-chapter-nav [aria-current="step"] .chapter-line { background: #dba67c; height: 2px; }
+.world-motion-toggle { background: transparent; color: #c2b7a7; border: 0; min-height: 48px; font-size: 11px; padding: 0 2px 0 12px; }
+.world-home .world-word { display: inline-block; }
+.world-home .world-word-mask { display: inline-block; overflow: hidden; vertical-align: bottom; padding-bottom: .07em; margin-bottom: -.07em; }
+html.alkebulan-site body.world-home footer.luxury-footer { position: relative; z-index: 3; background: #211e1a; color: #f0eadf; border-top: 1px solid #f0eadf24; }
+html.alkebulan-site body.world-home .luxury-footer :is(a, strong, p, .footer-label) { color: #c2b7a7; }
+html.alkebulan-site body.world-home .luxury-footer .footer-brand { color: #f0eadf; }
+html.alkebulan-site body.world-home .luxury-footer-bottom { border-color: #f0eadf24; }
+.world-home [data-world-state="poster"] .world-form, .world-home [data-world-state="poster"] .world-expression { background: #211e1a; }
+.world-home [data-world-state="poster"] .world-departure { background: linear-gradient(90deg, #211e1ae6, #211e1a55); }
+@media (hover: hover) and (pointer: fine) {
+  .world-home .world-primary:hover { background: #dba67c; }
+  .world-home :is(.world-text-link, .world-artwork-selector button, .world-motion-toggle):hover { color: #dba67c; }
+  .world-light-control:hover { border-color: #dba67c; background: #211e1a99; }
+}
+.world-home :is(.world-primary, .world-text-link, .world-light-control, .world-artwork-selector button):active { opacity: .72; transition-duration: 0ms; }
+@media (min-width: 1800px) { html.alkebulan-site body.world-home { --world-gutter: 96px; --world-display: 144px; --world-heading: 112px; } }
+@media (min-width: 701px) {
+  .world-home .world-departure { align-items: flex-start; padding-top: 172px; text-align: center; }
+  .world-home .world-departure h2 { max-width: none; }
+  .world-home .world-departure h2 br { display: none; }
+  .world-home .world-departure h2 em { margin-left: .18em; }
+  .world-home .world-departure .world-description { margin-inline: auto; }
+}
+@media (max-width: 1200px) {
+  html.alkebulan-site body.world-home { --world-gutter: 40px; --world-display: 96px; --world-heading: 72px; }
+  html.alkebulan-site body.world-home .nav-links { display: none; }
+  html.alkebulan-site body.world-home .nav-container { gap: 20px; }
+}
+@media (max-width: 900px) {
+  html.alkebulan-site body.world-home { --world-gutter: 32px; --world-display: 88px; --world-heading: 64px; }
+  .world-home .world-form .world-copy, .world-home .world-expression .world-copy { margin-left: 55%; width: 45%; }
+  .world-home .world-form h2 { font-size: 54px; }
+  .world-home .world-departure h2 { font-size: 88px; }
+  .world-object-note { max-width: 210px; }
+  .world-chapter-nav { gap: 16px; }
+}
+@media (max-width: 700px) {
+  html.alkebulan-site body.world-home { --world-gutter: 24px; --world-display: 64px; --world-heading: 56px; }
+  html.alkebulan-site body.world-home #navbar.luxury-navbar, html.alkebulan-site body.world-home #navbar.luxury-navbar.scrolled, html.alkebulan-site body.world-home .nav-container { height: 80px; }
+  html.alkebulan-site body.world-home .nav-container { width: calc(100% - 32px); gap: 0; }
+  html.alkebulan-site body.world-home .brand-mark { width: 22px; height: 26px; }
+  html.alkebulan-site body.world-home .brand-wordmark { font-size: 15px; }
+  html.alkebulan-site body.world-home .logo a { gap: 7px; }
+  html.alkebulan-site body.world-home .nav-icons { gap: 0; }
+  html.alkebulan-site body.world-home .nav-icons :is(a,button) { width: 44px; height: 48px; }
+  html.alkebulan-site body.world-home .nav-icons .user-icon { display: none; }
+  .world-home .world-chapter { min-height: 900px; min-height: max(850px, 100svh); align-items: flex-end; padding: 410px var(--world-gutter) 118px; }
+  .world-home .world-arrival { min-height: 844px; min-height: max(780px, 100svh); padding-top: 380px; padding-bottom: 124px; }
+  .world-home .world-kicker { font-size: 12px; margin-bottom: 16px; }
+  .world-home .world-description { font-size: 16px; line-height: 1.65; margin-top: 20px; }
+  .world-home .world-description-small { display: none; }
+  .world-home .world-copy h1 { font-size: 64px; }
+  .world-home .world-copy h1 > span, .world-home .world-copy h1 em { display: inline-block; }
+  .world-home .world-copy h1 em { font-size: 1.06em; }
+  .world-home .world-primary { margin-top: 24px; min-height: 52px; padding-block: 13px; }
+  .world-home .world-scroll-cue { bottom: 64px; }
+  .world-home .world-object-note, .world-home .world-location { display: none; }
+  .world-scrim { background: linear-gradient(0deg, #211e1aff 2%, #211e1aee 27%, #211e1a22 57%, transparent 75%); }
+  .world-home .world-form .world-copy, .world-home .world-expression .world-copy { margin-left: 0; width: 100%; }
+  .world-home .world-expression { padding-top: 370px; min-height: 920px; }
+  .world-home .world-form { min-height: 900px; }
+  .world-fallback-form { top: 50px; width: 100%; height: 440px; }
+  .world-photo-fallback { left: 24px; top: 114px; width: calc(100% - 48px); }
+  .world-home .world-exhibit-note { display: none; }
+  .world-home .world-departure { min-height: 850px; }
+  .world-home .world-departure h2 { font-size: 72px; }
+  .world-home .world-light-control { margin-top: 20px; }
+  .world-chapter-nav { gap: 12px; }
+  .world-chapter-nav a { min-width: 30px; gap: 0; }
+  .world-chapter-nav a > span:last-child { display: none; }
+  .chapter-line { width: 30px; }
+  .world-motion-toggle { font-size: 12px; }
+  .world-interface { height: 58px; }
+}
+@media (max-width: 370px) {
+  html.alkebulan-site body.world-home .brand-wordmark { font-size: 13px; }
+  html.alkebulan-site body.world-home .logo .brand-mark { display: none; }
+  html.alkebulan-site body.world-home .nav-icons :is(a,button) { width: 44px; }
+  .world-home .world-copy h1 { font-size: 56px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .world-home *, .world-home *::before, .world-home *::after { animation: none !important; transition-duration: 0ms !important; scroll-behavior: auto !important; }
+}

@@ -8,13 +8,26 @@
             { id: 'dun-dun', title: 'Dùn Dùn', image: 'assets/products/dun-dun.jpg', alt: 'Black Dùn Dùn tee with yellow lettering and a print of three drummers', productId: null },
         ],
         collections: {
-            men: { image: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?w=1200&auto=format&fit=crop', focusY: 50 },
-            women: { image: 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=1200&auto=format&fit=crop', focusY: 50 },
+            men: { image: 'assets/products/ijele.jpg', focusY: 50 },
+            women: { image: 'assets/products/dun-dun.jpg', focusY: 50 },
         },
         detail: { image: 'assets/products/durbar.jpg', alt: 'A closer look at the gold Durbar lettering and detailed artwork', linkLabel: 'Explore Durbar', productId: null, focusY: 50 },
     };
     const cacheKey = 'alkebulan_storefront_content_v1';
     const clone = value => JSON.parse(JSON.stringify(value));
+    // Recognize the untouched historical seed as a whole. Any edited document,
+    // including custom collection images, keeps its published content and revision.
+    function retireLegacyDefaults(data) {
+        const content = data?.content;
+        if (!content || data.revision !== 1) return data;
+        const legacy = clone(defaults);
+        legacy.collections.men.image = 'https://images.unsplash.com/photo-1617137968427-85924c800a22?w=1200&auto=format&fit=crop';
+        legacy.collections.women.image = 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=1200&auto=format&fit=crop';
+        const same = (a, b) => typeof a === 'object' && a !== null && b !== null
+            ? Object.keys(a).length === Object.keys(b).length && Object.keys(a).every(key => same(a[key], b[key]))
+            : a === b;
+        return same(content, legacy) ? { ...data, content: clone(defaults) } : data;
+    }
     let current = { content: clone(defaults), revision: null, updatedAt: null };
     let pending;
     const preparedImages = new Map();
@@ -82,7 +95,7 @@
     }
     function publish(data) {
         if (!data || validate(data.content) || !Number.isSafeInteger(data.revision) || data.revision < 1) return false;
-        current = clone(data);
+        current = clone(retireLegacyDefaults(data));
         try { localStorage.setItem(cacheKey, JSON.stringify(current)); } catch { /* Storage is optional. */ }
         applyImages();
         window.dispatchEvent(new CustomEvent('luxe:site-content', { detail: clone(current.content) }));
@@ -126,6 +139,20 @@
                 resolveImage(hero, url, (source, fallback) => {
                     hero.style.backgroundImage = `linear-gradient(rgba(0,0,0,.4),rgba(0,0,0,.4)), url("${source}")`;
                     hero.dataset.imageFallback = String(fallback);
+                    let campaign = hero.querySelector('.category-campaign');
+                    if (!campaign) {
+                        campaign = document.createElement('div');
+                        campaign.className = 'category-campaign';
+                        campaign.setAttribute('aria-hidden', 'true');
+                        const photo = document.createElement('img');
+                        photo.alt = '';
+                        photo.decoding = 'async';
+                        campaign.append(photo);
+                        hero.append(campaign);
+                    }
+                    const photo = campaign.querySelector('img');
+                    photo.src = source;
+                    photo.style.objectPosition = `center ${settings.focusY ?? 50}%`;
                 });
                 hero.style.backgroundPosition = `center ${settings.focusY ?? 50}%`;
             }
@@ -153,7 +180,7 @@
     }
     try {
         const cached = JSON.parse(localStorage.getItem(cacheKey));
-        if (cached && !validate(cached.content) && Number.isSafeInteger(cached.revision) && cached.revision > 0) current = cached;
+        if (cached && !validate(cached.content) && Number.isSafeInteger(cached.revision) && cached.revision > 0) current = retireLegacyDefaults(cached);
     } catch { /* First visit or unavailable storage: keep the bundled images. */ }
     window.LuxeSiteContent = { defaults: () => clone(defaults), snapshot: () => clone(current), validate, safeImage, imageUrl, prepareImage, load, save, applyImages };
     if (!document.body.classList.contains('admin-page')) {

@@ -1589,6 +1589,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("importCatalogBtn")?.addEventListener("click", async () => {
     const button = document.getElementById("importCatalogBtn");
+    if (!window.getStarterProducts?.().length) {
+      showToast("No starter products are bundled. Add your products in the catalog editor.");
+      return;
+    }
 
     const confirmed = await requestAdminConfirmation({
       title: "Import the starter catalog?",

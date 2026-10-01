@@ -1,11 +1,11 @@
-/* About Page Styling - LUXE Store */
+/* About Page Styling - ALKEBULAN */
 
 .about-hero {
   position: relative;
   padding: 140px 0 100px;
   background:
     linear-gradient(135deg, rgba(17, 17, 17, 0.95), rgba(30, 30, 30, 0.9)),
-    url("https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&auto=format&fit=crop")
+    url("../assets/products/ijele.jpg")
       center/cover no-repeat;
   color: #fff;
   text-align: center;
@@ -177,4 +177,209 @@
   .stats-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Heritage direction: expressive story surfaces, truthful garment imagery. */
+html.alkebulan-site body.page-about main .about-hero {
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  min-height: 560px;
+  padding: clamp(36px, 5.5vw, 76px);
+  background: #a9b497;
+  color: #171917;
+  text-align: left;
+  border: 1px solid #9da98c;
+  box-shadow: inset 0 1px 0 #ffffff80;
+}
+html.alkebulan-site body.page-about .about-hero::after {
+  position: absolute;
+  z-index: -1;
+  content: "";
+  inset: 0 0 0 55%;
+  background: url("../assets/brand/heritage-lines.svg") center / 560px;
+  opacity: .34;
+  pointer-events: none;
+}
+html.alkebulan-site body.page-about .about-hero-content {
+  position: relative;
+  z-index: 1;
+  width: min(78%, 880px);
+  margin: 0;
+  padding: 0;
+}
+html.alkebulan-site body.page-about main .about-eyebrow {
+  margin: 0 0 22px;
+  font-family: var(--font-body);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .13em;
+  line-height: 1.5;
+  text-transform: uppercase;
+  color: #3c4a36;
+}
+html.alkebulan-site body.page-about main .about-hero h1 {
+  margin: 0 0 26px;
+  font-family: var(--font-display);
+  font-size: clamp(2.7rem, 5.6vw, 5rem);
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: -.055em;
+  color: #171917;
+}
+html.alkebulan-site body.page-about .about-hero h1 em {
+  font-family: var(--font-editorial);
+  font-weight: 400;
+  letter-spacing: -.025em;
+}
+html.alkebulan-site body.page-about main .about-hero-content > p:not(.about-eyebrow) {
+  max-width: 460px;
+  margin: 0 0 26px;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: #313d2d;
+}
+html.alkebulan-site body.page-about .about-hero-link {
+  display: inline-flex;
+  gap: 24px;
+  align-items: center;
+  padding-inline: 22px;
+}
+html.alkebulan-site body.page-about .about-hero-mark {
+  position: absolute;
+  z-index: -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  inset: 24px 22px 24px auto;
+  width: 26%;
+  border-left: 1px solid #344a3036;
+  font: 700 clamp(3.8rem, 8vw, 7.5rem)/.86 var(--font-display);
+  letter-spacing: -.09em;
+  color: #344a3029;
+  transform: rotate(-5deg);
+  user-select: none;
+}
+html.alkebulan-site body.page-about .story-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+html.alkebulan-site body.page-about .story-img-container img { height: auto; }
+html.alkebulan-site body.page-about .story-text h2 {
+  margin: 0 0 26px;
+  font-size: clamp(2rem, 3.8vw, 3.5rem);
+}
+html.alkebulan-site body.page-about .story-text p {
+  max-width: 60ch;
+  margin: 0 0 20px;
+  font-size: .98rem;
+  line-height: 1.8;
+  color: #62675f;
+}
+html.alkebulan-site body.page-about .values-section {
+  padding-block: clamp(48px, 6vw, 88px);
+  background: #f0f1eb;
+}
+html.alkebulan-site body.page-about .values-section .section-title {
+  max-width: 800px;
+  text-align: left;
+  font-size: clamp(2rem, 4vw, 3.75rem);
+  line-height: 1.12;
+}
+html.alkebulan-site body.page-about .values-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 0;
+}
+html.alkebulan-site body.page-about main .value-card {
+  position: relative;
+  padding: 7px 7px 25px;
+  border: 1px solid #d9ddd5;
+  border-radius: 26px;
+  background: #fafaf7;
+  box-shadow: inset 0 1px 0 #fff;
+  transform: none;
+}
+html.alkebulan-site body.page-about .value-artwork {
+  overflow: hidden;
+  border-radius: 19px;
+  background: #e5e8e6;
+}
+html.alkebulan-site body.page-about .value-artwork img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+}
+html.alkebulan-site body.page-about .value-number {
+  display: block;
+  margin: 20px 18px 12px;
+  color: #7a2e1d;
+  font: 600 .72rem/1.4 var(--font-body);
+  letter-spacing: .1em;
+}
+html.alkebulan-site body.page-about .value-card h3 {
+  margin: 0 18px 10px;
+  font: 600 1.35rem/1.25 var(--font-display);
+  letter-spacing: -.035em;
+}
+html.alkebulan-site body.page-about .value-card p {
+  margin: 0 18px;
+  color: #62675f;
+  font-size: .87rem;
+  line-height: 1.7;
+}
+html.alkebulan-site body.page-about .clay-story-art { overflow: hidden; }
+html.alkebulan-site body.page-about .stats-section {
+  padding-block: 38px;
+  background: #e5e8e6;
+  color: #171917;
+  border-block: 1px solid #d9ddd5;
+}
+html.alkebulan-site body.page-about .stats-grid { gap: 20px; text-align: left; }
+html.alkebulan-site body.page-about .stat-item .stat-number {
+  margin-bottom: 8px;
+  color: #171917;
+  font: 600 clamp(2rem, 4vw, 3rem)/1.2 var(--font-body);
+  font-variant-numeric: tabular-nums;
+}
+html.alkebulan-site body.page-about .stat-item p {
+  margin: 0;
+  font-size: .8rem;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #62675f;
+}
+@media (max-width: 900px) {
+  html.alkebulan-site body.page-about main .about-hero { min-height: 490px; }
+  html.alkebulan-site body.page-about .about-hero-content { width: 88%; }
+  html.alkebulan-site body.page-about .about-hero-mark { opacity: .5; }
+  html.alkebulan-site body.page-about .values-grid { gap: 14px; }
+}
+@media (max-width: 640px) {
+  html.alkebulan-site body.page-about main .about-hero {
+    min-height: 500px;
+    margin-top: 12px;
+    padding: 32px 23px;
+    align-items: flex-start;
+  }
+  html.alkebulan-site body.page-about .about-hero-content { width: 100%; }
+  html.alkebulan-site body.page-about main .about-hero h1 {
+    font-size: clamp(2.45rem, 9.8vw, 3.8rem);
+    line-height: 1.08;
+  }
+  html.alkebulan-site body.page-about main .about-eyebrow { font-size: .65rem; }
+  html.alkebulan-site body.page-about .about-hero-mark {
+    inset: auto 12px 14px auto;
+    border: 0;
+    width: auto;
+    font-size: 3rem;
+    flex-direction: row;
+    opacity: .35;
+  }
+  html.alkebulan-site body.page-about .about-hero::after { inset: 50% 0 0; }
+  html.alkebulan-site body.page-about .values-grid { grid-template-columns: minmax(0, 1fr); }
+  html.alkebulan-site body.page-about .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
 }

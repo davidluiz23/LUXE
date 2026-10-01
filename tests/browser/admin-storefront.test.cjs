@@ -73,13 +73,10 @@ test('an admin can add, reorder, remove and publish images that appear on the st
     assert.equal(saved.p_content.slides[0].productId, 1001);
     assert.equal(saved.p_content.slides.some(slide => slide.id === 'dun-dun'), false);
     await page.goto(fixture.base + '/index.html');
-    await page.waitForFunction(() => document.querySelector('#stageName').textContent === 'New season');
-    assert.equal(await page.locator('#stageLink').getAttribute('href'), 'product.html?id=1001');
-    assert.equal(await page.locator('#stagePhoto').getAttribute('data-custom-photo'), 'true');
-    assert.equal(await page.locator('#stageNumber').textContent(), '01 / 03');
-    assert.equal(await page.locator('.detail-image img').getAttribute('src'), 'https://images.example.com/detail.jpg');
-    assert.equal(await page.locator('#detailLink').getAttribute('href'), 'product.html?id=1001');
-    assert.equal(await page.locator('.detail-image').evaluate(element => element.classList.contains('custom-detail-image')), true);
+    await page.waitForFunction(() => document.querySelector('#culturePieceName').textContent === 'New season');
+    assert.equal(await page.locator('#cultureStage [data-piece-link]').getAttribute('href'), 'product.html?id=1001');
+    assert.equal(await page.locator('#cultureShirt').getAttribute('src'), 'https://images.example.com/new-tee.jpg');
+    assert.equal(await page.locator('.culture-piece-select button').count(), 3);
     for (const kind of ['men', 'women']) {
       await page.goto(fixture.base + '/' + kind + '.html');
       const hero = page.locator('.' + kind + '-hero');
@@ -123,9 +120,9 @@ test('failed uploads and saves preserve drafts, conflicts require a fresh revisi
     await page.click('#saveStorefront');
     await page.waitForFunction(() => document.querySelector('#storefrontStatus').textContent.startsWith('Images saved.'));
     await page.goto(fixture.base + '/index.html');
-    await page.waitForFunction(() => document.querySelector('#stageName').textContent === 'Changed title');
-    assert.equal(await page.locator('#stageNumber').textContent(), '01 / 01');
-    assert.equal(await page.locator('#stagePlayback').isHidden(), true);
+    await page.waitForFunction(() => document.querySelector('#culturePieceName').textContent === 'Changed title');
+    assert.equal(await page.locator('.culture-piece-select button').count(), 1);
+    assert.equal(await page.locator('.culture-piece-select button').getAttribute('aria-pressed'), 'true');
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });

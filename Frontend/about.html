@@ -16,14 +16,14 @@
       crossorigin
     />
     <script src="js/utils.js?v=20260830-2"></script>
-    <title>Our Heritage & Story | ALKEBULAN Luxury Apparel</title>
+    <title>Our Story | ALKEBULAN African Streetwear</title>
     <meta
       name="description"
-      content="Discover the story behind ALKEBULAN. Crafting timeless luxury apparel rooted in African culture, heritage mills, and meticulous small-batch releases."
+      content="Explore ALKEBULAN's African streetwear through the Ijele, Durbar and Dùn Dùn prints, and an original contemporary terracotta study."
     />
     <meta
       name="keywords"
-      content="About ALKEBULAN, African heritage fashion, luxury clothing philosophy, sustainable luxury fashion, Lagos atelier"
+      content="About ALKEBULAN, African streetwear, Ijele, Durbar, Dùn Dùn, contemporary artwork"
     />
     <meta
       name="robots"
@@ -37,11 +37,11 @@
     <meta property="og:type" content="website" />
     <meta
       property="og:title"
-      content="Our Heritage & Story | ALKEBULAN Luxury Apparel"
+      content="Our Story | ALKEBULAN African Streetwear"
     />
     <meta
       property="og:description"
-      content="Discover the story behind ALKEBULAN. Crafting timeless luxury apparel rooted in African culture, heritage mills, and meticulous small-batch releases."
+      content="Explore ALKEBULAN's African streetwear through the Ijele, Durbar and Dùn Dùn prints, and an original contemporary terracotta study."
     />
     <meta property="og:url" content="https://alkebulan.boutique/about.html" />
     <meta
@@ -50,17 +50,17 @@
     />
     <meta property="og:image:width" content="1280" />
     <meta property="og:image:height" content="854" />
-    <meta property="og:image:alt" content="ALKEBULAN Atelier Story" />
+    <meta property="og:image:alt" content="ALKEBULAN Ijele graphic tee" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
-      content="Our Heritage & Story | ALKEBULAN Luxury Apparel"
+      content="Our Story | ALKEBULAN African Streetwear"
     />
     <meta
       name="twitter:description"
-      content="Discover the story behind ALKEBULAN. Crafting timeless luxury apparel rooted in African culture, heritage mills, and meticulous small-batch releases."
+      content="Explore ALKEBULAN's African streetwear through the Ijele, Durbar and Dùn Dùn prints, and an original contemporary terracotta study."
     />
     <meta
       name="twitter:image"
@@ -75,13 +75,12 @@
         "@id": "https://alkebulan.boutique/about.html#webpage",
         "url": "https://alkebulan.boutique/about.html",
         "name": "Our Heritage & Story | ALKEBULAN",
-        "description": "At ALKEBULAN, we believe in fashion that transcends fleeting trends. Redefining luxury through African heritage and sustainable craft.",
+        "description": "African streetwear, original garment prints and contemporary visual expression from ALKEBULAN.",
         "mainEntity": {
           "@type": "Organization",
           "name": "ALKEBULAN",
           "url": "https://alkebulan.boutique/",
           "logo": "https://alkebulan.boutique/assets/brand/alkebulan-mark.svg",
-          "foundingDate": "2020",
           "address": {
             "@type": "PostalAddress",
             "addressLocality": "Lagos",
@@ -90,9 +89,9 @@
         }
       }
     </script>
-    <link rel="stylesheet" href="css/variables.css?v=20260913-2" />
-    <link rel="stylesheet" href="css/style.css?v=20260830-1" />
-    <link rel="stylesheet" href="css/about.css?v=20260830-1" />
+    <link rel="stylesheet" href="css/variables.css?v=20260920-1" />
+    <link rel="stylesheet" href="css/style.css?v=20260920-1" />
+    <link rel="stylesheet" href="css/about.css?v=20260920-1" />
     <link rel="stylesheet" href="css/responsive.css?v=20260912-1" />
     <link
       id="alkebulanLuxuryStyles"
@@ -101,298 +100,77 @@
     />
     <script
       id="alkebulanLuxuryUi"
-      src="js/luxury-ui.js?v=20260913-2"
+      src="js/luxury-ui.js?v=20260930-2"
       defer
     ></script>
     <link rel="stylesheet" href="css/icons.css?v=20260913-2" />
-    <link rel="stylesheet" href="css/storefront.css?v=20260913-2" />
+    <link rel="stylesheet" href="css/storefront.css?v=20260920-1" />
+
+<link rel="preload" href="assets/fonts/barlow-condensed-600-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="css/culture.css?v=20260930-2" />
+    <link rel="stylesheet" href="js/culture/experience.css?v=20260930-2" />
+    <script type="module" src="js/culture/experience.js?v=20260930-2"></script>
   </head>
-  <body class="page-about">
+  <body id="top" class="culture-site page-about">
+<!-- culture-background:start -->
+<div class="culture-page-art" data-liquid-art data-liquid-texture="assets/culture/print-rhythm.webp" data-art-state="still" aria-hidden="true">
+  <picture><source media="(max-width: 700px)" srcset="assets/culture/contour-flow-mobile.webp" /><img src="assets/culture/contour-flow.webp" width="1536" height="1024" alt="" fetchpriority="high" /></picture>
+  <div class="liquid-canvas"></div>
+</div>
+<button type="button" class="culture-motion" aria-label="Pause background artwork" aria-pressed="false" hidden>Pause artwork <span aria-hidden="true">Ⅱ</span></button>
+<!-- culture-background:end -->
     <!-- Navigation -->
     <header id="navbar" class="luxury-navbar">
       <div class="container nav-container">
-        <div class="logo">
-          <a href="index.html"
-            ><img
-              class="brand-mark"
-              src="assets/brand/alkebulan-mark.svg"
-              width="34"
-              height="34"
-              alt="ALKEBULAN"
-          /></a>
-        </div>
-        <nav class="nav-links" id="navLinks">
-          <ul>
-            <li><a href="shop.html">Shop</a></li>
-            <li><a href="men.html">Men</a></li>
-            <li><a href="women.html">Women</a></li>
-            <li><a href="videos.html">Videos</a></li>
-            <li><a href="about.html" class="active">Our story</a></li>
-            <li><a href="contact.html">Contact</a></li>
-          </ul>
-        </nav>
+        <div class="logo"><a href="index.html" aria-label="ALKEBULAN home"><img class="brand-mark" src="assets/brand/alkebulan-mark.svg" width="28" height="28" alt="" /><span class="brand-wordmark">ALKEBULAN</span></a></div>
+        <nav class="nav-links" id="navLinks" aria-label="Main navigation"><ul>
+          <li><a href="shop.html">Collection</a></li><li><a href="men.html">Men</a></li><li><a href="women.html">Women</a></li><li><a href="videos.html">Videos</a></li><li><a href="about.html">Our story</a></li><li><a href="contact.html">Contact</a></li>
+        </ul></nav>
         <div class="nav-icons">
-          <button
-            type="button"
-            class="search-icon"
-            id="searchToggle"
-            aria-label="Search"
-          >
-            <svg
-              class="nav-svg-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <circle cx="10.5" cy="10.5" r="6.5" />
-              <path d="m16 16 5 5" />
-            </svg>
-          </button>
-          <a href="wishlist.html" class="wishlist-icon"
-            ><svg
-              class="nav-svg-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path
-                d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"
-              /></svg
-            ><span class="wishlist-count">0</span></a
-          >
-          <a href="cart.html" class="cart-icon"
-            ><svg
-              class="nav-svg-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path d="M6 8h12l1 13H5L6 8Z" />
-              <path d="M9 10V6a3 3 0 0 1 6 0v4" /></svg
-            ><span class="cart-count">0</span></a
-          >
-          <a href="dashboard.html" class="user-icon"
-            ><svg
-              class="nav-svg-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path d="M20 21a8 8 0 0 0-16 0" />
-              <circle cx="12" cy="7" r="4" /></svg
-          ></a>
-          <div class="hamburger" id="hamburger">
-            <span></span><span></span><span></span>
-          </div>
+          <button type="button" class="search-icon" id="searchToggle" aria-label="Search" title="Search"><svg class="nav-svg-icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11.5" cy="11.5" r="9.5"/><path stroke-linecap="round" d="M18.5 18.5L22 22"/></g></svg></button>
+          <a href="cart.html" class="cart-icon" aria-label="Shopping bag" title="Shopping bag"><svg class="nav-svg-icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3.79424 12.0291C4.33141 9.34329 4.59999 8.00036 5.48746 7.13543C5.65149 6.97557 5.82894 6.8301 6.01786 6.70061C7.04004 6 8.40956 6 11.1486 6H12.8515C15.5906 6 16.9601 6 17.9823 6.70061C18.1712 6.8301 18.3486 6.97557 18.5127 7.13543C19.4001 8.00036 19.6687 9.34329 20.2059 12.0291C20.9771 15.8851 21.3627 17.8131 20.475 19.1793C20.3143 19.4267 20.1267 19.6555 19.9157 19.8616C18.7501 21 16.7839 21 12.8515 21H11.1486C7.21622 21 5.25004 21 4.08447 19.8616C3.87342 19.6555 3.68582 19.4267 3.5251 19.1793C2.63744 17.8131 3.02304 15.8851 3.79424 12.0291Z"/><path stroke-linecap="round" d="M9 6V5C9 3.34315 10.3431 2 12 2C13.6569 2 15 3.34315 15 5V6"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 9H9.0001"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 9H15.0001"/></g></svg><span class="cart-count">0</span></a>
+          <a href="login.html?returnTo=dashboard.html%3Ftab%3Dnotifications" class="notification-icon" data-always-visible aria-label="Sign in to view notifications" title="Notifications"><svg class="nav-svg-icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18.7491 9.70957V9.00496C18.7491 5.13623 15.7274 2 12 2C8.27256 2 5.25087 5.13623 5.25087 9.00496V9.70957C5.25087 10.5552 5.00972 11.3818 4.5578 12.0854L3.45036 13.8095C2.43882 15.3843 3.21105 17.5249 4.97036 18.0229C9.57274 19.3257 14.4273 19.3257 19.0296 18.0229C20.789 17.5249 21.5612 15.3843 20.5496 13.8095L19.4422 12.0854C18.9903 11.3818 18.7491 10.5552 18.7491 9.70957Z"/><path stroke-linecap="round" d="M7.5 19C8.15503 20.7478 9.92246 22 12 22C14.0775 22 15.845 20.7478 16.5 19"/></g></svg><span class="navbar-notification-badge" hidden>0</span></a>
+          <a href="login.html" class="user-icon" aria-label="Sign in to your ALKEBULAN account" title="Your account"><svg class="nav-svg-icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="6" r="4"/><ellipse cx="12" cy="17" rx="7" ry="4"/></g></svg></a>
+          <button type="button" class="hamburger" id="hamburger" aria-label="Open menu"><span></span><span></span><span></span></button>
         </div>
       </div>
       <div class="mobile-menu" id="mobileMenu">
-        <div class="mobile-close" id="mobileClose">
-          <svg
-            class="nav-svg-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path d="m6 6 12 12M6 18 18 6" />
-          </svg>
-        </div>
-        <ul>
-          <li><a href="index.html">Home</a></li>
-          <li><a href="shop.html">Shop</a></li>
-          <li><a href="men.html">Men</a></li>
-          <li><a href="women.html">Women</a></li>
-          <li><a href="about.html">About</a></li>
-          <li><a href="contact.html">Contact</a></li>
-          <li><a href="signup.html">Sign Up</a></li>
-          <li><a href="wishlist.html">Wishlist</a></li>
-          <li><a href="cart.html">Cart</a></li>
-        </ul>
+        <button type="button" class="mobile-close" id="mobileClose" aria-label="Close menu"><svg class="nav-svg-icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M14.5 9.50002L9.5 14.5M9.49998 9.5L14.5 14.5"/></g></svg></button>
+        <ul><li><a href="shop.html">Shop</a></li><li><a href="about.html">Our story</a></li><li><a href="dashboard.html">Account</a></li><li><a href="wishlist.html">Saved pieces</a></li></ul>
       </div>
     </header>
+    <noscript><nav class="culture-noscript-nav" aria-label="Quick navigation"><a href="shop.html">Shop</a><a href="about.html">Our story</a><a href="cart.html">Your bag</a></nav></noscript>
 
     <!-- Hero Section -->
     <main id="mainContent">
-      <section class="about-hero">
-        <div class="about-hero-content">
-          <h1>Crafting Timeless Luxury</h1>
-          <p>
-            At ALKEBULAN, we believe in fashion that transcends fleeting trends.
-            Designed for the modern individuals who seeks sophistication,
-            comfort, and uncompromising quality.
-          </p>
-        </div>
-      </section>
-
-      <!-- Story Section -->
-      <section class="section">
-        <div class="container">
-          <div class="story-grid">
-            <div class="story-img-container">
-              <img
-                src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&auto=format&fit=crop"
-                alt="ALKEBULAN Atelier Story"
-                width="800"
-                height="1000"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-            <div class="story-text">
-              <h2>Our Heritage & Philosophy</h2>
-              <p>
-                Founded in 2020, ALKEBULAN emerged from a vision to redefine
-                everyday luxury. Each garment in our collection is thoughtfully
-                designed using organic silks, cashmere, and hand-selected
-                textiles gathered from heritage mills across Italy and Japan.
-              </p>
-              <p>
-                We champion sustainable elegance. By focusing on limited
-                small-batch releases, we ensure meticulous craftsmanship while
-                minimizing environmental impact.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Core Values -->
-      <section class="values-section">
-        <div class="container">
-          <h2 class="section-title text-center">Our Core Pillars</h2>
-          <div class="values-grid">
-            <div class="value-card">
-              <div class="value-icon"><i class="fas fa-gem"></i></div>
-              <h3>Unmatched Quality</h3>
-              <p>
-                Every piece undergoes rigorous quality checks to guarantee
-                durability, feel, and perfection in detail.
-              </p>
-            </div>
-            <div class="value-card">
-              <div class="value-icon"><i class="fas fa-leaf"></i></div>
-              <h3>Sustainable Fashion</h3>
-              <p>
-                We source eco-friendly fabrics and partner strictly with
-                ethical, fair-trade manufacturing workshops.
-              </p>
-            </div>
-            <div class="value-card">
-              <div class="value-icon"><i class="fas fa-feather-alt"></i></div>
-              <h3>Timeless Design</h3>
-              <p>
-                Clean silhouettes and classic tailoring engineered to remain
-                elegant season after season.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Stats -->
-      <section class="stats-section">
-        <div class="container">
-          <div class="stats-grid">
-            <div class="stat-item">
-              <div class="stat-number" data-store-metric="availablePieces">
-                &mdash;
-              </div>
-              <p>Pieces Available</p>
-            </div>
-            <div class="stat-item">
-              <div class="stat-number" data-store-metric="designersCurated">
-                &mdash;
-              </div>
-              <p>Designers Curated</p>
-            </div>
-            <div class="stat-item">
-              <div class="stat-number" data-store-metric="collections">
-                &mdash;
-              </div>
-              <p>Collections</p>
-            </div>
-            <div class="stat-item">
-              <div class="stat-number" data-store-metric="deliveredOrders">
-                &mdash;
-              </div>
-              <p>Orders Delivered</p>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
+  <section class="culture-story-hero" aria-labelledby="storyTitle"><div class="culture-story-heading"><p class="culture-label">ALKEBULAN / Our point of view</p><h1 id="storyTitle">OUR ROOTS.<br /><em>Our own way.</em></h1><p>African heritage. Contemporary expression.<br />Clothing that holds a little more meaning.</p></div><span class="culture-story-caption">Ink. Earth. A story still unfolding.</span></section>
+  <section class="culture-intro culture-container"><p class="culture-label"><span class="culture-dot" aria-hidden="true"></span> The house</p><div><h2 data-reveal>We wear where<br />we <em>come from.</em></h2><p>ALKEBULAN brings clothing and artwork together. For us, African heritage is a point of connection between people, memory, and visual expression. It informs the work we make and the stories we carry forward.</p><p>Our perspective is contemporary. Our expression is personal. And the next chapter belongs to the person wearing it.</p></div></section>
+  <section class="culture-manifesto"><div class="culture-manifesto-image story-ijele"><img src="assets/products/ijele.jpg" alt="Detail of the expressive Ijele artwork and warm lettering on black fabric" width="1280" height="854" loading="lazy" /><span>Ijele / The printed collection</span></div><div class="culture-manifesto-copy"><p class="culture-label">Clothing & artwork</p><h2 data-reveal>THE PRINT<br />COMES<br /><em>first.</em></h2><p>A mounted figure on Durbar. Three drummers on Dùn Dùn. Intricate linework on Ijele. Each artwork has its own character, given room to speak on a familiar black tee.</p><a class="culture-link" href="index.html#archive">Meet the artworks <span aria-hidden="true">↗</span></a></div></section>
+  <section class="culture-art-note culture-container" id="clay-study"><div><p class="culture-label">Our visual language</p><h2 data-reveal>NEVER<br /><em>standing still.</em></h2></div><div><p>Ochre, ink, geometric rhythm. Our visual world takes shape through contemporary experiments with colour and movement, alongside the original artwork in our collection.</p><p>Living patterns. Independent expression. A world that moves with you, always open to interpretation.</p><a class="culture-link" href="contact.html">Talk to the house <span aria-hidden="true">↗</span></a></div></section>
+  <section class="culture-invitation culture-container"><p class="culture-label">Carry the story forward.</p><h2 data-reveal>MAKE IT<br /><em>your own.</em></h2><a class="culture-button" href="shop.html"><span>Explore the collection</span><span class="culture-button-arrow" aria-hidden="true">↗</span></a></section>
+</main>
 
     <!-- Footer -->
-    <footer>
-      <div class="container footer-grid">
-        <div class="footer-col">
-          <h3>ALKEBULAN</h3>
-          <p>Premium clothing for the discerning.</p>
-        </div>
-        <div class="footer-col">
-          <h4>Quick Links</h4>
-          <a href="index.html">Home</a>
-          <a href="shop.html">Shop</a>
-          <a href="men.html">Men</a>
-          <a href="women.html">Women</a>
-          <a href="about.html">About</a>
-          <a href="contact.html">Contact</a>
-        </div>
-        <div class="footer-col">
-          <h4>Support</h4>
-          <a href="faq.html">FAQ</a>
-          <a href="returns.html">Returns</a>
-          <a href="shipping.html">Shipping</a>
-          <a href="privacy.html">Privacy</a>
-        </div>
-        <div class="footer-col">
-          <h4>Contact</h4>
-          <p><i class="fas fa-map-marker-alt"></i> Lagos, Nigeria</p>
-          <p><i class="fas fa-phone"></i> +234 810 346 3852</p>
-          <p><i class="fas fa-envelope"></i> hello@alkebulan.com</p>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p>&copy; 2026 ALKEBULAN. All rights reserved.</p>
-      </div>
-    </footer>
+    <footer class="culture-footer" data-culture-footer>
+  <div class="culture-container">
+    <div class="culture-footer-top"><p>From our roots.<br /><em>Into your world.</em></p><a class="culture-footer-contact" href="contact.html">Talk to the house <span aria-hidden="true">↗</span></a></div>
+    <div class="culture-footer-columns"><div class="culture-footer-location"><img src="assets/brand/alkebulan-mark.svg" width="44" height="44" alt="" /><p>African roots.<br />Unrestricted expression.</p><span>Lagos, Nigeria</span></div><nav aria-label="Shop and account"><h2>Explore</h2><a href="shop.html">The collection</a><a href="men.html">Men</a><a href="women.html">Women</a><a href="wishlist.html">Saved pieces</a><a href="dashboard.html">My account</a></nav><nav aria-label="About the brand"><h2>The house</h2><a href="about.html">Our story</a><a href="videos.html">In motion</a><a href="contact.html">Contact</a><a href="mailto:hello@alkebulan.com">hello@alkebulan.com</a></nav><nav aria-label="Customer support"><h2>Here to help</h2><a href="shipping.html">Shipping & delivery</a><a href="returns.html">Returns</a><a href="faq.html">Common questions</a><a href="tel:+2348103463852">+234 810 346 3852</a></nav></div>
+    <a class="culture-footer-wordmark" href="index.html" aria-label="ALKEBULAN home">ALKEBULAN<span aria-hidden="true">✳</span></a>
+    <div class="culture-footer-bottom"><span>© 2026 ALKEBULAN</span><div><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div><a href="#top">Back to the top ↑</a></div>
+  </div>
+</footer>
 
     <!-- JavaScript -->
     <script src="js/brand-config.js?v=20260830-1"></script>
     <script src="js/icons.js?v=20260913-1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
-    <script src="js/supabase-client.js?v=20260913-5"></script>
+    <script src="js/supabase-client.js?v=20260920-1"></script>
     <script src="js/updates-banner.js?v=20260903-1"></script>
-    <script src="js/products.js?v=20260913-1"></script>
+    <script src="js/products.js?v=20260920-1"></script>
     <script src="js/cart.js?v=20260908-1"></script>
     <script src="js/wishlist.js?v=20260913-1"></script>
     <script src="js/search.js?v=20260913-1"></script>
-    <script src="js/animation.js?v=20260913-5"></script>
+
     <script src="js/app.js?v=20260913-1"></script>
     <script src="js/about.js?v=20260830-1"></script>
   </body>

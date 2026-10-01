@@ -1,0 +1,76 @@
+    <main id="mainContent">
+      <div class="scroll-world" id="scrollWorld" data-world-state="poster">
+        <div class="world-sticky" aria-hidden="true">
+          <picture class="world-poster">
+            <source media="(max-width: 700px)" srcset="assets/heritage/gallery-mobile.webp" />
+            <source media="(max-width: 1000px)" srcset="assets/heritage/gallery-tablet.webp" />
+            <img src="assets/heritage/gallery-desktop.webp" alt="" width="1440" height="900" fetchpriority="high" />
+          </picture>
+          <div class="world-viewport" id="worldViewport"></div>
+          <div class="world-scrim"></div>
+        </div>
+
+        <section class="world-chapter world-arrival" id="heritage" aria-labelledby="heritageTitle">
+          <div class="world-copy">
+            <p class="world-kicker">African roots. Unrestricted expression.</p>
+            <h1 id="heritageTitle"><span>Rooted.</span><em>Unruled.</em></h1>
+            <p class="world-description">Culture in the fabric.<br />Expression without permission.</p>
+            <a class="world-primary" href="shop.html">Enter the collection <span class="world-arrow" aria-hidden="true">↗</span></a>
+          </div>
+          <div class="world-object-note"><span>Form study / 001</span><p>Terracotta, reimagined.<br />An original ALKEBULAN sculpture.</p></div>
+          <a class="world-scroll-cue" href="#form"><span aria-hidden="true">↓</span> Scroll to explore</a>
+          <span class="world-location">Conceived in Lagos. Worn your way.</span>
+        </section>
+
+        <section class="world-chapter world-form" id="form" aria-labelledby="formTitle">
+          <figure class="world-fallback-form"><img src="assets/heritage/terracotta-study.webp" alt="A close study of the terracotta portrait's carved eyes and ridged crown" width="800" height="960" loading="lazy" /></figure>
+          <div class="world-copy">
+            <p class="world-kicker">The form</p>
+            <h2 id="formTitle" data-world-reveal>A language<br />of <em>form.</em></h2>
+            <p class="world-description">Carved lines. A ridged crown. The warmth of fired clay. An original digital study in texture and expression.</p>
+            <p class="world-description world-description-small">A contemporary point of view,<br />rooted in African heritage.</p>
+            <button class="world-light-control" id="worldLight" type="button" aria-pressed="false" hidden><span class="light-dot" aria-hidden="true"></span><span>Explore the surface</span><span aria-hidden="true">↗</span></button>
+            <a class="world-text-link" href="about.html#clay-study">Behind the form <span aria-hidden="true">↗</span></a>
+          </div>
+        </section>
+
+        <section class="world-chapter world-expression" id="expression" aria-labelledby="expressionTitle">
+          <figure class="world-photo-fallback" id="worldPhotoFallback">
+            <img id="worldArtworkImage" src="assets/products/ijele.jpg" alt="Black Ijele tee with warm lettering and intricate expressive artwork" width="1280" height="854" loading="lazy" />
+          </figure>
+          <div class="world-copy">
+            <p class="world-kicker">The expression</p>
+            <h2 id="expressionTitle" data-world-reveal>Wear your<br /><em>origin.</em></h2>
+            <p class="world-description">Ijele. Durbar. Dùn Dùn.<br />Artwork you can wear.</p>
+            <div class="world-artwork-selector" id="worldArtworkSelector" role="group" aria-label="Choose an artwork" hidden>
+              <button type="button" data-world-artwork="ijele" aria-pressed="true">Ijele</button>
+              <button type="button" data-world-artwork="durbar" aria-pressed="false">Durbar</button>
+              <button type="button" data-world-artwork="dun-dun" aria-pressed="false">Dùn Dùn</button>
+            </div>
+            <p class="world-artwork-status" id="worldArtworkStatus" role="status"></p>
+            <a class="world-text-link world-artwork-link" id="worldArtworkLink" href="shop.html">Explore <span id="worldArtworkName">Ijele</span><span class="world-arrow" aria-hidden="true">↗</span></a>
+            <p class="world-artwork-price" id="worldArtworkPrice" hidden></p>
+          </div>
+          <span class="world-exhibit-note">From the ALKEBULAN collection / Original product photography</span>
+        </section>
+
+        <section class="world-chapter world-departure" id="collection" aria-labelledby="collectionTitle">
+          <div class="world-copy">
+            <p class="world-kicker">Made to move beyond the gallery</p>
+            <h2 id="collectionTitle">Culture<br /><em>lives on.</em></h2>
+            <p class="world-description">Clothing with character.<br />Rooted in expression. Worn your way.</p>
+            <a class="world-text-link world-final-link" href="shop.html">Find your expression <span class="world-arrow" aria-hidden="true">↗</span></a>
+          </div>
+        </section>
+
+        <div class="world-interface" id="worldInterface" hidden>
+          <nav class="world-chapter-nav" aria-label="Gallery chapters">
+            <a href="#heritage" aria-label="The origin" aria-current="step"><span class="chapter-line" aria-hidden="true"></span><span>The origin</span></a>
+            <a href="#form" aria-label="The form"><span class="chapter-line" aria-hidden="true"></span><span>The form</span></a>
+            <a href="#expression" aria-label="The expression"><span class="chapter-line" aria-hidden="true"></span><span>The expression</span></a>
+            <a href="#collection" aria-label="The collection"><span class="chapter-line" aria-hidden="true"></span><span>The collection</span></a>
+          </nav>
+          <button class="world-motion-toggle" id="worldMotion" type="button" aria-pressed="false">Still view</button>
+        </div>
+      </div>
+    </main>

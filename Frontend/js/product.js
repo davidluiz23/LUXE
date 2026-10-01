@@ -152,7 +152,7 @@ function renderProductDetails(product) {
         <div class="spec-item"><span class="spec-label">Category</span><span class="spec-value">${escapeProductHtml(product.category)}</span></div>
         <div class="spec-item"><span class="spec-label">Subcategory</span><span class="spec-value">${escapeProductHtml(product.subcategory || 'Collection')}</span></div>
         <div class="spec-item"><span class="spec-label">Brand</span><span class="spec-value">${escapeProductHtml(product.brand || window.LuxeBrand?.name || 'ALKEBULAN')}</span></div>
-        <div class="spec-item"><span class="spec-label">Rating</span><span class="spec-value">${rating.toFixed(1)} / 5</span></div>
+        ${rating > 0 ? `<div class="spec-item"><span class="spec-label">Rating</span><span class="spec-value">${rating.toFixed(1)} / 5</span></div>` : ''}
     `;
 
     const galleryImages = [product.image, product.hoverImage, ...(product.hoverImages || [])]
@@ -175,6 +175,7 @@ function renderProductDetails(product) {
         : 0;
 
     container.innerHTML = `
+        <div class="piece-masthead"><a href="shop.html"><span aria-hidden="true">←</span> The collection</a><span>ALKEBULAN / SELECTED PIECE</span></div>
         <div class="product-detail-grid">
             <!-- Product Gallery -->
             <div class="product-gallery">
@@ -199,12 +200,12 @@ function renderProductDetails(product) {
                 <span class="product-category">${escapeProductHtml(product.category)} / ${escapeProductHtml(product.subcategory || 'Collection')}</span>
                 <h1>${escapeProductHtml(product.name)}</h1>
                 
-                <div class="product-rating" aria-label="Rated ${rating.toFixed(1)} out of 5">
+                ${rating > 0 ? `<div class="product-rating" aria-label="Rated ${rating.toFixed(1)} out of 5">
                     <span class="stars" aria-hidden="true">${starsHtml}</span>
                     <span class="rating-count">${product.reviewCount !== null && product.reviewCount !== undefined
-                        ? `${Math.max(0, Number(product.reviewCount) || 0)} verified review${Number(product.reviewCount) === 1 ? '' : 's'}`
+                        ? `${Math.max(0, Number(product.reviewCount) || 0)} review${Number(product.reviewCount) === 1 ? '' : 's'}`
                         : `${rating.toFixed(1)} / 5`}</span>
-                </div>
+                </div>` : ''}
 
                 <div class="product-price-section">
                     ${detailPriceMarkup(product)}
@@ -215,14 +216,7 @@ function renderProductDetails(product) {
                     ${isAvailable ? `In stock${Number.isInteger(Number(product.stockQuantity)) ? ` · ${stockLimit} available` : ''}` : 'Out of stock'}
                 </div>
 
-                <section class="product-description-panel" aria-labelledby="productDetailsHeading">
-                    <h2 class="product-panel-label" id="productDetailsHeading">Product details</h2>
-                    <p class="product-description">${escapeProductHtml(product.description || 'Product information is being updated.')}</p>
 
-                    <div class="product-specs">
-                        ${specsHtml}
-                    </div>
-                </section>
 
                 <section class="product-options-panel" aria-labelledby="productOptionsHeading">
                     <h2 class="product-panel-label" id="productOptionsHeading">Choose your options</h2>
@@ -266,6 +260,15 @@ function renderProductDetails(product) {
                         <i class="fas fa-heart" aria-hidden="true"></i>
                     </button>
                 </div>
+
+                <section class="product-description-panel" aria-labelledby="productDetailsHeading">
+                    <h2 class="product-panel-label" id="productDetailsHeading">Product details</h2>
+                    <p class="product-description">${escapeProductHtml(product.description || 'Product information is being updated.')}</p>
+
+                    <div class="product-specs">
+                        ${specsHtml}
+                    </div>
+                </section>
 
                 <!-- Meta -->
                 <div class="product-meta">

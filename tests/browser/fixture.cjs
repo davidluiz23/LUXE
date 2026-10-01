@@ -108,8 +108,8 @@ async function startFixture() {
   ].find(file => fs.existsSync(file));
   // Headless Chromium normally hides the scrollbars these layout checks need to see.
   const browser = await chromium.launch({ executablePath, headless: true, ignoreDefaultArgs: ['--hide-scrollbars'] });
-  async function openPage(name, {width = 390, state = {}, saved = {}, reducedMotion = 'reduce'} = {}) {
-    const context = await browser.newContext({ viewport: {width, height: 900}, serviceWorkers: 'block', reducedMotion });
+  async function openPage(name, {width = 390, height = 900, state = {}, saved = {}, reducedMotion = 'reduce', javaScriptEnabled = true} = {}) {
+    const context = await browser.newContext({ viewport: {width, height}, serviceWorkers: 'block', reducedMotion, javaScriptEnabled });
     await context.addInitScript(({products, state, saved}) => {
       window.__fixture = products;
       Object.assign(window, state);

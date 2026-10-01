@@ -406,7 +406,7 @@ h1, h2, h3, h4, h5 {
 .hero {
     min-height: calc(100vh - 80px);
     background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
-                url('https://images.unsplash.com/photo-1445205170230-053b83016050?w=1600&auto=format&fit=crop');
+                url('../assets/products/durbar.jpg');
     background-size: cover;
     background-position: center;
     display: flex;
@@ -934,7 +934,7 @@ h1, h2, h3, h4, h5 {
 /* ========== LUXURY BANNER ========== */
 .luxury-banner {
     background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
-                url('https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1600&auto=format&fit=crop');
+                url('../assets/products/durbar.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;

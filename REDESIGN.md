@@ -1,5 +1,17 @@
 # ALKEBULAN storefront redesign
 
+## Selected direction — October 1, 2026
+
+The owner selected mockup **05 — Living Canvas**. The homepage now centers the original garment photograph in an arched stone stage, with warm cream, the supplied orange contour artwork, split expressive typography, floating navigation, and rounded collection surfaces. [Implementation and asset notes](docs/living-canvas.md). Run `npm run build:home` to build this homepage and its isolated animation bundle; preview at http://127.0.0.1:4173. The notes below describe earlier iterations.
+
+## Current direction — September 30, 2026
+
+The active design is **Culture in motion**: orange contour forms drift independently and repel the pointer across all 22 public pages, with an original geometric print texture, rounded cream surfaces, expressive typography, and the supplied garment photographs. The homepage adds a pinned story composition, moving artwork studies, a horizontal desktop archive, and scroll depth inspired by the owner's Black Balance reference. See [the current design and implementation notes](docs/culture-direction.md) and [asset provenance, research and generation prompts](Frontend/assets/culture/SOURCES.md).
+
+Run `npm run build` to assemble the public templates and locally bundled GSAP, Lenis, and lazy Three.js shader. Run `npm run dev` to preview at http://127.0.0.1:4173. The earlier `build:world` command belongs to the archived gallery concept and is not the active build.
+
+The previous notes below are retained as project history.
+
 Updated to follow the user's supplied homepage screenshot and the three original product photographs.
 
 The homepage uses one rounded sage hero with Ijele and “Wear the story.”, followed by three artwork cards in Ijele / Durbar / Dùn Dùn order, a Durbar close-up, and the full shared footer with collection, account, support, and legal links. Its navigation pairs the logo with ALKEBULAN on the homepage only, alongside search, bag, notifications, and profile controls. The notification link takes guests through sign-in to their notifications. At widths up to 1120px, the shared navigation uses the keyboard-accessible drawer; wider screens show the navigation links. Homepage presentation lives in `Frontend/css/home.css`; the shared shop, account, and checkout presentation remains in `Frontend/css/storefront.css`.

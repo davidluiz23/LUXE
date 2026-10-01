@@ -7,7 +7,7 @@ after(async () => { await fixture?.close(); });
 const admin = { __auditUser: { id: 'admin-audit', email: 'admin@example.com' }, __auditRole: 'owner' };
 
 test('sections and dynamically added cards enter subtly; reduced motion and keyboard focus settle them', async () => {
-  const { page, context, errors } = await fixture.openPage('index.html', { reducedMotion: 'no-preference' });
+  const { page, context, errors } = await fixture.openPage('about.html', { reducedMotion: 'no-preference' });
   try {
     await context.addInitScript(() => {
       const animate = Element.prototype.animate;
@@ -18,9 +18,9 @@ test('sections and dynamically added cards enter subtly; reduced motion and keyb
       };
     });
     await page.reload();
-    await page.waitForFunction(() => window.__motionRecords.some(row => String(row.classes).includes('opening-eyebrow')));
-    await page.locator('.detail-copy').scrollIntoViewIfNeeded();
-    await page.waitForFunction(() => window.__motionRecords.some(row => row.classes === 'detail-copy'));
+    await page.waitForFunction(() => window.__motionRecords.some(row => String(row.classes).includes('about-eyebrow')));
+    await page.locator('.value-card').first().scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => window.__motionRecords.some(row => row.classes === 'value-card'));
     const records = await page.evaluate(() => window.__motionRecords);
     assert.ok(records.every(row => row.duration <= 420 && row.delay <= 105 && row.frames[0].opacity >= .7));
     await page.evaluate(() => {
@@ -46,15 +46,15 @@ test('sections and dynamically added cards enter subtly; reduced motion and keyb
 });
 
 test('missing observers or failed animation APIs cannot hide the page or block its navigation', async () => {
-  const { page, context, errors } = await fixture.openPage('index.html', { reducedMotion: 'no-preference', state: { __disableIntersectionObserver: true } });
+  const { page, context, errors } = await fixture.openPage('about.html', { reducedMotion: 'no-preference', state: { __disableIntersectionObserver: true } });
   try {
-    await page.locator('.detail-copy').scrollIntoViewIfNeeded();
-    assert.equal(await page.locator('.detail-copy').evaluate(element => getComputedStyle(element).opacity), '1');
+    await page.locator('.story-text').scrollIntoViewIfNeeded();
+    assert.equal(await page.locator('.story-text').evaluate(element => getComputedStyle(element).opacity), '1');
     await page.evaluate(() => {
       Element.prototype.animate = () => { throw new Error('Motion unavailable'); };
-      window.LuxeMotion.enter(document.querySelector('.detail-copy'));
+      window.LuxeMotion.enter(document.querySelector('.story-text'));
     });
-    assert.equal(await page.locator('.detail-copy').isVisible(), true);
+    assert.equal(await page.locator('.story-text').isVisible(), true);
     await page.click('#searchToggle');
     await page.waitForSelector('#headerSearchModal', { state: 'visible' });
     await page.keyboard.press('Escape');
@@ -76,18 +76,18 @@ test('broken published photos show a branded fallback and recover on reconnectio
     const failImage = route => route.fulfill({ status: 404, body: '' });
     await context.route('https://media.example.com/**', failImage);
     await page.reload();
-    await page.waitForFunction(() => document.querySelector('#stageImage').dataset.imageFallback === 'true');
-    assert.equal(await page.locator('#stageName').textContent(), 'New print');
-    assert.equal(await page.locator('#stageImage').getAttribute('src'), 'assets/brand/product-placeholder.svg');
-    await page.waitForFunction(() => document.querySelector('.detail-image img').dataset.imageFallback === 'true');
-    await page.click('[data-artwork="durbar"]');
-    await page.waitForFunction(() => document.querySelector('#stageName').textContent === 'Durbar');
-    await page.click('[data-artwork="new-print"]');
-    await page.waitForFunction(() => document.querySelector('#stageName').textContent === 'New print');
+    await page.waitForFunction(() => document.querySelector('#worldArtworkImage').getAttribute('src').includes('product-placeholder'));
+    assert.equal(await page.locator('#worldArtworkName').textContent(), 'New print');
+    assert.equal(await page.locator('#worldArtworkImage').getAttribute('src'), 'assets/brand/product-placeholder.svg');
+    await page.click('[data-world-artwork="durbar"]');
+    await page.waitForFunction(() => document.querySelector('#worldArtworkName').textContent === 'Durbar');
+    await page.click('[data-world-artwork="new-print"]');
+    await page.waitForFunction(() => document.querySelector('#worldArtworkStatus').textContent.includes('unavailable'));
+    assert.equal(await page.locator('#worldArtworkName').textContent(), 'Durbar', 'A failed manual choice keeps the loaded artwork');
     await context.unroute('https://media.example.com/**', failImage);
     await page.evaluate(() => window.dispatchEvent(new Event('online')));
-    await page.waitForFunction(() => document.querySelector('#stageImage').dataset.imageFallback === 'false');
-    assert.equal(await page.locator('#stageImage').getAttribute('src'), content.slides[0].image);
+    await page.waitForFunction(() => document.querySelector('#worldArtworkName').textContent === 'New print');
+    assert.equal(await page.locator('#worldArtworkImage').getAttribute('src'), content.slides[0].image);
     await context.route('https://media.example.com/**', failImage);
     for (const kind of ['men', 'women']) {
       await page.goto(fixture.base + '/' + kind + '.html');

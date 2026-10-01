@@ -1,0 +1,449 @@
+/* Culture in motion — the active, shared ALKEBULAN presentation.
+   Original photographs and pigment painting: assets/culture/SOURCES.md. */
+@font-face { font-family:'Barlow Condensed';font-style:normal;font-weight:600;font-display:swap;src:url('../assets/fonts/barlow-condensed-600-latin.woff2') format('woff2'); }
+html.alkebulan-site body.culture-site:not(.page-admin) {
+  --culture-paper:#f5f1e8;--culture-ink:#24241f;--culture-red:#a14428;--culture-clay:#d7bfa4;--culture-muted:#625f57;--culture-line:#d8d1c5;
+  --culture-radius:40px;--culture-card-radius:26px;--culture-control-radius:16px;--culture-edge:24px;--culture-panel:rgba(249,246,238,.97);
+  --alk-paper:var(--culture-paper);--alk-white:var(--culture-paper);--alk-ink:var(--culture-ink);--alk-ink-soft:#282720;--alk-muted:var(--culture-muted);--alk-line:var(--culture-line);--alk-card:#e6e1d6;--alk-paper-deep:#e6e1d6;--alk-bronze:var(--culture-red);--alk-sage:#e4c0a6;--alk-card-border:var(--culture-line);--alk-card-hover:#e8e0d1;--alk-focus:var(--culture-red);
+  --primary:var(--culture-ink);--secondary:var(--culture-paper);--accent:var(--culture-red);--accent-text:var(--culture-red);--light-bg:#e9e3d8;--gray-text:var(--culture-muted);--border-color:var(--culture-line);
+  --font-display:'Barlow Condensed','Impact',sans-serif;--font-heading:var(--font-display);--sf-gutter:clamp(24px,4vw,64px);--alk-nav-height:104px;--alk-radius-xs:12px;--alk-radius-sm:16px;--alk-radius-md:26px;--alk-radius-lg:40px;--radius:26px;
+  isolation:isolate;margin:0;padding-top:112px;background:var(--culture-paper);color:var(--culture-ink);font-family:var(--font-body);font-size:16px;line-height:1.6;
+}
+html.alkebulan-site { scroll-padding-top:105px; }
+html.alkebulan-site.lenis { scroll-behavior:auto; }
+html.alkebulan-site body.culture-site:not(.page-admin) main > :first-child { margin-top:0; }
+body.culture-site .skip-to-content { position:fixed;z-index:99999;top:-100px;left:20px;padding:12px 20px;border-radius:999px;background:var(--culture-ink);color:var(--culture-paper); }
+body.culture-site .skip-to-content:focus { top:12px; }
+body.culture-site .culture-word { display:inline-block; }
+body.culture-site *,body.culture-site *::before,body.culture-site *::after { box-sizing:border-box; }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(h1,h2,h3,h4,h5) { color:inherit;font-family:var(--font-display);font-weight:600;line-height:1;letter-spacing:-.015em; }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(h1,h2) { text-wrap:balance; }
+html.alkebulan-site body.culture-site:not(.page-admin) p { text-wrap:pretty; }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(h1,h2) em { font-family:var(--font-editorial);font-weight:400;letter-spacing:-.045em;text-transform:none; }
+html.alkebulan-site body.culture-site:not(.page-admin) a { text-underline-offset:5px; }
+html.alkebulan-site body.culture-site:not(.page-admin) ::selection { background:var(--culture-red);color:var(--culture-paper); }
+html.alkebulan-site body.culture-site:not(.page-admin) :focus-visible { outline:2px solid var(--culture-red)!important;outline-offset:5px; }
+html.alkebulan-site body.culture-site:not(.page-admin) [hidden] { display:none!important; }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.container,.culture-container) { width:min(calc(100% - var(--sf-gutter)*2),1536px);max-width:1536px;margin-inline:auto;padding-inline:0; }
+body.culture-site .culture-label { margin:0 0 22px;font:400 13px/1.6 var(--font-body);letter-spacing:.02em; }
+body.culture-site .culture-dot { display:inline-block;flex-shrink:0;width:7px;height:7px;margin-right:10px;border-radius:50%;background:var(--culture-red); }
+body.culture-site .culture-link { display:inline-flex;align-items:center;gap:30px;min-height:48px;color:inherit;font-size:14px;text-decoration:none;border-bottom:1px solid currentColor; }
+body.culture-site .culture-link span { display:inline-block;font:400 27px/1 var(--font-body);transition:transform .2s; }
+body.culture-site .culture-button { display:inline-flex;align-items:stretch;justify-content:space-between;gap:28px;min-height:60px;padding:5px 5px 5px 25px;border-radius:999px;background:var(--culture-ink);color:var(--culture-paper);font-size:14px;text-decoration:none; }
+body.culture-site .culture-button > span:first-child { display:flex;align-items:center; }
+body.culture-site .culture-button-arrow { display:grid;place-items:center;min-width:50px;border-radius:50%;background:#ffffff16;font-size:28px;transition:background .2s; }
+
+/* A single calm header, shared by every public route. */
+html.alkebulan-site body.culture-site:not(.page-admin) #navbar.luxury-navbar { position:fixed;inset:16px var(--culture-edge) auto;width:auto;height:76px;min-height:0;max-width:none;transform:none;margin:0;padding:0;border:1px solid #fff9;border-radius:999px;background:rgba(249,246,238,.96);box-shadow:0 4px 28px #1723310b;backdrop-filter:blur(12px); }
+html.alkebulan-site body.culture-site:not(.page-admin) #navbar .nav-container { display:flex;justify-content:space-between;align-items:center;gap:30px;width:calc(100% - 48px);height:100%;max-width:none;margin:0 auto;padding:0; }
+html.alkebulan-site body.culture-site:not(.page-admin) .logo a { display:flex;align-items:center;gap:10px;width:auto;height:48px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .logo .brand-mark { width:30px;height:30px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .logo .brand-wordmark { display:block;font:600 25px/1 var(--font-display);letter-spacing:.02em; }
+html.alkebulan-site body.culture-site:not(.page-admin) .nav-links { margin-left:auto; }
+html.alkebulan-site body.culture-site:not(.page-admin) .nav-links ul { gap:8px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .nav-links a { min-height:48px;padding:0 10px;border-radius:999px;font-size:13px;font-weight:400; }
+html.alkebulan-site body.culture-site:not(.page-admin) .nav-links a:is(.active,:hover,:focus-visible) { color:var(--culture-red);background:transparent;transform:none;text-decoration:underline; }
+html.alkebulan-site body.culture-site:not(.page-admin) .nav-links a::before { display:none!important; }
+html.alkebulan-site body.culture-site:not(.page-admin) .nav-icons { display:flex;gap:0; }
+html.alkebulan-site body.culture-site:not(.page-admin) .nav-icons :is(a,button.search-icon,button.hamburger) { width:48px;height:48px;min-height:48px;min-width:48px;border:0;border-radius:50%;color:var(--culture-ink);background:transparent; }
+html.alkebulan-site body.culture-site:not(.page-admin) .nav-svg-icon { width:22px;height:22px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .cart-count { background:var(--culture-red);color:var(--culture-paper);font-size:10px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .hamburger { margin-left:4px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .mobile-menu { border-radius:var(--culture-radius);background:var(--culture-paper); }
+html.alkebulan-site body.culture-site:not(.page-admin) .mobile-menu ul a { font-family:var(--font-display);font-size:30px;line-height:1.2; }
+html.alkebulan-site body.culture-site:not(.page-admin) .mobile-menu-meta { font-size:12px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .mobile-menu .mobile-menu-meta a { font-family:var(--font-body);font-size:13px; }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.header-search-panel,.header-search-modal .header-search-panel) { background:var(--culture-paper);border-radius:var(--culture-card-radius); }
+body.culture-site .culture-noscript-nav { display:flex;justify-content:center;gap:24px;padding:12px;background:var(--culture-paper); }
+
+/* A complete first frame. Only the pigment canvas is optional. */
+body.culture-site .culture-page-art { position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;contain:strict;background:#e8ddc7; }
+body.culture-site .culture-hero { position:relative;min-height:730px;height:calc(100svh - 128px);max-height:960px;margin:0 var(--culture-edge) 24px;overflow:hidden;border-radius:var(--culture-radius);background:transparent; }
+body.culture-site [data-liquid-art] picture,body.culture-site [data-liquid-art] picture img,body.culture-site .liquid-canvas { display:block;position:absolute;inset:0;width:100%;height:100%; }
+body.culture-site [data-liquid-art] picture img { object-fit:cover; }
+body.culture-site .liquid-canvas { opacity:0;transition:opacity .6s; }
+body.culture-site [data-art-state="moving"] .liquid-canvas { opacity:1; }
+body.culture-site .liquid-canvas canvas { display:block;width:100%;height:100%; }
+body.culture-site .culture-hero-top { position:absolute;top:4px;inset-inline:8px;display:flex;justify-content:space-between;align-items:center;gap:24px;font-size:12px; }
+body.culture-site .culture-hero-top p { display:flex;align-items:center;margin:0;padding:10px 17px;border-radius:999px;background:var(--culture-panel); }
+body.culture-site .culture-hero-top > span { padding:10px 17px;border-radius:999px;background:var(--culture-panel);font-size:11px; }
+body.culture-site .culture-hero-copy { position:relative;z-index:2;width:54%;margin-top:66px;padding:clamp(62px,6.2vw,98px) clamp(28px,3.2vw,55px);border-radius:var(--culture-radius);background:var(--culture-panel);pointer-events:none; }
+html.alkebulan-site body.culture-site:not(.page-admin) .culture-hero-copy h1 { display:flex;flex-direction:column;align-items:flex-start;margin:0 0 33px;font-size:clamp(100px,11.5vw,184px);letter-spacing:-.025em;line-height:.88;text-wrap:nowrap; }
+body.culture-site .culture-hero-copy h1 em { display:block;position:relative;margin-left:4px;margin-top:14px;color:var(--culture-red);font-size:.76em;line-height:1; }
+body.culture-site .culture-hero-copy > p { margin:0 0 30px;font-size:16px;line-height:1.7; }
+body.culture-site .culture-hero-copy a { pointer-events:auto; }
+body.culture-site .culture-product-stage { position:absolute;inset:50px 0 65px 51%; }
+body.culture-site .culture-hero-product { position:absolute;inset:0;display:block; }
+body.culture-site .culture-shirt-wrap { position:absolute;inset:0;filter:drop-shadow(18px 35px 16px #00000048);transform:rotate(-10deg); }
+body.culture-site .culture-shirt { position:absolute;left:-24%;top:2%;width:153%;max-width:none;height:auto;clip-path:polygon(21.9% 22.6%,26.5% 21.1%,33.2% 18.74%,39.4% 16.4%,41.8% 14.5%,44.2% 15.6%,47.7% 15.9%,51% 15.6%,53.2% 14.8%,53.8% 14.2%,59.85% 16.4%,66.7% 18.74%,69.9% 21.1%,73.65% 23.42%,77.4% 25.76%,76.85% 28.1%,76.3% 30.44%,75.85% 32.79%,75.14% 35.13%,74.5% 37.47%,73.96% 39.81%,71.2% 41.3%,66% 42.15%,66.85% 44.5%,66.46% 46.84%,66.6% 49.2%,66.7% 51.5%,66.78% 56.2%,66.55% 63.23%,66.3% 65.57%,66.95% 67.91%,67% 72.6%,67.1% 77.3%,67.1% 82%,67.15% 85.4%,67% 86.4%,61% 87.1%,50% 87.65%,41% 87.45%,30.9% 86.85%,30.7% 82%,30.6% 77.3%,30.55% 72.6%,30.6% 67.9%,30.5% 63.23%,30.55% 58.55%,30.55% 53.86%,30.65% 49.18%,31.2% 46.84%,31.6% 44.5%,31.7% 42.15%,31.2% 41.1%,28% 40.6%,24.6% 39.8%,23.3% 37.47%,23.1% 35.13%,22.75% 32.79%,22.5% 30.44%,22.25% 28.1%,22.1% 25.76%); }
+body.culture-site .culture-product-stage:not([data-selected="ijele"]) .culture-shirt { clip-path:polygon(19.85% 26.5%,29.8% 21.4%,31.5% 20.3%,39.8% 17.6%,41.9% 16.6%,43.8% 17.3%,46% 17.6%,48.4% 17.3%,50.9% 16%,53.5% 16.8%,59% 17.9%,61.2% 18.5%,70.5% 21.5%,73.5% 22.4%,72.8% 31.9%,71.9% 38%,66.8% 38.6%,65.4% 39.9%,63.5% 40.8%,63.8% 47%,64.3% 51%,63.9% 54%,64.3% 59%,64.2% 67%,64.5% 76.6%,64.5% 83.3%,55.2% 83.9%,47.6% 84.1%,39.2% 83.8%,30.2% 83.1%,29.8% 76.8%,30.3% 73%,30.5% 64%,30.6% 56%,30.5% 49%,30% 46.5%,30.9% 42.2%,28.8% 41.6%,26.6% 40.9%,22.4% 40.8%,21.1% 34%); }
+body.culture-site .culture-product-ticket { position:absolute;left:18%;bottom:104px;display:grid;grid-template-columns:1fr 38px;gap:0 14px;min-width:210px;padding:16px 21px;border-radius:22px;background:var(--culture-paper);transform:rotate(-5deg);pointer-events:none; }
+body.culture-site .culture-product-stage[data-custom-photo="true"] .culture-shirt-wrap { inset:10% 8% 20%;transform:rotate(-5deg); }
+body.culture-site .culture-product-stage[data-custom-photo="true"] .culture-shirt { inset:0;width:100%;height:100%;object-fit:contain;clip-path:none;background:var(--culture-paper); }
+body.culture-site .culture-product-ticket > span:first-child { grid-column:1;font-size:10px; }
+body.culture-site .culture-product-ticket strong { grid-column:1;font:600 35px/1.1 var(--font-display); }
+body.culture-site .culture-product-ticket .ticket-arrow { grid-column:2;grid-row:1/3;align-self:center;font-size:32px; }
+body.culture-site .culture-piece-select { position:absolute;bottom:12px;left:8%;right:8%;display:flex;justify-content:center;gap:4px;padding:5px;border-radius:999px;background:var(--culture-paper); }
+body.culture-site .culture-piece-select button { display:flex;align-items:center;justify-content:center;gap:9px;flex:1;min-height:48px;padding:10px 13px;border:0;border-radius:999px;background:transparent;color:var(--culture-ink);font:400 13px/1.3 var(--font-body);cursor:pointer; }
+body.culture-site .culture-piece-select button > span { font-size:10px;opacity:.7; }
+body.culture-site .culture-piece-select button[aria-pressed="true"] { background:var(--culture-ink);color:var(--culture-paper); }
+body.culture-site .culture-hero-bottom { position:absolute;bottom:7px;inset-inline:8px;display:flex;justify-content:space-between;align-items:center;gap:20px;font-size:12px; }
+body.culture-site .culture-hero-bottom > a { display:flex;align-items:center;gap:30px;min-height:48px;padding:8px 18px;border-radius:999px;background:var(--culture-panel);color:inherit;text-decoration:none; }
+body.culture-site .culture-hero-bottom > a span { font-size:24px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .culture-motion { position:fixed;bottom:18px;right:var(--culture-edge);z-index:90;min-height:44px;padding:9px 16px;border:1px solid var(--culture-line);border-radius:999px;background:var(--culture-paper);color:var(--culture-ink);box-shadow:0 3px 16px #1b2b3914;font:400 11px/1.4 var(--font-body);cursor:pointer; }
+body.culture-site .culture-motion > span { margin-left:16px; }
+body.culture-site .culture-interaction-hint { background:var(--culture-panel);padding:12px 18px;margin-right:155px;border-radius:999px;font-size:11px; }
+
+/* Narrative rhythm: horizontal print, open paper, archive, dark manifesto. */
+body.culture-site .culture-ribbon { overflow:hidden;margin:0 var(--culture-edge) 36px;padding:20px 0;border-radius:999px;background:var(--culture-red);color:var(--culture-paper); }
+body.culture-site .culture-ribbon > div { display:flex;align-items:center;gap:36px;width:max-content; }
+body.culture-site .culture-ribbon span { font:600 26px/1 var(--font-display);letter-spacing:.02em;white-space:nowrap; }
+body.culture-site .culture-ribbon i { font-style:normal;font-size:27px;line-height:1; }
+/* The thread: a scroll-held composition on the same living textile backdrop. */
+body.culture-site .culture-origin { position:relative;margin:36px var(--culture-edge); }
+body.culture-site .culture-origin-stage { position:relative;display:flex;align-items:center;justify-content:center;min-height:650px;height:calc(100svh - 128px);max-height:950px;overflow:hidden;border-radius:var(--culture-radius); }
+body.culture-site .culture-origin-label { position:absolute;z-index:3;top:20px;left:50%;transform:translateX(-50%);margin:0;padding:11px 20px;border-radius:999px;background:var(--culture-paper);font-size:12px;white-space:nowrap; }
+body.culture-site .culture-origin-studies { position:absolute;inset:0;pointer-events:none; }
+body.culture-site .culture-origin-study { position:absolute;width:clamp(180px,24vw,380px);padding:8px 8px 0;overflow:hidden;border-radius:var(--culture-card-radius);background:var(--culture-paper);box-shadow:0 14px 35px #12273720; }
+body.culture-site .culture-origin-study img { display:block;width:100%;height:auto;aspect-ratio:.95;object-fit:cover;border-radius:calc(var(--culture-card-radius) - 8px); }
+body.culture-site .culture-origin-study > span { display:block;padding:9px 10px;font-size:10px;letter-spacing:.04em; }
+body.culture-site .origin-study-one { top:10%;left:5%;transform:rotate(-12deg); }
+body.culture-site .origin-study-two { bottom:11%;right:5%;transform:rotate(12deg); }
+body.culture-site .origin-study-three { top:16%;left:40%;width:clamp(160px,20vw,310px);transform:rotate(-8deg); }
+html.alkebulan-site body.culture-site:not(.page-admin) .culture-origin h2 { position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:12px;margin:0 0 32px;font:600 clamp(64px,8.7vw,150px)/1 var(--font-display);letter-spacing:-.025em; }
+body.culture-site .culture-origin-line { display:block;padding:6px 25px 16px;border-radius:30px;background:var(--culture-paper);white-space:nowrap; }
+body.culture-site .culture-origin-line em { color:var(--culture-red); }
+body.culture-site .culture-origin-bottom { position:absolute;z-index:3;bottom:82px;left:4%;right:4%;display:flex;align-items:end;justify-content:space-between;gap:24px; }
+body.culture-site .culture-origin-bottom p { margin:0;padding:14px 20px;border-radius:20px;background:var(--culture-paper);font-size:13px;line-height:1.8; }
+body.culture-site .culture-origin-bottom .culture-link { padding:7px 20px;border:0;border-radius:999px;background:var(--culture-paper); }
+body.culture-site .culture-origin-progress { position:absolute;z-index:3;bottom:18px;left:50%;display:flex;align-items:center;gap:16px;transform:translateX(-50%);padding:10px 18px;border-radius:999px;background:var(--culture-paper);font-size:10px;white-space:nowrap; }
+body.culture-site .culture-origin-progress i { display:block;width:90px;height:2px;overflow:hidden;background:var(--culture-line); }
+body.culture-site .culture-origin-progress b { display:block;width:100%;height:100%;transform-origin:left center;background:var(--culture-red); }
+body.culture-site .culture-origin:not(.is-journey) .culture-origin-progress { display:none; }
+/* Horizontal archive is an enhancement; small screens keep vertical browsing. */
+html.alkebulan-site body.culture-site:not(.page-admin) .culture-archive.is-horizontal { overflow:hidden;padding:20px 28px 28px;background:var(--culture-panel); }
+body.culture-site .culture-archive.is-horizontal .culture-section-heading { margin-bottom:24px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .culture-archive.is-horizontal .culture-section-heading h2 { font-size:clamp(40px,4.7vw,78px); }
+body.culture-site .culture-archive.is-horizontal .culture-archive-grid { position:relative;display:flex;gap:28px; }
+body.culture-site .culture-archive.is-horizontal .culture-piece-card { flex:0 0 min(47vw,calc((100svh - 375px)*1.25));margin-top:0; }
+body.culture-site .culture-archive.is-horizontal .culture-piece-image { aspect-ratio:1.25; }
+body.culture-site .culture-archive.is-horizontal .culture-piece-caption { padding-top:15px; }
+body.culture-site .culture-archive.is-horizontal .culture-piece-type { display:block; }
+body.culture-site .culture-intro { display:grid;grid-template-columns:1fr 2fr;gap:6%;padding-block:clamp(60px,7vw,112px); }
+body.culture-site .culture-intro > .culture-label { display:flex;align-items:center;align-self:start;padding-top:15px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .culture-intro h2 { margin:0 0 30px;font:600 clamp(43px,5.6vw,86px)/1 var(--font-display);text-transform:uppercase; }
+body.culture-site .culture-intro h2 em { text-transform:none; }
+body.culture-site .culture-intro > div > p { max-width:540px;margin:0 0 20px;color:var(--culture-muted);font-size:16px;line-height:1.85; }
+body.culture-site .culture-archive { padding-block:50px 64px;scroll-margin-top:120px; }
+body.culture-site .culture-section-heading { display:flex;align-items:end;justify-content:space-between;gap:30px;padding-top:0;margin-bottom:40px; }
+body.culture-site .culture-section-heading .culture-label { margin-bottom:13px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .culture-section-heading h2 { margin:0;font:600 clamp(40px,5.7vw,88px)/1 var(--font-display); }
+html.alkebulan-site body.culture-site:not(.page-admin) .culture-section-heading h2 em { font-family:var(--font-display);font-style:normal;letter-spacing:inherit;color:var(--culture-red); }
+body.culture-site .culture-section-heading .culture-link { flex-shrink:0;margin-bottom:3px; }
+body.culture-site .culture-archive-grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px; }
+body.culture-site .culture-piece-card { min-width:0;border-radius:var(--culture-card-radius);color:inherit;text-decoration:none; }
+body.culture-site .culture-piece-card:nth-child(2) { margin-top:66px; }
+body.culture-site .culture-piece-image { position:relative;isolation:isolate;aspect-ratio:.91;overflow:hidden;border-radius:var(--culture-card-radius);background:#dfdcd4; }
+body.culture-site .culture-piece-card:nth-child(2) .culture-piece-image { background:#d4bc9d; }
+body.culture-site .culture-piece-card:nth-child(3) .culture-piece-image { background:#c7cabe; }
+body.culture-site .culture-piece-image img { width:136%;max-width:none;height:100%;margin-left:-18%;object-fit:cover;mix-blend-mode:multiply;transition:transform .6s cubic-bezier(.2,.7,.2,1); }
+body.culture-site .culture-piece-index { position:absolute;left:16px;top:16px;z-index:1;padding:7px 12px;border-radius:999px;background:var(--culture-paper);font:400 10px/1.5 var(--font-body);letter-spacing:.06em; }
+body.culture-site .culture-piece-view { position:absolute;bottom:18px;right:18px;display:grid;place-items:center;width:48px;height:48px;border:1px solid #19191655;border-radius:50%;font-size:25px;transition:background .2s,color .2s; }
+body.culture-site .culture-piece-caption { display:flex;align-items:start;justify-content:space-between;gap:10px;padding:20px 4px 4px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .culture-piece-caption h3 { margin:0 0 5px;font:400 40px/1.1 var(--font-editorial);letter-spacing:-.025em; }
+body.culture-site .culture-piece-caption p { margin:0;font-size:13px;color:var(--culture-muted); }
+body.culture-site .culture-piece-type { padding-top:9px;white-space:nowrap;font-size:11px; }
+body.culture-site .culture-manifesto { display:grid;grid-template-columns:1fr 1fr;min-height:780px;margin:36px var(--culture-edge);padding:10px;overflow:hidden;border-radius:var(--culture-radius);background:var(--culture-ink);color:var(--culture-paper); }
+body.culture-site .culture-manifesto-image { position:relative;overflow:hidden;min-height:600px;border-radius:calc(var(--culture-radius) - 10px);background:#141414; }
+body.culture-site .culture-manifesto-image img { position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:49% 50%;transform:scale(1.75); }
+body.culture-site .culture-manifesto-image > span { position:absolute;left:26px;bottom:26px;padding:8px 14px;border-radius:999px;color:var(--culture-paper);background:var(--culture-ink);font-size:11px; }
+body.culture-site .culture-manifesto-copy { display:flex;flex-direction:column;align-items:start;justify-content:center;padding:85px clamp(35px,6vw,110px); }
+body.culture-site .culture-manifesto-copy > .culture-label { color:#cdc4b8; }
+html.alkebulan-site body.culture-site:not(.page-admin) .culture-manifesto h2 { margin:0 0 32px;font:600 clamp(66px,7vw,112px)/.93 var(--font-display); }
+body.culture-site .culture-manifesto h2 em { display:inline-block;padding-top:14px;color:#de9270;font-size:.85em;line-height:.95; }
+body.culture-site .culture-manifesto-copy > p:not(.culture-label) { max-width:365px;color:#d2ccbf;font-size:16px;line-height:1.85; }
+body.culture-site .culture-manifesto-copy > .culture-link { margin-top:14px; }
+body.culture-site .culture-invitation { padding-block:110px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .culture-invitation h2 { margin:0 0 54px;font:600 clamp(85px,13vw,208px)/.9 var(--font-display);letter-spacing:-.025em; }
+body.culture-site .culture-invitation h2 em { display:inline-block;margin-top:9px;color:var(--culture-red);font-size:.9em; }
+body.culture-site .culture-category-links { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:30px; }
+body.culture-site .culture-category-links a { display:flex;justify-content:space-between;align-items:center;gap:24px;min-height:82px;padding:15px 26px;border:1px solid var(--culture-line);border-radius:999px;color:var(--culture-ink);font:400 38px/1 var(--font-editorial);text-decoration:none; }
+body.culture-site .culture-category-links a > span { font-family:var(--font-body);font-size:30px; }
+
+/* About: an editorial spread with a shared visual language. */
+body.culture-site .culture-story-hero { position:relative;display:flex;align-items:center;min-height:660px;margin:0 var(--culture-edge) 36px;overflow:hidden;border-radius:var(--culture-radius); }
+body.culture-site .culture-story-heading { width:65%;padding:70px var(--sf-gutter);border-radius:var(--culture-radius);background:var(--culture-panel); }
+body.culture-site .culture-story-caption { position:absolute;right:20px;bottom:20px;padding:12px 20px;border-radius:999px;background:var(--culture-paper);font-size:12px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .culture-story-heading h1 { margin:25px 0 35px;font:600 clamp(80px,10vw,160px)/.92 var(--font-display); }
+body.culture-site .culture-story-heading h1 em { display:inline-block;color:var(--culture-red);padding:0 18px 12px 0;font-size:.85em; }
+body.culture-site .culture-story-heading p { font-size:16px; }
+body.culture-site .culture-story-heading .culture-label { font-size:13px; }
+body.culture-site .culture-story-heading .culture-motion { margin-top:15px; }
+body.culture-site .culture-art-note { display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:10%;padding-block:110px;border-bottom:1px solid var(--culture-line); }
+html.alkebulan-site body.culture-site:not(.page-admin) .culture-art-note h2 { margin:0;font:600 clamp(58px,7.5vw,120px)/1 var(--font-display); }
+body.culture-site .culture-art-note h2 em { color:var(--culture-red); }
+body.culture-site .culture-art-note > div > p:not(.culture-label) { max-width:480px;color:var(--culture-muted);font-size:16px;line-height:1.85; }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.culture-intro,.culture-archive,.culture-invitation,.culture-art-note) { width:calc(100% - var(--culture-edge)*2);max-width:none;margin:36px var(--culture-edge);padding-inline:var(--sf-gutter);border-radius:var(--culture-radius);border:0;background:var(--culture-panel); }
+
+/* The complete footer is present in HTML, with or without JavaScript. */
+html.alkebulan-site body.culture-site:not(.page-admin) .culture-footer { margin:36px var(--culture-edge) 24px;padding:66px 0 0;overflow:hidden;border-radius:var(--culture-radius);background:var(--culture-ink);color:var(--culture-paper); }
+body.culture-site .culture-footer-top { display:flex;justify-content:space-between;align-items:center;gap:32px;padding-bottom:45px;border-bottom:1px solid #ffffff2b; }
+body.culture-site .culture-footer-top > p { margin:0;font:600 clamp(34px,4.3vw,66px)/1.05 var(--font-display); }
+body.culture-site .culture-footer-top > p em { font:400 1em/1.05 var(--font-editorial); }
+body.culture-site .culture-footer-contact { display:flex;align-items:center;gap:38px;color:inherit;font-size:14px;text-decoration:none; }
+body.culture-site .culture-footer-contact > span { display:grid;place-items:center;width:64px;height:64px;border:1px solid #ffffff65;border-radius:50%;font-size:30px; }
+body.culture-site .culture-footer-columns { display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:35px;padding-block:46px; }
+body.culture-site .culture-footer-columns nav { display:flex;flex-direction:column;align-items:start; }
+html.alkebulan-site body.culture-site:not(.page-admin) .culture-footer-columns h2 { margin:0 0 18px;font:400 12px/1.5 var(--font-body);color:#afa99d;letter-spacing:.02em; }
+body.culture-site .culture-footer-columns a { display:flex;align-items:center;min-height:36px;max-width:100%;color:var(--culture-paper);font-size:13px;text-decoration:none;overflow-wrap:anywhere; }
+body.culture-site .culture-footer-location img { filter:invert(1); }
+body.culture-site .culture-footer-location p { margin:20px 0 14px;font-size:14px; }
+body.culture-site .culture-footer-location > span { font-size:12px;color:#afa99d; }
+body.culture-site .culture-footer-wordmark { position:relative;display:block;width:max-content;max-width:100%;padding-right:20px;margin:20px 0 0;color:var(--culture-paper);font:600 clamp(60px,15.2vw,252px)/.91 var(--font-display);letter-spacing:-.005em;text-decoration:none; }
+body.culture-site .culture-footer-wordmark span { position:absolute;right:0;top:6px;font:400 22px/1 var(--font-body); }
+body.culture-site .culture-footer-bottom { display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:30px;padding-block:21px;border-top:1px solid #ffffff2b;font-size:11px;color:#c2bcb0; }
+body.culture-site .culture-footer-bottom a { display:inline-flex;align-items:center;min-height:44px;color:inherit;text-decoration:none; }
+body.culture-site .culture-footer-bottom > div { display:flex;gap:25px; }
+body.culture-site .culture-footer a:hover { color:#e99b77; }
+
+/* Catalog, category, services and account share this direction. */
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.page-header,.contact-hero,.support-hero,.category-hero) { position:relative;isolation:isolate;overflow:hidden;width:calc(100% - var(--culture-edge)*2);min-height:330px;height:auto;margin:0 var(--culture-edge) 36px;padding:64px var(--sf-gutter);border:0;border-radius:var(--culture-radius);background:transparent;color:var(--culture-ink);text-align:left; }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.page-header,.contact-hero,.support-hero,.category-hero)::before { content:'';display:block;position:absolute;inset:0 28% 0 0;z-index:-1;border-radius:var(--culture-radius);background:var(--culture-panel);opacity:1; }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.page-header,.contact-hero,.support-hero,.category-hero)::after { display:none; }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.page-header,.contact-hero,.support-hero,.category-hero) :is(.container,.category-hero-content) { width:100%;max-width:100%;margin:0;padding:0;background:none;text-align:left; }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.page-header,.contact-hero,.support-hero,.category-hero) h1 { max-width:70%;margin:0 0 18px;color:var(--culture-ink);font:600 clamp(56px,7.7vw,124px)/1 var(--font-display);text-transform:uppercase;letter-spacing:-.015em; }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.page-header,.contact-hero,.support-hero,.category-hero) p { max-width:60%;color:var(--culture-muted);font-size:16px;line-height:1.7; }
+html.alkebulan-site body.culture-site:not(.page-admin) .section-title { font-size:clamp(42px,5.4vw,82px); }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.shop-section,.category-products,.wishlist-section) { padding-block:42px 90px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .shop-toolbar { padding-bottom:25px;margin-bottom:30px;border-bottom:1px solid var(--culture-line); }
+html.alkebulan-site body.culture-site:not(.page-admin) .shop-layout { grid-template-columns:190px minmax(0,1fr);gap:36px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .shop-sidebar { padding:0 20px 20px 0;background:transparent;border:0;border-radius:var(--culture-card-radius); }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.product-grid,.wishlist-grid) { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:36px 24px;align-items:start; }
+html.alkebulan-site body.culture-site:not(.page-admin) .product-card { padding:0;border:0;border-radius:var(--culture-card-radius);overflow:visible;background:transparent;box-shadow:none; }
+html.alkebulan-site body.culture-site:not(.page-admin) .product-card:hover { transform:none;box-shadow:none; }
+html.alkebulan-site body.culture-site:not(.page-admin) .product-card .product-image { aspect-ratio:.86;height:auto;padding:0;overflow:hidden;border-radius:var(--culture-card-radius);background:#e1ddd3; }
+html.alkebulan-site body.culture-site:not(.page-admin) .product-card:nth-child(3n+2) .product-image { background:#dfcfba; }
+html.alkebulan-site body.culture-site:not(.page-admin) .product-card:nth-child(3n+3) .product-image { background:#d4d6ca; }
+html.alkebulan-site body.culture-site:not(.page-admin) .product-card .product-image > img { width:100%;height:100%;padding:0;object-fit:contain;mix-blend-mode:multiply;border-radius:inherit; }
+html.alkebulan-site body.culture-site:not(.page-admin) .product-card .product-image > :is(img[src$="/ijele.jpg"],img[src$="/durbar.jpg"],img[src$="/dun-dun.jpg"]) { object-fit:cover; }
+html.alkebulan-site body.culture-site:not(.page-admin) .product-card .product-info { padding:17px 0 8px;background:transparent; }
+html.alkebulan-site body.culture-site:not(.page-admin) .product-card .product-name { margin:9px 0;font:400 27px/1.2 var(--font-editorial);letter-spacing:-.02em; }
+html.alkebulan-site body.culture-site:not(.page-admin) .product-card .product-category { padding:0;border:0;border-radius:0;background:transparent;color:var(--culture-muted);font-size:11px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .product-card .product-price { font:600 14px/1.5 var(--font-body);color:var(--culture-ink); }
+html.alkebulan-site body.culture-site:not(.page-admin) .product-card .product-actions { display:flex;position:static;opacity:1;visibility:visible;transform:none;gap:7px;padding:12px 0 0; }
+html.alkebulan-site body.culture-site:not(.page-admin) .product-card .product-actions button { min-width:44px;min-height:48px;border:1px solid var(--culture-line);border-radius:999px;background:transparent;color:var(--culture-ink); }
+html.alkebulan-site body.culture-site:not(.page-admin) .product-card .product-actions .add-cart { flex:1;padding-inline:8px;font-size:12px;background:var(--culture-ink);color:var(--culture-paper);border-color:var(--culture-ink); }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.filter-option-btn,.filter-toggle,.sort-select,.filter-select,.view-btn,.load-more-btn) { min-height:48px;border-radius:999px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .filter-option-btn.active { background:var(--culture-ink);color:var(--culture-paper);border-color:var(--culture-ink); }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.btn,.btn-primary,.btn-secondary,.btn-outline) { min-height:48px;border-radius:999px;font-family:var(--font-body);font-size:14px; }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(input:not([type='checkbox']):not([type='radio']):not([type='range']),select,textarea) { min-height:48px;border-radius:var(--culture-control-radius);font-size:16px;background-color:#faf7f0;color:var(--culture-ink); }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.product-main-image-trigger,.product-main-image,.product-gallery-main,.thumbnail-button,.auth-card,.auth-container,.cart-item,.cart-summary,.order-summary,.checkout-section,.checkout-card,.contact-form,.contact-info-card,.support-card,.dashboard-sidebar,.dashboard-content,.faq-item) { border-radius:var(--culture-card-radius);box-shadow:none; }
+html.alkebulan-site body.culture-site:not(.page-admin) .product-detail-grid { gap:56px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .product-detail-grid h1 { font-size:clamp(42px,5vw,72px); }
+html.alkebulan-site body.culture-site:not(.page-admin) .product-main-image-trigger { background:#e1ddd3; }
+html.alkebulan-site body.culture-site:not(.page-admin) .product-main-image { border-radius:inherit;object-fit:contain; }
+html.alkebulan-site body.culture-site:not(.page-admin) .product-description { font-size:16px; }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.size-btn,.color-btn,.quantity-btn) { min-width:44px;min-height:48px;border-radius:999px; }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.auth-section,.auth-page) { background:transparent; }
+html.alkebulan-site body.culture-site:not(.page-admin) .auth-image { position:relative;isolation:isolate;border-radius:var(--culture-radius);background:transparent; }
+html.alkebulan-site body.culture-site:not(.page-admin) .auth-image::before { display:none; }
+html.alkebulan-site body.culture-site:not(.page-admin) .auth-image-content { color:var(--culture-paper);background:var(--culture-ink);padding:36px;border-radius:var(--culture-card-radius); }
+html.alkebulan-site body.culture-site:not(.page-admin) .auth-image-content :is(h2,p,li) { color:var(--culture-paper); }
+html.alkebulan-site body.culture-site:not(.page-admin) .auth-image-content h2 { font-size:64px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .login-image-topline { color:var(--culture-paper);background:var(--culture-ink);padding:12px 18px;border-radius:999px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .auth-container { border:1px solid var(--culture-line);background:#faf7f0; }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.auth-title,.auth-card h1,.auth-container h1) { font-size:60px; }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.contact-grid,.story-grid) { gap:64px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .contact-info-card { background:var(--culture-paper);border:1px solid var(--culture-line); }
+html.alkebulan-site body.culture-site:not(.page-admin) .map-placeholder { border-radius:var(--culture-card-radius);background:#ddd2bd; }
+html.alkebulan-site body.culture-site:not(.page-admin) .support-article { font-size:16px; }
+html.alkebulan-site body.culture-site:not(.page-admin) .back-to-top { bottom:80px;right:var(--culture-edge);border-radius:50%;background:var(--culture-ink);color:var(--culture-paper); }
+html.alkebulan-site body.culture-site:not(.page-admin) .videos-hero { position:relative;isolation:isolate;margin:0 var(--culture-edge) 36px;padding-block:70px;border-radius:var(--culture-radius);background:var(--culture-panel); }
+html.alkebulan-site body.culture-site:not(.page-admin) .videos-hero::after { display:none; }
+html.alkebulan-site body.culture-site:not(.page-admin) .videos-hero h1 { margin:14px 0 20px;font:600 clamp(70px,11vw,160px)/1 var(--font-display); }
+body.culture-site .videos-intro { max-width:55ch;font-size:16px; }
+body.culture-site .videos-empty { padding:70px 25px;text-align:center;border:1px solid var(--culture-line);border-radius:var(--culture-radius);background:var(--culture-panel); }
+body.culture-site .videos-empty > svg { width:64px;height:64px;margin-bottom:25px; }
+body.culture-site .videos-empty > h2 { font-size:44px;margin:0 0 20px; }
+body.culture-site .videos-empty > p { margin-bottom:25px; }
+body.culture-site .videos-cta { display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:12px 24px;border-radius:999px;background:var(--culture-ink);color:var(--culture-paper);text-decoration:none; }
+/* Reading surfaces leave the continuous artwork visible in the page gutters. */
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.shop-section,.category-products,.wishlist-section,.cart-section,.checkout-section,.support-section,.dashboard-section,.product-section,.related-products,.map-section,.faq-section),html.alkebulan-site body.culture-site.page-contact main > .section { width:calc(100% - var(--culture-edge)*2);margin:36px var(--culture-edge);border-radius:var(--culture-radius);background:var(--culture-panel); }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.quantity-selector,.product-details-tabs,.product-tabs,.product-lightbox-dialog,.quick-view-content,.modal-content,.notification-dropdown,.header-search-result,.empty-state,.status-panel,.payment-method,.shipping-option,.video-card) { border-radius:var(--culture-card-radius); }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.thumbnail-button,.cart-item-image,.cart-item-image img,.order-item img,.product-thumbnail,.video-card video,.video-card img) { border-radius:var(--culture-control-radius); }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.culture-piece-select button,.culture-button,.culture-category-links a,.mobile-menu li a,.header-search-form button,.filter-tag,.product-badge) { border-radius:999px; }
+html.alkebulan-site body.culture-site:not(.page-admin) :is(.oauth-callback-card,.newsletter-card,.toast,.auth-form-wrapper,.auth-image-content) { border-radius:var(--culture-card-radius); }
+body.culture-site :is(.culture-button,.culture-motion,.culture-piece-select button,.btn,.btn-primary,.filter-toggle,.size-btn,.quantity-btn):active { transform:scale(.98); }
+@media(hover:hover) and (pointer:fine) {
+  body.culture-site .culture-button:hover .culture-button-arrow { background:var(--culture-red); }
+  body.culture-site .culture-category-links a:hover { background:var(--culture-ink);color:var(--culture-paper); }
+  body.culture-site .culture-link:hover span { transform:translate(3px,-3px); }
+  body.culture-site .culture-piece-card:hover .culture-piece-image img { transform:scale(1.04); }
+  body.culture-site .culture-piece-card:hover .culture-piece-view { background:var(--culture-ink);color:var(--culture-paper); }
+}
+@media(min-width:1600px) {
+  body.culture-site .culture-hero-copy { padding-block:98px; }
+  body.culture-site .culture-product-stage { right:2%; }
+  body.culture-site .culture-shirt { top:-4%;width:142%;left:-17%; }
+}
+@media(max-width:1200px) {
+  html.alkebulan-site body.culture-site:not(.page-admin) .nav-links ul { gap:0; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .nav-links a { padding-inline:7px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) #navbar .nav-container { gap:14px; }
+  body.culture-site .culture-hero { min-height:650px; }
+  body.culture-site .culture-hero-copy { padding-block:70px; }
+  body.culture-site .culture-shirt { top:8%; }
+  body.culture-site .culture-product-ticket { bottom:96px;left:14%; }
+  body.culture-site .culture-piece-select { left:4%;right:4%; }
+  body.culture-site .culture-piece-select button { padding-inline:8px;font-size:12px; }
+  body.culture-site .culture-manifesto { min-height:650px; }
+  body.culture-site .culture-manifesto-copy { padding:65px 40px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .product-card .product-actions { flex-wrap:wrap; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .product-card .product-actions .add-cart { flex-basis:100%; }
+}
+@media(max-width:1120px) {
+  html.alkebulan-site body.culture-site:not(.page-admin) .nav-links { display:none; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .hamburger { display:flex; }
+}
+@media(max-width:1020px) {
+  html.alkebulan-site body.culture-site:not(.page-admin) .shop-layout { display:block; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .shop-sidebar { padding:24px;background:var(--culture-paper); }
+  body.culture-site .culture-hero-top > span { display:none; }
+  body.culture-site .culture-hero-copy { width:58%; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .culture-hero-copy h1 { font-size:clamp(92px,11.8vw,130px); }
+  body.culture-site .culture-product-ticket { min-width:180px; }
+  body.culture-site .culture-interaction-hint { display:none; }
+  body.culture-site .culture-archive-grid { gap:16px; }
+  body.culture-site .culture-piece-type { display:none; }
+  body.culture-site .culture-intro { grid-template-columns:1fr 2.3fr;gap:5%; }
+  body.culture-site .culture-footer-columns { gap:24px; }
+}
+@media(max-width:760px) {
+  html.alkebulan-site body.culture-site:not(.page-admin) { --sf-gutter:24px;--culture-edge:12px;--culture-radius:28px;--culture-card-radius:20px;--culture-control-radius:14px;--alk-nav-height:90px;padding-top:96px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) #navbar.luxury-navbar { top:12px;height:68px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .logo .brand-wordmark { font-size:22px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .logo .brand-mark { width:24px;height:24px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .logo a { gap:7px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) #navbar .nav-container { gap:5px;width:calc(100% - 28px); }
+  html.alkebulan-site body.culture-site:not(.page-admin) .nav-icons .user-icon { display:none; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .nav-icons .notification-icon { display:none; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .nav-icons :is(a,button.search-icon,button.hamburger) { width:44px;min-width:44px; }
+  body.culture-site .culture-hero { min-height:0;height:auto;max-height:none;display:flex;flex-direction:column;padding-top:0;margin-bottom:22px; }
+  body.culture-site .culture-hero-top { position:relative;inset:auto;gap:0;font-size:10px; }
+  body.culture-site .culture-hero-top p { padding:9px 13px; }
+  body.culture-site .culture-hero-copy { width:100%;margin-top:14px;padding:32px var(--sf-gutter); }
+  html.alkebulan-site body.culture-site:not(.page-admin) .culture-hero-copy h1 { margin:0 0 22px;font-size:clamp(75px,20.8vw,156px);line-height:.85; }
+  body.culture-site .culture-hero-copy h1 em { font-size:.79em;margin-top:8px; }
+  body.culture-site .culture-hero-copy > p { font-size:15px;margin:0 0 20px; }
+  body.culture-site .culture-button { min-height:54px;font-size:13px;padding-left:20px; }
+  body.culture-site .culture-button-arrow { min-width:44px; }
+  body.culture-site .culture-hero-copy .culture-button { position:relative;z-index:4; }
+  body.culture-site .culture-product-stage { position:relative;inset:auto;width:100%;height:410px;margin-top:4px; }
+  body.culture-site .culture-shirt-wrap { transform:rotate(-9deg); }
+  body.culture-site .culture-shirt { width:141%;left:-19%;top:-50px; }
+  body.culture-site .culture-product-ticket { left:auto;right:23px;bottom:86px;min-width:164px;padding:10px 14px;border-radius:18px;transform:rotate(6deg); }
+  body.culture-site .culture-product-ticket strong { font-size:29px; }
+  body.culture-site .culture-product-ticket > span:first-child { font-size:9px; }
+  body.culture-site .culture-piece-select { bottom:12px;inset-inline:5px; }
+  body.culture-site .culture-piece-select button { min-height:48px;font-size:12px; }
+  body.culture-site .culture-hero-bottom { position:relative;inset:auto;padding:0 5px; }
+  body.culture-site .culture-hero-bottom > a { gap:16px;font-size:11px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .culture-motion { bottom:12px;min-height:44px;width:44px;height:44px;font-size:0;padding:0; }
+  body.culture-site .culture-motion > span { margin:0;font-size:16px; }
+  body.culture-site .culture-ribbon { padding-block:16px;margin-bottom:24px; }
+  body.culture-site .culture-ribbon > div { gap:25px; }
+  body.culture-site .culture-ribbon span { font-size:22px; }
+  body.culture-site .culture-origin { margin-block:24px; }
+  body.culture-site .culture-origin-stage { min-height:470px;height:calc(100svh - 112px);max-height:800px; }
+  body.culture-site .culture-origin-label { top:12px;padding:10px 14px;font-size:10px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .culture-origin h2 { gap:10px;margin-bottom:65px;font-size:clamp(32px,10.8vw,80px); }
+  body.culture-site .culture-origin-line { padding:8px 14px 12px;border-radius:18px; }
+  body.culture-site .culture-origin-study { width:48%;padding:5px 5px 0;border-radius:18px; }
+  body.culture-site .culture-origin-study img { border-radius:13px; }
+  body.culture-site .culture-origin-study > span { font-size:9px;padding:7px; }
+  body.culture-site .origin-study-one { top:14%;left:-6%; }
+  body.culture-site .origin-study-two { bottom:24%;right:-4%; }
+  body.culture-site .origin-study-three { top:14%;left:42%;width:42%; }
+  body.culture-site .culture-origin-bottom { left:12px;right:12px;bottom:70px;align-items:start;flex-direction:column;gap:10px; }
+  body.culture-site .culture-origin-bottom p { font-size:11px;padding:12px 14px;border-radius:16px; }
+  body.culture-site .culture-origin-bottom .culture-link { min-height:44px;font-size:11px;padding:6px 14px; }
+  body.culture-site .culture-origin-progress { bottom:12px;font-size:9px;padding:9px 14px; }
+  body.culture-site .culture-origin-progress i { width:70px; }
+  body.culture-site .culture-intro { display:block;padding-block:45px; }
+  body.culture-site .culture-intro > .culture-label { padding-top:0;margin-bottom:30px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .culture-intro h2 { font-size:clamp(40px,9vw,65px);margin-bottom:23px; }
+  body.culture-site .culture-intro > div > p { font-size:16px;line-height:1.8; }
+  body.culture-site .culture-section-heading { align-items:start;flex-direction:column;gap:15px;margin-bottom:28px;padding-top:0; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .culture-section-heading h2 { font-size:clamp(39px,9vw,64px); }
+  body.culture-site .culture-section-heading .culture-label { margin-bottom:12px;font-size:12px; }
+  body.culture-site .culture-archive { padding-block:38px; }
+  body.culture-site .culture-archive-grid { grid-template-columns:1fr;gap:35px; }
+  body.culture-site .culture-piece-card:nth-child(2) { margin-top:0; }
+  body.culture-site .culture-piece-image { aspect-ratio:1.04; }
+  body.culture-site .culture-piece-image img { width:123%;margin-left:-11.5%; }
+  body.culture-site .culture-piece-caption { padding-top:16px; }
+  body.culture-site .culture-piece-type { display:block; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .culture-piece-caption h3 { font-size:35px; }
+  body.culture-site .culture-manifesto { display:flex;flex-direction:column;min-height:0;margin-block:24px;padding:8px; }
+  body.culture-site .culture-manifesto-image { min-height:0;height:380px;border-radius:calc(var(--culture-radius) - 8px); }
+  body.culture-site .culture-manifesto-image img { transform:scale(1.5); }
+  body.culture-site .culture-manifesto-copy { padding:40px 16px 48px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .culture-manifesto h2 { font-size:clamp(76px,18vw,110px); }
+  body.culture-site .culture-manifesto-copy > p:not(.culture-label) { max-width:500px; }
+  body.culture-site .culture-invitation { padding-block:45px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .culture-invitation h2 { font-size:clamp(66px,17vw,132px);margin-bottom:35px; }
+  body.culture-site .culture-category-links { grid-template-columns:1fr;gap:12px; }
+  body.culture-site .culture-category-links a { min-height:72px;font-size:35px; }
+  body.culture-site .culture-story-hero { display:block;min-height:600px; }
+  body.culture-site .culture-story-heading { width:100%;padding:40px var(--sf-gutter); }
+  html.alkebulan-site body.culture-site:not(.page-admin) .culture-story-heading h1 { font-size:clamp(65px,16vw,112px);margin-top:18px; }
+  body.culture-site .culture-story-heading h1 em { padding:0; }
+  body.culture-site .culture-art-note { grid-template-columns:1fr;gap:28px;padding-block:45px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .culture-art-note h2 { font-size:clamp(60px,14vw,95px); }
+  html.alkebulan-site body.culture-site:not(.page-admin) .culture-footer { padding-top:44px; }
+  body.culture-site .culture-footer-top { align-items:start;flex-direction:column;gap:28px;padding-bottom:30px; }
+  body.culture-site .culture-footer-top > p { font-size:42px; }
+  body.culture-site .culture-footer-contact { gap:26px;font-size:13px; }
+  body.culture-site .culture-footer-contact > span { width:48px;height:48px;font-size:26px; }
+  body.culture-site .culture-footer-columns { grid-template-columns:1fr 1fr;gap:32px 20px;padding-block:35px; }
+  body.culture-site .culture-footer-columns a { min-height:44px;font-size:13px; }
+  body.culture-site .culture-footer-columns h2 { margin-bottom:12px; }
+  body.culture-site .culture-footer-location p { margin-top:15px;font-size:13px; }
+  body.culture-site .culture-footer-wordmark { font-size:14.3vw;padding-right:10px; }
+  body.culture-site .culture-footer-wordmark span { font-size:13px;top:0;right:0; }
+  body.culture-site .culture-footer-bottom { flex-wrap:wrap;gap:0 20px;margin-top:25px;font-size:10px;padding-block:15px; }
+  body.culture-site .culture-footer-bottom > div { margin-left:auto;gap:18px; }
+  body.culture-site .culture-footer-bottom > a { flex-basis:100%; }
+  html.alkebulan-site body.culture-site:not(.page-admin) :is(.page-header,.contact-hero,.support-hero,.category-hero) { min-height:245px;padding:36px var(--sf-gutter);margin-bottom:24px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) :is(.page-header,.contact-hero,.support-hero,.category-hero)::before { inset:0 8% 0 0; }
+  html.alkebulan-site body.culture-site:not(.page-admin) :is(.page-header,.contact-hero,.support-hero,.category-hero) h1 { max-width:94%;font-size:clamp(48px,11.5vw,80px); }
+  html.alkebulan-site body.culture-site:not(.page-admin) :is(.page-header,.contact-hero,.support-hero,.category-hero) p { max-width:90%;font-size:15px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) :is(.product-grid,.wishlist-grid) { grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 14px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .product-card .product-name { font-size:24px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .product-card .product-actions .add-cart { min-height:48px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .product-detail-grid { gap:32px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) :is(.contact-grid,.story-grid) { gap:32px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .section-title { font-size:48px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) :is(.auth-title,.auth-card h1,.auth-container h1) { font-size:49px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) :is(.culture-intro,.culture-archive,.culture-invitation,.culture-art-note,.culture-footer) { margin-block:24px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .culture-footer { padding-bottom:35px; }
+}
+@media(max-width:370px) {
+  html.alkebulan-site body.culture-site:not(.page-admin) { --sf-gutter:16px; }
+  html.alkebulan-site body.culture-site:not(.page-admin) .logo .brand-mark { display:none; }
+  body.culture-site .culture-hero-top { font-size:10px; }
+  body.culture-site .culture-product-stage { height:350px; }
+  body.culture-site .culture-product-ticket { bottom:92px; }
+  body.culture-site .culture-piece-select button { font-size:11px;gap:6px; }
+  body.culture-site .culture-hero-bottom { gap:10px; }
+  body.culture-site .culture-footer-columns { gap:25px 14px; }
+}
+@media(prefers-reduced-transparency:reduce),(prefers-contrast:more) {
+  html.alkebulan-site body.culture-site:not(.page-admin) { --culture-panel:#f9f6ee; }
+  html.alkebulan-site body.culture-site:not(.page-admin) #navbar.luxury-navbar { background:#f9f6ee;backdrop-filter:none; }
+}
+@media(prefers-reduced-motion:reduce) {
+  html.alkebulan-site { scroll-behavior:auto!important; }
+  body.culture-site *,body.culture-site *::before,body.culture-site *::after { animation:none!important;transition:none!important; }
+  body.culture-site .liquid-canvas { display:none!important; }
+}

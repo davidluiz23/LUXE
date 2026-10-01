@@ -7,6 +7,8 @@
 node_modules/
 dist/
 coverage/
+artifacts/
+*.blend1
 
 # Editor and operating-system files.
 .DS_Store

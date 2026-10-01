@@ -27,8 +27,11 @@ test('search stays centered and the menu covers the viewport without moving the 
           };
         });
         assert.equal(nav.centered && nav.square && nav.inside && !nav.overflow, true, `${name} at ${width}: ${JSON.stringify(nav)}`);
-        assert.equal(nav.blur, 'blur(8px)');
-        assert.match(nav.background, /0\.84\)$/);
+        if (name === 'index.html') assert.equal(nav.blur, 'none', 'The gallery uses its own transparent header');
+        else {
+          assert.equal(nav.blur, 'blur(8px)');
+          assert.match(nav.background, /0\.94\)$/);
+        }
       }
       assert.equal(await page.locator('.nav-scroll-progress').count(), 0);
       for (const width of [320, 1440]) {
@@ -73,7 +76,7 @@ test('homepage back to top works before the catalog resolves', async () => {
   } finally { await context.close(); }
 });
 
-test('collection pages show branded pending cards and restore useful Rater cards after loading', async () => {
+test('collection pages show branded pending cards and restore editorial cards with visible shopping controls', async () => {
   for (const name of ['shop.html', 'men.html', 'women.html', 'wishlist.html', 'product.html?id=1001']) {
     const user = { id: 'presentation-customer', email: 'customer@example.com' };
     const { page, context, errors } = await fixture.openPage(name, {
@@ -99,7 +102,7 @@ test('collection pages show branded pending cards and restore useful Rater cards
           categoryFirst: el.querySelector('.product-info').firstElementChild.classList.contains('product-category'),
           overflow: el.scrollWidth > el.clientWidth || document.documentElement.scrollWidth > innerWidth,
         }));
-        assert.deepEqual(result, { background: 'rgb(236, 236, 234)', radius: width === 320 ? 20 : 24, actionsBelow: true, categoryFirst: true, overflow: false }, `${name} at ${width}`);
+        assert.deepEqual(result, { background: 'rgba(0, 0, 0, 0)', radius: 0, actionsBelow: true, categoryFirst: true, overflow: false }, `${name} at ${width}`);
         assert.equal(await card.locator('.product-rating').isVisible(), true, name);
         assert.equal(await card.locator('.product-name-link').isVisible(), true, name);
         assert.equal(await card.locator('.add-cart').isVisible(), true, name);

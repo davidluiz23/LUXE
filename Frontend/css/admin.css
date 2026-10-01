@@ -2958,3 +2958,10 @@ body.admin-page :is(a, button, input, select, textarea, [tabindex]):focus-visibl
         transition-duration: 1ms !important;
     }
 }
+
+/* Shared identity, scoped to admin to keep its operational layout intact. */
+body.admin-page { font-family:var(--font-body);background:var(--alk-canvas);color:var(--alk-ink); }
+body.admin-page :is(input,select,textarea,button,table) { font-family:var(--font-body); }
+body.admin-page :focus-visible { outline:2px solid var(--alk-focus);outline-offset:3px; }
+body.admin-page :is(.admin-slide-heading button,.admin-audience-ranges button) { min-height:44px; }
+@media(max-width:600px) { body.admin-page :is(input:not([type=checkbox]):not([type=radio]),select,textarea) { font-size:16px; } }

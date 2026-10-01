@@ -1,0 +1,15 @@
+{
+  "vertices": 80214,
+  "polygons": 83459,
+  "triangles": 159152,
+  "glbBytes": 1789312,
+  "height": 5.23,
+  "axes": "glTF Y up, front +Z",
+  "poster": "800x960 RGBA PNG/WebP, rendered from the Blender-authored GLB using storefront Three.js lighting",
+  "animation": "HeritageTurntable, 180 frames at 30 fps, bounded clay study turn",
+  "source": "original procedural sculpture authored in Blender; contemporary Nok-informed study",
+  "posterWebpBytes": 63186,
+  "exportedTriangles": 159152,
+  "exportedVertices": 112083,
+  "detailRevision": 2
+}
