@@ -1,6 +1,8 @@
 # African Modern
 
-Selected by the user: `output/imagegen/clean-african-streetwear-v3/05-african-modern.png`, with the restraint of option 01. Ivory space, black graphic garments, a large Instrument Serif headline, and one matte clay portrait create a contemporary African fashion campaign. Following the user's refinement, the drawing's original silhouette is rendered as thinner flat ink, and Manrope 600 with restrained tracking replaces the condensed wordmark across the store and admin. Manrope also supports commerce and forms.
+Interface shapes, panel spacing, and utility typography follow the rounded `Alkebulan` reference. See `design-system.md` at the repository root for the active component tokens and documented editorial exceptions.
+
+Selected by the user: `output/imagegen/clean-african-streetwear-v3/05-african-modern.png`, with the restraint of option 01. Ivory space, black graphic garments, a large Instrument Serif headline, and one matte clay portrait create a contemporary African fashion campaign. The drawing's original silhouette renders as thinner flat ink. The customer navbar now matches the `Alkebulan` reference: Manrope 700 for its wordmark and 550 for navigation labels. Manrope also supports commerce and forms. Garment imagery uses rounded rectangles; interaction text stays ink through hover, focus, and selection.
 
 The first viewport keeps the headline, garment campaign, shop action, and pose controls visible, including short desktop previews. Model and drawing sizes respond to available viewport height; no fixed minimum hero height pushes shopping below the fold. On mobile, pose controls occupy the space below the headline so they do not cover the garment graphics.
 

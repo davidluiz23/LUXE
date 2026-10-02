@@ -73,7 +73,7 @@ test('homepage back to top works before the catalog resolves', async () => {
   } finally { await context.close(); }
 });
 
-test('collection pages show branded pending cards and restore editorial cards with visible shopping controls', async () => {
+test('collection pages show branded pending cards and restore rounded cards with visible shopping controls', async () => {
   for (const name of ['shop.html', 'men.html', 'women.html', 'wishlist.html', 'product.html?id=1001']) {
     const user = { id: 'presentation-customer', email: 'customer@example.com' };
     const { page, context, errors } = await fixture.openPage(name, {
@@ -99,7 +99,7 @@ test('collection pages show branded pending cards and restore editorial cards wi
           categoryFirst: el.querySelector('.product-info').firstElementChild.classList.contains('product-category'),
           overflow: el.scrollWidth > el.clientWidth || document.documentElement.scrollWidth > innerWidth,
         }));
-        assert.deepEqual(result, { background: 'rgba(0, 0, 0, 0)', radius: 0, actionsBelow: true, categoryFirst: true, overflow: false }, `${name} at ${width}`);
+        assert.deepEqual(result, { background: 'rgb(240, 237, 230)', radius: width <= 760 ? 22 : 24, actionsBelow: true, categoryFirst: true, overflow: false }, `${name} at ${width}`);
         assert.equal(await card.locator('.product-rating').isVisible(), true, name);
         assert.equal(await card.locator('.product-name-link').isVisible(), true, name);
         assert.equal(await card.locator('.add-cart').isVisible(), true, name);

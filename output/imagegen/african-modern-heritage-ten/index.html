@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>ALKEBULAN — Ten new faces</title>
+<link rel="icon" href="data:,">
+<style>
+:root{--paper:#faf7f0;--surface:#f0ede6;--ink:#24231f;--muted:#69655c;--line:#dad5cb;--accent:#87352e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.6 Arial,Helvetica,sans-serif}
+a{color:inherit;text-decoration:none}
+a:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
+button{font:inherit;color:inherit;cursor:pointer}
+.skip{position:absolute;left:16px;top:-100px;padding:12px;background:var(--paper);z-index:5}.skip:focus{top:12px}
+.shell{width:min(1536px,calc(100% - 80px));margin:0 auto}
+.topline{padding:24px 0;display:flex;gap:24px;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+.brand{font-size:17px;font-weight:700;letter-spacing:.09em}.edition{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.intro{display:flex;justify-content:space-between;align-items:end;gap:40px;padding:46px 0 30px}
+h1{font:400 64px/1.02 Georgia,serif;letter-spacing:-.045em;margin:0}
+.intro p{max-width:400px;color:var(--muted);margin:0;font-size:15px}
+.face-nav{display:flex;gap:8px;flex-wrap:wrap;padding:0 0 24px}
+.face-link{display:flex;align-items:center;justify-content:center;min-width:48px;min-height:48px;border:1px solid var(--line);border-radius:50%;font-size:14px;font-variant-numeric:tabular-nums}
+.face-link[aria-current="page"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+@media(hover:hover){.face-link:hover:not([aria-current]){background:var(--surface)}.action:hover,.step:hover{background:var(--surface)}.preview-link:hover h3{text-decoration:underline;text-underline-offset:5px}}
+.viewer{scroll-margin-top:20px}
+.viewer-info{display:flex;justify-content:space-between;gap:32px;align-items:end;padding:18px 0 22px;border-top:1px solid var(--line)}
+.kicker{font-size:11px;letter-spacing:.11em;text-transform:uppercase;margin:0 0 5px;color:var(--muted)}
+h2{font:400 34px/1.2 Georgia,serif;margin:0;letter-spacing:-.025em}
+#summary{max-width:730px;margin:9px 0 0;font-size:14px;color:var(--muted)}
+.palette{display:flex;gap:6px;margin-bottom:3px;flex-shrink:0}
+.swatch{width:24px;height:24px;border-radius:50%;outline:1px solid #24231f20;outline-offset:-1px}
+.image-stage{display:block;background:var(--surface);line-height:0;outline:1px solid #24231f10;outline-offset:-1px}
+#main-image{width:100%;height:auto;display:block;aspect-ratio:3/2;object-fit:contain}
+.controls{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;padding:18px 0 25px}
+.control-group{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.action,.step{min-height:48px;display:inline-flex;align-items:center;justify-content:center;padding:0 18px;border:1px solid var(--line);background:transparent;border-radius:999px;font-size:13px}
+.step{min-width:48px;padding:0 14px;font-size:18px}
+#position{font-size:13px;min-width:66px;text-align:center;color:var(--muted);font-variant-numeric:tabular-nums}
+.overview{padding:45px 0 64px;border-top:1px solid var(--line)}
+.overview-head{display:flex;justify-content:space-between;gap:20px;align-items:baseline;margin-bottom:28px}
+.overview-head p{color:var(--muted);font-size:14px;margin:0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:40px 28px}
+.concept{min-width:0}
+.concept img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:contain;background:var(--surface);outline:1px solid #24231f10;outline-offset:-1px}
+.concept-caption{display:flex;gap:13px;align-items:center;padding-top:13px}
+.number{font-size:12px;color:var(--muted)}
+h3{font-size:16px;line-height:1.4;font-weight:500;margin:0;flex:1}
+.concept p{font-size:13px;color:var(--muted);margin:7px 0 0 29px;max-width:540px}
+footer{border-top:1px solid var(--line);padding:24px 0 32px;display:flex;justify-content:space-between;gap:24px;color:var(--muted);font-size:12px}
+footer a{text-decoration:underline;text-underline-offset:3px}
+.status{min-height:0;margin:0;color:var(--accent);font-size:14px}
+@media(min-width:1700px){.shell{width:min(1536px,calc(100% - 112px))}}
+@media(max-width:760px){.shell{width:calc(100% - 32px)}.topline{padding:18px 0;gap:12px}.edition{font-size:10px;max-width:100px;text-align:right}.brand{font-size:14px}.intro{display:block;padding:30px 0 24px}h1{font-size:45px}.intro p{font-size:16px;margin-top:18px}.face-nav{gap:8px;padding-bottom:18px}.viewer-info{display:block;padding:20px 0}h2{font-size:29px}#summary{font-size:16px}.palette{margin-top:16px}.controls{gap:12px}.action{font-size:14px;padding:0 14px}.overview{padding:28px 0 40px}.overview-head{display:block}.overview-head p{font-size:16px;margin-top:8px}.grid{grid-template-columns:1fr;gap:28px}.concept p{font-size:16px;margin-left:0}h3{font-size:18px}footer{display:block;font-size:14px}footer p{margin:0 0 12px}.kicker{font-size:12px}}
+@media print{.face-nav,.intro,.viewer,.controls,.topline,.overview-head p,footer{display:none}.shell{width:100%}.overview{padding:0;border:0}.grid{gap:20px;grid-template-columns:1fr 1fr}.concept{break-inside:avoid}.concept p{display:none}.overview-head h2{font-size:24px}}
+</style>
+</head>
+<body>
+<a class="skip" href="#viewer">Skip to the selected concept</a>
+<div class="shell">
+<header class="topline"><a href="index.html" class="brand">ALKEBULAN</a><span class="edition">Modern African heritage / 10 directions</span></header>
+<main>
+<section class="intro" aria-labelledby="page-title"><h1 id="page-title">Ten new faces.</h1><p>African modern heritage, expressed through art, cloth, space and rhythm. Select a direction to see it in detail.</p></section>
+<nav class="face-nav" aria-label="Choose a concept"><a class="face-link" href="?face=01" data-face="01" aria-label="01: Uli / Living Line">01</a>
+<a class="face-link" href="?face=02" data-face="02" aria-label="02: Aso Oke / Loom House">02</a>
+<a class="face-link" href="?face=03" data-face="03" aria-label="03: Adire / Blue Hour">03</a>
+<a class="face-link" href="?face=04" data-face="04" aria-label="04: Durbar / Procession">04</a>
+<a class="face-link" href="?face=05" data-face="05" aria-label="05: Kente / Colour Code">05</a>
+<a class="face-link" href="?face=06" data-face="06" aria-label="06: Ndebele / Painted Rhythm">06</a>
+<a class="face-link" href="?face=07" data-face="07" aria-label="07: Bogolan / Earth &amp; Ink">07</a>
+<a class="face-link" href="?face=08" data-face="08" aria-label="08: Bronze / Cast in Light">08</a>
+<a class="face-link" href="?face=09" data-face="09" aria-label="09: Highlife House">09</a>
+<a class="face-link" href="?face=10" data-face="10" aria-label="10: Akwete / Future Heirloom">10</a></nav>
+<section id="viewer" class="viewer" aria-labelledby="concept-title">
+<div class="viewer-info"><div><p class="kicker" id="heritage">Igbo Uli linework</p><h2 id="concept-title">01 — Uli / Living Line</h2><p id="summary">Fluid charcoal lines, warm paper and an Ijele portrait; expressive, art-led and spacious.</p></div><div id="palette" class="palette" aria-label="Concept palette"></div></div>
+<a id="image-link" class="image-stage" href="01-uli-living-line.png" target="_blank" rel="noopener" aria-label="Open selected concept at original resolution"><img id="main-image" src="01-uli-living-line.png" width="1536" height="1024" alt="Fluid charcoal lines, warm paper and an Ijele portrait; expressive, art-led and spacious." fetchpriority="high"></a>
+<p id="status" class="status" role="status" aria-live="polite"></p>
+<div class="controls"><div class="control-group"><button id="previous" class="step" aria-label="Previous concept">←</button><span id="position" aria-live="polite">01 / 10</span><button id="next" class="step" aria-label="Next concept">→</button></div><div class="control-group"><a id="original" class="action" href="01-uli-living-line.png" target="_blank" rel="noopener">Open full size ↗</a><a id="download" class="action" href="01-uli-living-line.png" download>Download PNG ↓</a><a href="#all-concepts" class="action">View all ten</a></div></div>
+</section>
+<section class="overview" id="all-concepts" aria-labelledby="overview-title"><div class="overview-head"><h2 id="overview-title">The complete set.</h2><p>Choose any concept to return to the full-size viewer.</p></div><div class="grid"><article class="concept"><a class="preview-link" href="?face=01" data-face="01"><img src="01-uli-living-line.png" alt="" loading="lazy" width="1536" height="1024"><div class="concept-caption"><span class="number">01</span><h3>Uli / Living Line</h3><span aria-hidden="true">↗</span></div></a><p>Fluid charcoal lines, warm paper and an Ijele portrait; expressive, art-led and spacious.</p></article>
+<article class="concept"><a class="preview-link" href="?face=02" data-face="02"><img src="02-aso-oke-loom-house.png" alt="" loading="lazy" width="1536" height="1024"><div class="concept-caption"><span class="number">02</span><h3>Aso Oke / Loom House</h3><span aria-hidden="true">↗</span></div></a><p>Burgundy, coral and woven strips frame a fashion portrait like an architectural facade.</p></article>
+<article class="concept"><a class="preview-link" href="?face=03" data-face="03"><img src="03-adire-blue-hour.png" alt="" loading="lazy" width="1536" height="1024"><div class="concept-caption"><span class="number">03</span><h3>Adire / Blue Hour</h3><span aria-hidden="true">↗</span></div></a><p>An indigo atelier with resist-dye texture and a dramatic, right-aligned fashion headline.</p></article>
+<article class="concept"><a class="preview-link" href="?face=04" data-face="04"><img src="04-durbar-procession.png" alt="" loading="lazy" width="1536" height="1024"><div class="concept-caption"><span class="number">04</span><h3>Durbar / Procession</h3><span aria-hidden="true">↗</span></div></a><p>Sunlit courtyard architecture and a moving Durbar campaign, grounded in sand and rust.</p></article>
+<article class="concept"><a class="preview-link" href="?face=05" data-face="05"><img src="05-kente-colour-code.png" alt="" loading="lazy" width="1536" height="1024"><div class="concept-caption"><span class="number">05</span><h3>Kente / Colour Code</h3><span aria-hidden="true">↗</span></div></a><p>Ochre, rose and forest green form a bold woven grid with confident streetwear imagery.</p></article>
+<article class="concept"><a class="preview-link" href="?face=06" data-face="06"><img src="06-ndebele-painted-rhythm.png" alt="" loading="lazy" width="1536" height="1024"><div class="concept-caption"><span class="number">06</span><h3>Ndebele / Painted Rhythm</h3><span aria-hidden="true">↗</span></div></a><p>Painted architectural geometry meets crisp modern streetwear and playful proportions.</p></article>
+<article class="concept"><a class="preview-link" href="?face=07" data-face="07"><img src="07-bogolan-earth-ink.png" alt="" loading="lazy" width="1536" height="1024"><div class="concept-caption"><span class="number">07</span><h3>Bogolan / Earth &amp; Ink</h3><span aria-hidden="true">↗</span></div></a><p>Earth-dark cloth, tactile marks and quiet catalog typography give the garments gravity.</p></article>
+<article class="concept"><a class="preview-link" href="?face=08" data-face="08"><img src="08-bronze-cast-in-light.png" alt="" loading="lazy" width="1536" height="1024"><div class="concept-caption"><span class="number">08</span><h3>Bronze / Cast in Light</h3><span aria-hidden="true">↗</span></div></a><p>Sunlit cast-metal relief and a Durbar portrait create a warm sculptural gallery.</p></article>
+<article class="concept"><a class="preview-link" href="?face=09" data-face="09"><img src="09-highlife-house.png" alt="" loading="lazy" width="1536" height="1024"><div class="concept-caption"><span class="number">09</span><h3>Highlife House</h3><span aria-hidden="true">↗</span></div></a><p>Butter yellow, olive and analog music graphics give Dun Dun a lively editorial home.</p></article>
+<article class="concept"><a class="preview-link" href="?face=10" data-face="10"><img src="10-akwete-future-heirloom.png" alt="" loading="lazy" width="1536" height="1024"><div class="concept-caption"><span class="number">10</span><h3>Akwete / Future Heirloom</h3><span aria-hidden="true">↗</span></div></a><p>A monumental woven installation frames three models in a spacious, forward-looking campaign.</p></article></div></section>
+</main>
+<footer><p>Website concept images · 2 October 2026<br>Generated campaign imagery with Alkebulan garment references.</p><p><a href="alkebulan-ten-new-faces.zip" download>Download the complete set</a> · <a href="README.md">Direction notes &amp; sources</a> · <a href="prompts.json">Prompts</a></p></footer>
+</div>
+<script>
+const concepts=[{"id":"01","slug":"01-uli-living-line","name":"Uli / Living Line","heritage":"Igbo Uli linework","axis":"Open editorial canvas with an off-centre portrait and linear drawing.","palette":["#eee7da","#24231f","#87352e"],"summary":"Fluid charcoal lines, warm paper and an Ijele portrait; expressive, art-led and spacious."},{"id":"02","slug":"02-aso-oke-loom-house","name":"Aso Oke / Loom House","heritage":"Yoruba Aso Oke strip weaving","axis":"Architectural diptych with textile panels and a burgundy title column.","palette":["#55212c","#d89687","#e3c99c"],"summary":"Burgundy, coral and woven strips frame a fashion portrait like an architectural facade."},{"id":"03","slug":"03-adire-blue-hour","name":"Adire / Blue Hour","heritage":"Yoruba Adire resist-dyed textiles","axis":"Immersive indigo photographic stage with the headline aligned right.","palette":["#18245a","#5e78bd","#f2eee3"],"summary":"An indigo atelier with resist-dye texture and a dramatic, right-aligned fashion headline."},{"id":"04","slug":"04-durbar-procession","name":"Durbar / Procession","heritage":"Northern Nigerian Durbar and courtyard space","axis":"Panoramic walking campaign above a bold horizontal type band.","palette":["#d7b583","#a6502c","#223e64"],"summary":"Sunlit courtyard architecture and a moving Durbar campaign, grounded in sand and rust."},{"id":"05","slug":"05-kente-colour-code","name":"Kente / Colour Code","heritage":"Ghanaian Kente strip-weaving rhythm","axis":"Modular typographic triptych based on interlocking woven bands.","palette":["#eeaf28","#963f56","#285348","#efe9d9"],"summary":"Ochre, rose and forest green form a bold woven grid with confident streetwear imagery."},{"id":"06","slug":"06-ndebele-painted-rhythm","name":"Ndebele / Painted Rhythm","heritage":"Ndebele architectural painting geometry","axis":"Graphic courtyard stage with a central photo opening and oversized bottom type.","palette":["#f7f2e9","#1b3430","#de5d27","#76b7bc"],"summary":"Painted architectural geometry meets crisp modern streetwear and playful proportions."},{"id":"07","slug":"07-bogolan-earth-ink","name":"Bogolan / Earth & Ink","heritage":"Malian Bogolan textile material and contrast","axis":"Quiet material-led catalog with macro textile and one portrait column.","palette":["#342b24","#b48d63","#e5dcc9"],"summary":"Earth-dark cloth, tactile marks and quiet catalog typography give the garments gravity."},{"id":"08","slug":"08-bronze-cast-in-light","name":"Bronze / Cast in Light","heritage":"Nigerian metalwork reinterpreted as original contemporary sculpture","axis":"Warm gallery installation with an enormous light typographic field.","palette":["#bd6d49","#eed8bd","#672f2a","#bc9360"],"summary":"Sunlit cast-metal relief and a Durbar portrait create a warm sculptural gallery."},{"id":"09","slug":"09-highlife-house","name":"Highlife House","heritage":"West African music culture and contemporary Lagos energy","axis":"Record-sleeve editorial collage with rhythm-led typography.","palette":["#e9db83","#547151","#dd684a","#272922"],"summary":"Butter yellow, olive and analog music graphics give Dun Dun a lively editorial home."},{"id":"10","slug":"10-akwete-future-heirloom","name":"Akwete / Future Heirloom","heritage":"Igbo Akwete weaving and contemporary textile installation","axis":"Expansive spatial campaign with a woven canopy and low centered headline.","palette":["#e9e6da","#b23930","#176566","#aaa99b"],"summary":"A monumental woven installation frames three models in a spacious, forward-looking campaign."}];
+let selected=0;
+const byId=id=>document.getElementById(id);
+function render(id,updateHistory=false){
+  selected=Math.max(0,concepts.findIndex(c=>c.id===id));
+  const c=concepts[selected], file=c.slug+'.png';
+  byId('concept-title').textContent=c.id+' — '+c.name;
+  byId('heritage').textContent=c.heritage;
+  byId('summary').textContent=c.summary;
+  byId('status').textContent='';
+  byId('main-image').src=file;
+  byId('main-image').alt='ALKEBULAN website concept '+c.id+': '+c.summary;
+  for(const key of ['image-link','original','download'])byId(key).href=file;
+  byId('download').download=file;
+  byId('position').textContent=c.id+' / 10';
+  byId('palette').replaceChildren(...c.palette.map(color=>{
+    const swatch=document.createElement('span');swatch.className='swatch';
+    swatch.style.background=color;swatch.title=color;swatch.setAttribute('role','img');swatch.setAttribute('aria-label',color);return swatch;
+  }));
+  document.querySelectorAll('.face-link').forEach(link=>{
+    if(link.dataset.face===c.id)link.setAttribute('aria-current','page');
+    else link.removeAttribute('aria-current');
+  });
+  document.title=c.id+' '+c.name+' — ALKEBULAN';
+  if(updateHistory){const url=new URL(location.href);url.searchParams.set('face',c.id);history.pushState(null,'',url);}
+}
+document.querySelectorAll('[data-face]').forEach(link=>link.addEventListener('click',event=>{
+  if(event.ctrlKey||event.metaKey||event.shiftKey||event.altKey||event.button!==0)return;
+  event.preventDefault();render(link.dataset.face,true);
+  if(link.classList.contains('preview-link'))byId('viewer').scrollIntoView({block:'start'});
+}));
+byId('previous').addEventListener('click',()=>render(concepts[(selected+9)%10].id,true));
+byId('next').addEventListener('click',()=>render(concepts[(selected+1)%10].id,true));
+byId('main-image').addEventListener('error',()=>byId('status').textContent='This image could not load. Keep the PNG files beside index.html and reload.');
+window.addEventListener('popstate',()=>render(new URLSearchParams(location.search).get('face')||'01'));
+document.addEventListener('keydown',event=>{
+  if(/INPUT|TEXTAREA|SELECT|BUTTON|A/.test(event.target.tagName)||event.altKey||event.ctrlKey||event.metaKey)return;
+  if(event.key==='ArrowRight'){event.preventDefault();render(concepts[(selected+1)%10].id,true);}
+  if(event.key==='ArrowLeft'){event.preventDefault();render(concepts[(selected+9)%10].id,true);}
+});
+render(new URLSearchParams(location.search).get('face')||'01');
+</script>
+</body>
+</html>
