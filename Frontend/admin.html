@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="assets/brand/alkebulan-mark.svg" type="image/svg+xml">
-    <link rel="preload" href="assets/fonts/poppins-normal-400-latin-7d93459d86.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/fonts/manrope-normal-400-700-latin-a30ddcd349.woff2" as="font" type="font/woff2" crossorigin>
     <script src="js/utils.js?v=20260830-2"></script>
     <meta name="robots" content="noindex, nofollow">
     <title>Admin | ALKEBULAN</title>
@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="css/responsive.css?v=20260912-1">
     <link rel="stylesheet" href="css/admin.css?v=20260913-4">
     <link rel="stylesheet" href="css/icons.css?v=20260913-2">
+    <link rel="stylesheet" href="css/admin-modern.css?v=20261001-1">
 </head>
 
 <body class="admin-page">
@@ -21,25 +22,25 @@
 
     <header id="navbar">
         <div class="container nav-container">
-            <div class="logo"><a href="index.html" aria-label="ALKEBULAN home"><span>Admin</span></a></div>
+            <div class="logo"><a href="index.html" aria-label="ALKEBULAN home"><img src="assets/brand/alkebulan-mark.svg" alt="" width="28" height="32"><span>ALKEBULAN</span></a><span class="admin-workspace-label">Studio</span></div>
 
             <nav class="nav-links" id="navLinks">
                 <ul>
                     <li><a href="index.html">Home</a></li>
                     <li><a href="shop.html">Shop</a></li>
-                    <li><a href="videos.html"><i class="fas fa-play" aria-hidden="true"></i>Videos</a></li>
-                    <li><a href="admin.html" class="active">Admin</a></li>
+                    <li><a href="videos.html">Videos</a></li>
+                    <li><a href="admin.html" class="active" aria-current="page">Admin</a></li>
                 </ul>
             </nav>
 
             <div class="nav-icons">
                 <a href="index.html" class="user-icon" aria-label="Return to storefront"><i class="fas fa-arrow-left" aria-hidden="true"></i></a>
-                <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+                <button type="button" class="hamburger" id="hamburger" aria-label="Open navigation" aria-controls="mobileMenu" aria-expanded="false"><span></span><span></span><span></span></button>
             </div>
         </div>
 
         <div class="mobile-menu" id="mobileMenu">
-            <div class="mobile-close" id="mobileClose"><i class="fas fa-times"></i></div>
+            <button type="button" class="mobile-close" id="mobileClose" aria-label="Close navigation"><i class="fas fa-times" aria-hidden="true"></i></button>
             <ul>
                 <li><a href="index.html">Home</a></li>
                 <li><a href="shop.html">Shop</a></li>
@@ -48,12 +49,13 @@
         </div>
     </header>
 
-    <section class="admin-section">
+    <main class="admin-section" id="mainContent">
         <div class="container">
 
             <div class="admin-gate" id="adminLoginGate">
                 <i class="fas fa-lock"></i>
-                <h2>Admin Sign In</h2>
+                <p class="admin-gate-kicker">ALKEBULAN Studio</p>
+                <h1>Welcome back.</h1>
                 <p>Sign in with an account authorized for the ALKEBULAN management console.</p>
 
                 <div class="admin-error" id="adminLoginError"></div>
@@ -61,12 +63,12 @@
                 <form id="adminLoginForm">
                     <div class="form-group">
                         <label for="adminEmail">Email</label>
-                        <input type="email" id="adminEmail" autocomplete="email" required placeholder="you@example.com">
+                        <input type="email" id="adminEmail" name="email" autocomplete="email" required placeholder="you@example.com">
                     </div>
 
                     <div class="form-group">
                         <label for="adminPassword">Password</label>
-                        <input type="password" id="adminPassword" autocomplete="current-password" required placeholder="Your password">
+                        <input type="password" id="adminPassword" name="password" autocomplete="current-password" required placeholder="Your password">
                     </div>
 
                     <div class="admin-login-help">
@@ -85,17 +87,18 @@
             </div>
 
             <div class="admin-layout" id="adminLayout">
-                <aside class="admin-sidebar">
+                <aside class="admin-sidebar" aria-label="Management workspace">
                     <div class="admin-owner">
                         <div class="admin-owner-avatar" id="adminOwnerAvatar" aria-hidden="true">
                             <img id="adminOwnerAvatarImage" alt="" width="58" height="58" decoding="async" hidden>
-                            <i class="fas fa-user-shield" id="adminOwnerAvatarFallback"></i>
+                            <span id="adminOwnerAvatarFallback">A</span>
                         </div>
                         <div><strong id="adminRoleLabel">Admin</strong></div>
                         <div class="admin-owner-role" id="adminRoleBadge"></div>
                         <div class="admin-owner-email" id="adminOwnerEmail"></div>
                     </div>
 
+                    <nav class="admin-workspace-nav" aria-label="Store management">
                     <button type="button" class="admin-nav-btn active" data-panel="overviewPanel">
                         <i class="fas fa-chart-line" aria-hidden="true"></i> Overview
                     </button>
@@ -139,6 +142,7 @@
                     <button type="button" class="admin-nav-btn logout-btn" id="adminSignOutBtn">
                         <i class="fas fa-sign-out-alt"></i> Sign Out
                     </button>
+                    </nav>
                 </aside>
 
                 <div class="admin-main">
@@ -193,11 +197,11 @@
                                 </div>
 
                                 <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                                    <button type="button" class="btn btn-outline" style="background:#111;color:#fff;padding:10px 20px;font-size:0.85rem;" id="importCatalogBtn">
+                                    <button type="button" class="btn btn-outline" id="importCatalogBtn">
                                         <i class="fas fa-cloud-upload-alt"></i> Import Starter Catalog
                                     </button>
 
-                                    <button type="button" class="btn btn-primary" style="padding:10px 22px;font-size:0.85rem;" id="addProductBtn">
+                                    <button type="button" class="btn btn-primary" id="addProductBtn">
                                         <i class="fas fa-plus"></i> Add Product
                                     </button>
                                 </div>
@@ -496,7 +500,7 @@
                 </div>
             </div>
         </div>
-    </section>
+    </main>
 
     <div class="admin-modal-overlay" id="customerDetailOverlay">
         <div class="admin-modal admin-customer-detail-modal" role="dialog" aria-modal="true" aria-labelledby="customerDetailTitle">

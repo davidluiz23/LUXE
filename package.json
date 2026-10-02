@@ -10,8 +10,8 @@
     "check": "node scripts/check.cjs",
     "test": "node --test tests/*.test.cjs",
     "test:browser": "node --test --test-concurrency=1 tests/browser/*.test.cjs",
-    "build": "node scripts/build-culture.cjs",
-    "build:home": "node scripts/build-culture.cjs --home-only",
+    "build": "node scripts/build-african-modern.cjs",
+    "build:home": "node scripts/build-african-modern.cjs --home-only",
     "build:world": "node scripts/build-world.cjs"
   },
   "devDependencies": {

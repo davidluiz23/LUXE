@@ -12,7 +12,7 @@ test('public templates ship the finished navigation without a blocking page spin
     assert.doesNotMatch(html, /id=["']loader["']/, name);
     if (name === 'auth-callback.html') continue;
     const header = html.match(/<header\b[^>]*id=["']navbar["'][\s\S]*?<\/header>/)[0];
-    assert.match(header, /class=["']luxury-navbar["']/, name);
+    assert.match(header, /class=["'][^"']*\bluxury-navbar\b[^"']*["']/, name);
     assert.match(header, /class=["']brand-mark["']/, name);
     if (name !== 'verify-signup.html') {
       const search = header.match(/<(\w+)\b[^>]*id=["']searchToggle["'][\s\S]*?<\/\1\s*>/);
@@ -20,7 +20,9 @@ test('public templates ship the finished navigation without a blocking page spin
       assert.match(search[0], /class=["']nav-svg-icon["']/, name);
     }
     const nav = header.match(/<nav\b[\s\S]*?<\/nav>/)[0];
-    assert.equal([...nav.matchAll(/<a\b/g)].length, 6, name);
+    assert.equal([...nav.matchAll(/<a\b/g)].length, 4, name);
+    for (const route of ['shop','men','women','about']) assert.ok(nav.includes(`${route}.html`), `${name}: ${route} navigation`);
+    for (const route of ['contact','videos','wishlist','dashboard']) assert.ok(html.includes(`${route}.html`), `${name}: ${route} remains reachable`);
   }
 });
 

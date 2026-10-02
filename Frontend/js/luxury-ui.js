@@ -349,7 +349,7 @@
   function rebuildFooter() {
     const footer = $("footer");
     if (!footer) return;
-    if (footer.hasAttribute("data-culture-footer")) return;
+    if (footer.hasAttribute("data-culture-footer") || footer.hasAttribute("data-modern-footer")) return;
     footer.classList.add("luxury-footer");
     footer.innerHTML = `
       <div class="container luxury-footer-top">

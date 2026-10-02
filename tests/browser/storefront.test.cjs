@@ -32,9 +32,9 @@ test('search on an informational page fetches the live catalog on demand', async
   try {
     assert.equal(await page.evaluate(() => __requests.some(r=>r.table==='products')), false);
     await page.click('#searchToggle');
-    await page.fill('#headerSearchInput', 'Audit');
+    await page.fill('#headerSearchInput', 'ALKEBULAN');
     await page.waitForSelector('.search-result-item');
-    assert.equal(await page.locator('.search-result-item').count(), 8);
+    assert.equal(await page.locator('.search-result-item').count(), 3);
     assert.match(await page.locator('.search-result-item').first().getAttribute('href'), /id=1001/);
     await page.keyboard.press('Escape');
     assert.equal(await page.locator('#headerSearchModal').isHidden(), true);
@@ -46,12 +46,12 @@ test('failed catalog search explains the outage and retries when reopened', asyn
   const {page,context} = await fixture.openPage('contact.html', {state:{__failProducts:true}});
   try {
     await page.click('#searchToggle');
-    await page.fill('#headerSearchInput', 'Audit');
+    await page.fill('#headerSearchInput', 'ALKEBULAN');
     await page.waitForFunction(() => document.querySelector('#headerSearchResults').textContent.includes('temporarily unavailable'));
     await page.keyboard.press('Escape');
     await page.evaluate(() => window.__failProducts = false);
     await page.click('#searchToggle');
-    await page.fill('#headerSearchInput', 'Audit');
+    await page.fill('#headerSearchInput', 'ALKEBULAN');
     await page.waitForSelector('.search-result-item');
   } finally { await context.close(); }
 });

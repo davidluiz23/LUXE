@@ -2,6 +2,31 @@
 // No unrelated starter merchandise is bundled or imported.
 const products = [];
 
+// The public collection is the three original ALKEBULAN tees. Keep this
+// curation at the catalog boundary so search, direct product URLs, saved bags
+// and recommendations cannot reintroduce the retired starter merchandise.
+// This is a presentation rule, not database authorization: admin still reads
+// and manages every record through LuxeProducts and its own product cache.
+function collectionText(value) {
+    return String(value || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase().replace(/[\u2010-\u2015-]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function collectionKeyForProduct(product) {
+    if (!product || collectionText(product.brand) !== 'alkebulan') return null;
+    // Match complete product names, not an incidental word in a description,
+    // tag or an unrelated item such as "Ijele print trainers".
+    const match = collectionText(product.name).match(
+        /^(?:alkebulan )?(ijele|durbar|dun dun)(?: (?:(?:oversized )?graphic |oversized )?(?:tee|t shirt|tshirt))?$/,
+    );
+    return match ? match[1].replace(' ', '-') : null;
+}
+
+window.LuxeCollection = Object.freeze({
+    keyForProduct: collectionKeyForProduct,
+    includes: (product) => collectionKeyForProduct(product) !== null,
+});
+
 const catalogBackendConfigured = !!(
     window.LuxeProducts &&
     window.isSupabaseConfigured &&
@@ -32,6 +57,13 @@ function renderCatalogStatus() {
     if (document.readyState === 'loading') return;
     const status = window.LuxeCatalogStatus;
     let banner = document.getElementById('catalogStatusBanner');
+    // The curated campaign and collection preview carry their own availability
+    // copy. Avoid a duplicate banner shifting the art-directed first viewport.
+    if (status.state === 'empty' && document.body.classList.contains('african-modern-site') &&
+        (document.getElementById('intendedPreview') || document.getElementById('collectionAvailability'))) {
+        banner?.remove();
+        return;
+    }
     // Loading is already represented by the quiet, layout-stable product
     // placeholders. Avoid pushing every page down with a refresh banner.
     if (['idle', 'loading', 'ready'].includes(status.state)) {
@@ -114,7 +146,11 @@ async function loadCatalog() {
                 }
                 if (validProducts.length) {
                     activeProductsList = validProducts;
-                    setCatalogStatus('ready', 'supabase', 'Live catalog loaded.');
+                    if (getProducts().length) {
+                        setCatalogStatus('ready', 'supabase', 'Live catalog loaded.');
+                    } else {
+                        setCatalogStatus('empty', 'supabase', 'The ALKEBULAN tees are not available to shop yet.');
+                    }
                 } else if (data.length === 0) {
                     activeProductsList = [];
                     setCatalogStatus('empty', 'supabase', 'No products are currently published.');
@@ -141,7 +177,7 @@ async function loadCatalog() {
     } finally {
         clearTimeout(timeoutId);
     }
-    return activeProductsList;
+    return getProducts();
 }
 
 function ensureLiveCatalog() {
@@ -160,11 +196,11 @@ const catalogPageNeedsData = [
     'wishlist.html', 'cart.html', 'checkout.html', 'admin.html',
 ].includes(catalogPageFile);
 window.ensureLiveCatalog = ensureLiveCatalog;
-window.productsReady = catalogPageNeedsData ? ensureLiveCatalog() : Promise.resolve(activeProductsList);
+window.productsReady = catalogPageNeedsData ? ensureLiveCatalog() : Promise.resolve(getProducts());
 
 // Get ALL products
 function getProducts() {
-    return catalogProducts(activeProductsList);
+    return catalogProducts(activeProductsList).filter(window.LuxeCollection.includes);
 }
 
 // Get a SINGLE product by its ID
@@ -275,7 +311,7 @@ async function importStarterCatalog() {
 
 if (typeof window !== 'undefined') {
     Object.defineProperty(window, 'products', {
-        get: function () { return activeProductsList; },
+        get: function () { return getProducts(); },
         set: function (val) { activeProductsList = catalogProducts(val); },
         configurable: true
     });

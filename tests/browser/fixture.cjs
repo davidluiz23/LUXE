@@ -5,11 +5,11 @@ const { chromium } = require('playwright');
 const root = path.resolve(__dirname, '../..');
 const frontend = path.join(root, 'Frontend');
 const fixture = Array.from({length: 16}, (_, i) => ({
-  id: 1001 + i, name: `Audit ${i % 2 ? 'Linen Dress' : 'Cotton Shirt'} ${i + 1}`,
+  id: 1001 + i, name: ['Ijele graphic tee', 'Durbar T-shirt', 'Dùn Dùn'][i] || `Retired ${i % 2 ? 'Linen Dress' : 'Cotton Shirt'} ${i + 1}`,
   category: i % 2 ? 'Women' : 'Men', subcategory: i % 2 ? 'Dresses' : 'Shirts',
-  brand: 'ALKEBULAN', price: 40 + i * 10, price_ngn: 60000 + i * 15000,
+  brand: i < 3 ? 'ALKEBULAN' : 'Legacy Brand', price: 40 + i * 10, price_ngn: 60000 + i * 15000,
   old_price: null, old_price_ngn: null, rating: 4.5, review_count: 2,
-  image: 'assets/brand/product-placeholder.svg', hover_image: '',
+  image: i < 3 ? `assets/products/${['ijele','durbar','dun-dun'][i]}.jpg` : 'assets/brand/product-placeholder.svg', hover_image: '',
   sizes: i === 0 ? ['M', 'L'] : [], colors: i === 0 ? ['Black', 'White'] : [],
   tags: [i % 2 ? 'women' : 'men'], in_stock: i !== 15, stock_quantity: i === 15 ? 0 : 5,
   created_at: `2026-09-${String(i+1).padStart(2,'0')}T00:00:00Z`, description: 'A comfortable, carefully selected piece.'

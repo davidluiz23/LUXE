@@ -13,46 +13,39 @@
     <link rel="stylesheet" href="css/cart.css?v=20260830-1" />
     <link rel="stylesheet" href="css/responsive.css?v=20260912-1" />
     <link id="alkebulanLuxuryStyles" rel="stylesheet" href="css/luxury.css?v=20260913-5" />
-    <script id="alkebulanLuxuryUi" src="js/luxury-ui.js?v=20260930-2" defer></script>
+    <script id="alkebulanLuxuryUi" src="js/luxury-ui.js?v=20261002" defer></script>
     <link
       rel="stylesheet"
       href="css/icons.css?v=20260913-2"
     />
       <link rel="stylesheet" href="css/storefront.css?v=20260920-1" />
 
-<link rel="preload" href="assets/fonts/barlow-condensed-600-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="css/culture.css?v=20260930-2" />
-    <link rel="stylesheet" href="js/culture/experience.css?v=20260930-2" />
-    <script type="module" src="js/culture/experience.js?v=20260930-2"></script>
-  </head>
-  <body id="top" class="culture-site page-cart">
-<!-- culture-background:start -->
-<div class="culture-page-art" data-liquid-art data-liquid-texture="assets/culture/print-rhythm.webp" data-art-state="still" aria-hidden="true">
-  <picture><source media="(max-width: 700px)" srcset="assets/culture/contour-flow-mobile.webp" /><img src="assets/culture/contour-flow.webp" width="1536" height="1024" alt="" fetchpriority="high" /></picture>
-  <div class="liquid-canvas"></div>
-</div>
-<button type="button" class="culture-motion" aria-label="Pause background artwork" aria-pressed="false" hidden>Pause artwork <span aria-hidden="true">Ⅱ</span></button>
-<!-- culture-background:end -->
-    <header id="navbar" class="luxury-navbar">
+<link rel="stylesheet" href="js/african-modern/experience.css?v=20261002" />
+<link rel="stylesheet" href="css/african-modern.css?v=20261002" />
+<link rel="stylesheet" href="css/african-modern-home.css?v=20261002" />
+<script type="module" src="js/african-modern/experience.js?v=20261002"></script>
+</head>
+  <body id="top" class="african-modern-site page-cart">
+    <header id="navbar" class="luxury-navbar modern-navbar">
       <div class="container nav-container">
         <div class="logo"><a href="index.html" aria-label="ALKEBULAN home"><img class="brand-mark" src="assets/brand/alkebulan-mark.svg" width="28" height="28" alt="" /><span class="brand-wordmark">ALKEBULAN</span></a></div>
         <nav class="nav-links" id="navLinks" aria-label="Main navigation"><ul>
-          <li><a href="shop.html">Collection</a></li><li><a href="men.html">Men</a></li><li><a href="women.html">Women</a></li><li><a href="videos.html">Videos</a></li><li><a href="about.html">Our story</a></li><li><a href="contact.html">Contact</a></li>
+          <li><a href="shop.html">Collection</a></li><li><a href="men.html">Men</a></li><li><a href="women.html">Women</a></li><li><a href="about.html">Our story</a></li>
         </ul></nav>
         <div class="nav-icons">
           <button type="button" class="search-icon" id="searchToggle" aria-label="Search" title="Search"><svg class="nav-svg-icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11.5" cy="11.5" r="9.5"/><path stroke-linecap="round" d="M18.5 18.5L22 22"/></g></svg></button>
           <a href="cart.html" class="cart-icon" aria-label="Shopping bag" title="Shopping bag"><svg class="nav-svg-icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3.79424 12.0291C4.33141 9.34329 4.59999 8.00036 5.48746 7.13543C5.65149 6.97557 5.82894 6.8301 6.01786 6.70061C7.04004 6 8.40956 6 11.1486 6H12.8515C15.5906 6 16.9601 6 17.9823 6.70061C18.1712 6.8301 18.3486 6.97557 18.5127 7.13543C19.4001 8.00036 19.6687 9.34329 20.2059 12.0291C20.9771 15.8851 21.3627 17.8131 20.475 19.1793C20.3143 19.4267 20.1267 19.6555 19.9157 19.8616C18.7501 21 16.7839 21 12.8515 21H11.1486C7.21622 21 5.25004 21 4.08447 19.8616C3.87342 19.6555 3.68582 19.4267 3.5251 19.1793C2.63744 17.8131 3.02304 15.8851 3.79424 12.0291Z"/><path stroke-linecap="round" d="M9 6V5C9 3.34315 10.3431 2 12 2C13.6569 2 15 3.34315 15 5V6"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 9H9.0001"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 9H15.0001"/></g></svg><span class="cart-count">0</span></a>
           <a href="login.html?returnTo=dashboard.html%3Ftab%3Dnotifications" class="notification-icon" data-always-visible aria-label="Sign in to view notifications" title="Notifications"><svg class="nav-svg-icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18.7491 9.70957V9.00496C18.7491 5.13623 15.7274 2 12 2C8.27256 2 5.25087 5.13623 5.25087 9.00496V9.70957C5.25087 10.5552 5.00972 11.3818 4.5578 12.0854L3.45036 13.8095C2.43882 15.3843 3.21105 17.5249 4.97036 18.0229C9.57274 19.3257 14.4273 19.3257 19.0296 18.0229C20.789 17.5249 21.5612 15.3843 20.5496 13.8095L19.4422 12.0854C18.9903 11.3818 18.7491 10.5552 18.7491 9.70957Z"/><path stroke-linecap="round" d="M7.5 19C8.15503 20.7478 9.92246 22 12 22C14.0775 22 15.845 20.7478 16.5 19"/></g></svg><span class="navbar-notification-badge" hidden>0</span></a>
           <a href="login.html" class="user-icon" aria-label="Sign in to your ALKEBULAN account" title="Your account"><svg class="nav-svg-icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="6" r="4"/><ellipse cx="12" cy="17" rx="7" ry="4"/></g></svg></a>
-          <button type="button" class="hamburger" id="hamburger" aria-label="Open menu"><span></span><span></span><span></span></button>
+          <button type="button" class="hamburger" id="hamburger" aria-label="Open menu" aria-controls="mobileMenu" aria-expanded="false"><span></span><span></span><span></span></button>
         </div>
       </div>
       <div class="mobile-menu" id="mobileMenu">
         <button type="button" class="mobile-close" id="mobileClose" aria-label="Close menu"><svg class="nav-svg-icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M14.5 9.50002L9.5 14.5M9.49998 9.5L14.5 14.5"/></g></svg></button>
-        <ul><li><a href="shop.html">Shop</a></li><li><a href="about.html">Our story</a></li><li><a href="dashboard.html">Account</a></li><li><a href="wishlist.html">Saved pieces</a></li></ul>
+        <ul><li><a href="shop.html">Collection</a></li><li><a href="men.html">Men</a></li><li><a href="women.html">Women</a></li><li><a href="about.html">Our story</a></li><li><a href="videos.html">Films</a></li><li><a href="contact.html">Contact</a></li><li><a href="dashboard.html">Account</a></li><li><a href="wishlist.html">Saved pieces</a></li></ul>
       </div>
     </header>
-    <noscript><nav class="culture-noscript-nav" aria-label="Quick navigation"><a href="shop.html">Shop</a><a href="about.html">Our story</a><a href="cart.html">Your bag</a></nav></noscript>
+    <noscript><nav class="modern-noscript-nav" aria-label="Quick navigation"><a href="shop.html">Collection</a><a href="about.html">Our story</a><a href="cart.html">Your bag</a></nav></noscript>
 
 
     <main id="mainContent">
@@ -88,12 +81,20 @@
       </div>
     </section>
     </main>
-    <footer class="culture-footer" data-culture-footer>
-  <div class="culture-container">
-    <div class="culture-footer-top"><p>From our roots.<br /><em>Into your world.</em></p><a class="culture-footer-contact" href="contact.html">Talk to the house <span aria-hidden="true">↗</span></a></div>
-    <div class="culture-footer-columns"><div class="culture-footer-location"><img src="assets/brand/alkebulan-mark.svg" width="44" height="44" alt="" /><p>African roots.<br />Unrestricted expression.</p><span>Lagos, Nigeria</span></div><nav aria-label="Shop and account"><h2>Explore</h2><a href="shop.html">The collection</a><a href="men.html">Men</a><a href="women.html">Women</a><a href="wishlist.html">Saved pieces</a><a href="dashboard.html">My account</a></nav><nav aria-label="About the brand"><h2>The house</h2><a href="about.html">Our story</a><a href="videos.html">In motion</a><a href="contact.html">Contact</a><a href="mailto:hello@alkebulan.com">hello@alkebulan.com</a></nav><nav aria-label="Customer support"><h2>Here to help</h2><a href="shipping.html">Shipping & delivery</a><a href="returns.html">Returns</a><a href="faq.html">Common questions</a><a href="tel:+2348103463852">+234 810 346 3852</a></nav></div>
-    <a class="culture-footer-wordmark" href="index.html" aria-label="ALKEBULAN home">ALKEBULAN<span aria-hidden="true">✳</span></a>
-    <div class="culture-footer-bottom"><span>© 2026 ALKEBULAN</span><div><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div><a href="#top">Back to the top ↑</a></div>
+    <footer class="modern-footer" data-modern-footer>
+  <div class="modern-footer-inner">
+    <div class="modern-footer-top">
+      <a href="index.html" class="modern-footer-brand" aria-label="ALKEBULAN home"><img src="assets/brand/alkebulan-mark.svg" width="28" height="28" alt="" /><span>ALKEBULAN</span></a>
+      <p>Our roots.<br /><em>Your expression.</em></p>
+      <a class="modern-footer-contact" href="contact.html">Let’s talk <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="modern-footer-main">
+      <div class="modern-footer-note"><p>African heritage.<br />A contemporary point of view.</p><span>Lagos, Nigeria</span><a href="mailto:hello@alkebulan.com">hello@alkebulan.com</a></div>
+      <nav aria-label="Explore the collection"><h2>Explore</h2><a href="shop.html">The collection</a><a href="men.html">Men</a><a href="women.html">Women</a><a href="about.html">Our story</a><a href="videos.html">Films</a></nav>
+      <nav aria-label="Your ALKEBULAN"><h2>Your space</h2><a href="dashboard.html">My account</a><a href="wishlist.html">Saved pieces</a><a href="cart.html">Shopping bag</a><a href="dashboard.html?tab=orders">Order history</a></nav>
+      <nav aria-label="Customer care"><h2>Here to help</h2><a href="shipping.html">Shipping &amp; delivery</a><a href="returns.html">Returns &amp; exchanges</a><a href="faq.html">Common questions</a><a href="contact.html">Contact us</a><a href="tel:+2348103463852">+234 810 346 3852</a></nav>
+    </div>
+    <div class="modern-footer-bottom"><span>© 2026 ALKEBULAN</span><div><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div><a href="#top">Back to the top <span aria-hidden="true">↑</span></a></div>
   </div>
 </footer>
 
@@ -106,7 +107,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
     <script src="js/supabase-client.js?v=20260920-1"></script>
     <script src="js/updates-banner.js?v=20260903-1"></script>
-    <script src="js/products.js?v=20260920-1"></script>
+    <script src="js/products.js?v=20261002"></script>
     <script src="js/cart.js?v=20260908-1"></script>
     <script src="js/wishlist.js?v=20260913-1"></script>
     <script src="js/search.js?v=20260913-1"></script>

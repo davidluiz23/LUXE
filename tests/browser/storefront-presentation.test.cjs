@@ -27,14 +27,11 @@ test('search stays centered and the menu covers the viewport without moving the 
           };
         });
         assert.equal(nav.centered && nav.square && nav.inside && !nav.overflow, true, `${name} at ${width}: ${JSON.stringify(nav)}`);
-        if (name === 'index.html') assert.equal(nav.blur, 'none', 'The gallery uses its own transparent header');
-        else {
-          assert.equal(nav.blur, 'blur(8px)');
-          assert.match(nav.background, /0\.94\)$/);
-        }
+        assert.equal(nav.blur, 'blur(12px)');
+        assert.match(nav.background, /0\.97\)$/);
       }
       assert.equal(await page.locator('.nav-scroll-progress').count(), 0);
-      for (const width of [320, 1440]) {
+      for (const width of [320, 768]) {
         await page.setViewportSize({ width, height: 900 });
         await page.evaluate(() => scrollTo({ top: 800, behavior: 'instant' }));
         const scroll = await page.evaluate(() => scrollY);
@@ -118,13 +115,13 @@ test('branded image loading clears on success and failure, with shopping actions
   const imageGate = new Promise(resolve => { releaseImages = resolve; });
   try {
     await page.waitForFunction(() => typeof window.__releaseProducts === 'function');
-    await context.route('**/assets/products/*.jpg', async route => {
+    await context.route('**/assets/products/**', async route => {
       await imageGate;
-      if (route.request().url().endsWith('broken.jpg')) await route.abort();
+      if (route.request().url().includes('broken.jpg')) await route.abort();
       else await route.continue();
     });
     await page.evaluate(() => {
-      window.__fixture[0].image = 'assets/products/ijele.jpg';
+      window.__fixture[0].image = 'assets/products/durbar.jpg?loading-test=1';
       window.__fixture[1].image = 'assets/products/broken.jpg';
       window.__holdProducts = false;
       window.__releaseProducts();

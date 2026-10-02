@@ -1,0 +1,13 @@
+# African Modern
+
+Selected by the user: `output/imagegen/clean-african-streetwear-v3/05-african-modern.png`, with the restraint of option 01. Ivory space, black graphic garments, a large Instrument Serif headline, and one matte clay portrait create a contemporary African fashion campaign. Following the user's refinement, the drawing's original silhouette is rendered as thinner flat ink, and Manrope 600 with restrained tracking replaces the condensed wordmark across the store and admin. Manrope also supports commerce and forms.
+
+The first viewport keeps the headline, garment campaign, shop action, and pose controls visible, including short desktop previews. Model and drawing sizes respond to available viewport height; no fixed minimum hero height pushes shopping below the fold. On mobile, pose controls occupy the space below the headline so they do not cover the garment graphics.
+
+Sequence: expressive model campaign, the three real garment photographs, an interactive artwork study, a short brand statement, practical customer care, and the full store footer. The drawing animates on each refresh as requested; identities crossfade between three poses. Keep text and actions stable and readable throughout.
+
+Motion: GSAP and one Lenis instance, native touch scrolling. Pixel-derived SVG masks reveal the original generated raster portrait; no hand-authored illustration. No Three.js or Blender is necessary for this layered photographic treatment. Reduced motion removes autoplay and smooth scrolling. Pose controls decode before commit, pause on hover/focus/offscreen/hidden, and remain keyboard accessible. Without JavaScript, the first pose, complete portrait, collection and support links remain visible.
+
+Assets: original Ijele, Durbar and Dùn Dùn garment photographs remain the catalog evidence. Fictional campaign models and the isolated portrait were made with the built-in image generator from the user's selected generated mockup. They are brand imagery, not real customers or endorsements. Original PNGs live in `output/imagegen/african-modern-production`; `asset-prompts.json` records prompts. `prepare-assets.cjs` creates responsive WebP encodings and traces an animation mask from actual image pixels. Local fonts and Solar interface icons retain their adjacent license files.
+
+Inventory: editorial artwork does not establish product IDs, stock, or prices. Links bind only to an unambiguous intended ALKEBULAN product in the real catalog. Other listings remain available to admin/history but are excluded from customer-facing catalog helpers. See collection scope documentation for the staged server policy migration.

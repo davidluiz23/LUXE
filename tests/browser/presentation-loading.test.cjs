@@ -21,9 +21,8 @@ test('a delayed presentation script cannot flash the old navbar or block the pag
         assert.equal(await page.locator('#loader').count(), 0);
         assert.equal(await page.locator('body').evaluate(body => body.classList.contains('luxury-ready')), false);
         const before = await page.locator('#navbar').boundingBox();
-        if (name === 'index.html') assert.equal(before.x, 0, 'The gallery header spans the viewport');
-        else assert.ok(before.x > 0 && before.width < width, `${name}: initial header must float`);
-        assert.equal(await page.locator('#navbar .nav-links a').count(), 6);
+        assert.ok(before.x > 0 && before.width < width, `${name}: initial header must float`);
+        assert.equal(await page.locator('#navbar .nav-links a').count(), 4);
         assert.equal(await page.locator('#searchToggle svg').isVisible(), true, `${name} at ${width}: initial search icon is missing`);
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${name} at ${width}: initial content overflows`);
         release();

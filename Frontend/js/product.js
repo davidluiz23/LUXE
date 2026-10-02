@@ -273,8 +273,9 @@ function renderProductDetails(product) {
                 <!-- Meta -->
                 <div class="product-meta">
                     <div class="meta-item"><i class="fas fa-tag"></i> SKU: ${window.LuxeBrand?.skuPrefix || 'ALK'}-${String(product.id).padStart(4, '0')}</div>
-                    <div class="meta-item"><i class="fas fa-box"></i> Free shipping on orders $200+</div>
-                    <div class="meta-item"><i class="fas fa-undo"></i> 30-day returns</div>
+                    <div class="meta-item"><i class="fas fa-box" aria-hidden="true"></i><a href="shipping.html">Shipping &amp; delivery details</a></div>
+                    <div class="meta-item"><i class="fas fa-undo" aria-hidden="true"></i><a href="returns.html">Returns &amp; exchanges</a></div>
+                    <div class="meta-item"><a href="contact.html">Need help choosing your size? Talk to us ↗</a></div>
                 </div>
             </div>
         </div>
