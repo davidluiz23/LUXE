@@ -131,6 +131,8 @@ html.alkebulan-site body.african-modern-site:not(.page-admin) .poster-catalog-he
 html.alkebulan-site body.african-modern-site:not(.page-admin) .poster-catalog-hero::before,
 html.alkebulan-site body.african-modern-site:not(.page-admin) .poster-catalog-hero::after { display: none; }
 html.alkebulan-site body.african-modern-site:not(.page-admin) .poster-catalog-heading { position: static; max-width: none; padding: 0; transform: none; color: inherit; text-align: left; }
+html.alkebulan-site body.african-modern-site:not(.page-admin) .poster-catalog-heading::before { display: none; content: none; }
+html.alkebulan-site body.african-modern-site:not(.page-admin) .poster-catalog-heading > p { opacity: 1; }
 html.alkebulan-site body.african-modern-site:not(.page-admin) .poster-catalog-heading h1 { margin: 0 0 22px; font: 400 84px/.98 var(--font-display); letter-spacing: -.045em; text-transform: none; color: inherit; }
 html.alkebulan-site body.african-modern-site:not(.page-admin) .poster-catalog-heading h1 em { font-weight: 400; color: var(--modern-red-dark); }
 html.alkebulan-site body.african-modern-site:not(.page-admin) .poster-catalog-heading > p:not(.poster-catalog-kicker) { margin: 0; font: 400 16px/1.65 var(--font-body); color: var(--modern-muted); }

@@ -33,6 +33,7 @@ for(const name of fs.readdirSync(frontend).filter(n=>n.endsWith('.html')&&n!=='a
   html=html.replace(/<link\b[^>]*href="assets\/fonts\/barlow-condensed-600-latin\.woff2"[^>]*>/g,'');
   html=html.replace('</head>','<link rel="stylesheet" href="js/african-modern/experience.css?v=20261002" />\n<link rel="stylesheet" href="css/african-modern.css?v=20261002" />\n<link rel="stylesheet" href="css/african-modern-home.css?v=20261002" />\n<script type="module" src="js/african-modern/experience.js?v=20261002"></script>\n</head>');
   html=html.replace(/js\/(luxury-ui|products|product)\.js\?v=[^"']+/g,'js/$1.js?v=20261002');
+  if(['men.html','women.html'].includes(name))html=html.replace(/(js\/site-content\.js|css\/african-modern\.css)\?v=[^"']+/g,'$1?v=20261003-1');
   if(name==='index.html')html=html.replace(/<title>[\s\S]*?<\/title>/,'<title>ALKEBULAN | African expression.</title>');
   html=html.replace(/(?:\n[ \t]*){3,}/g,'\n\n').replace(/[\t ]+\r?$/gm,'');
   fs.writeFileSync(file,html);

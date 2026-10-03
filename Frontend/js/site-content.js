@@ -136,6 +136,17 @@
             const settings = current.content.collections[key];
             if (hero) {
                 const url = imageUrl(settings.image, Math.min(1920, Math.ceil(window.innerWidth * (window.devicePixelRatio || 1))));
+                // The current collection layout already owns its image panel.
+                // Adding the legacy campaign would create another grid row.
+                const posterImage = hero.querySelector('.poster-catalog-art img');
+                if (posterImage) {
+                    resolveImage(posterImage, url, (source, fallback) => {
+                        posterImage.src = source;
+                        posterImage.dataset.imageFallback = String(fallback);
+                    });
+                    posterImage.style.objectPosition = `center ${settings.focusY ?? 50}%`;
+                    continue;
+                }
                 resolveImage(hero, url, (source, fallback) => {
                     hero.style.backgroundImage = `linear-gradient(rgba(0,0,0,.4),rgba(0,0,0,.4)), url("${source}")`;
                     hero.dataset.imageFallback = String(fallback);

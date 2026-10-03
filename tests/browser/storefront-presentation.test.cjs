@@ -1,5 +1,6 @@
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
+const AxeBuilder = require('@axe-core/playwright').default;
 const { startFixture } = require('./fixture.cjs');
 
 let fixture;
@@ -56,6 +57,50 @@ test('search stays centered and the menu covers the viewport without moving the 
       }
       assert.deepEqual(errors, []);
     } finally { await context.close(); }
+  }
+});
+
+test('collection headers stay compact after published images load with populated or empty catalogs', async () => {
+  for (const name of ['men.html', 'women.html']) {
+    for (const empty of [false, true]) {
+      const { page, context, errors } = await fixture.openPage(name, {
+        width: 1440, state: empty ? { __fixture: [] } : {},
+      });
+      try {
+        await page.evaluate(() => document.fonts.ready);
+        await page.waitForFunction(() => document.querySelector('.poster-catalog-art img').dataset.imageFallback === 'false');
+        for (const width of [1440, 1005, 768, 390, 320]) {
+          await page.setViewportSize({ width, height: 900 });
+          const layout = await page.locator('.poster-catalog-hero').evaluate(hero => {
+            const heading = hero.querySelector('.poster-catalog-heading');
+            const frame = hero.querySelector('.poster-catalog-art');
+            const box = hero.getBoundingClientRect();
+            const title = heading.getBoundingClientRect();
+            const image = frame.getBoundingClientRect();
+            return {
+              height: box.height,
+              background: getComputedStyle(hero).backgroundImage,
+              imageCount: hero.querySelectorAll('img').length,
+              extraLabel: getComputedStyle(heading, '::before').content,
+              titleInside: title.top >= box.top && title.bottom <= box.bottom,
+              imageBesideTitle: getComputedStyle(frame).display === 'none' || title.right <= image.left,
+              overflow: document.documentElement.scrollWidth > innerWidth,
+            };
+          });
+          const viewport = `${name}, ${width}px, ${empty ? 'empty' : 'populated'} catalog`;
+          assert.ok(layout.height <= 500, `${viewport}: header grew to ${layout.height}px`);
+          assert.equal(layout.background, 'none', viewport);
+          assert.equal(layout.imageCount, 1, viewport);
+          assert.equal(layout.extraLabel, 'none', viewport);
+          assert.equal(layout.titleInside && layout.imageBesideTitle && !layout.overflow, true, viewport);
+        }
+        if (!empty) {
+          const audit = await new AxeBuilder({ page }).include('.poster-catalog-hero').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+          assert.deepEqual(audit.violations.map(item => ({ id: item.id, targets: item.nodes.map(node => node.target) })), []);
+        }
+        assert.deepEqual(errors, [], name);
+      } finally { await context.close(); }
+    }
   }
 });
 

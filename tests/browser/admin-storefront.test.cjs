@@ -80,9 +80,12 @@ test('an admin can add, reorder, remove and publish images that appear on the st
     for (const kind of ['men', 'women']) {
       await page.goto(fixture.base + '/' + kind + '.html');
       const hero = page.locator('.' + kind + '-hero');
-      await page.waitForFunction(key => document.querySelector('.' + key + '-hero').style.backgroundImage.includes('images.example.com'), kind);
-      assert.match(await hero.evaluate(element => element.style.backgroundImage), new RegExp(kind + '\\.jpg'));
-      if (kind === 'women') assert.match(await hero.evaluate(element => element.style.backgroundPosition), /72%/);
+      const image = hero.locator('.poster-catalog-art img');
+      await page.waitForFunction(() => document.querySelector('.poster-catalog-art img').src.includes('images.example.com'));
+      assert.equal(await image.getAttribute('src'), `https://images.example.com/${kind}.jpg`);
+      assert.equal(await hero.evaluate(element => getComputedStyle(element).backgroundImage), 'none');
+      assert.equal(await hero.locator('img').count(), 1);
+      if (kind === 'women') assert.match(await image.evaluate(element => element.style.objectPosition), /72%/);
     }
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
