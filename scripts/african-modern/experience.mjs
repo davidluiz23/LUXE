@@ -46,7 +46,12 @@ function start() {
     });
   }
   catalogLinks();
-  Promise.resolve(window.productsReady).then(()=>{if(live){catalogLinks();publishedContent();}}).catch(()=>{});
+  Promise.resolve(window.productsReady).then(()=>{
+    if(!live)return;
+    const homeProducts = document.querySelector('.page-index .modern-piece-grid');
+    if(homeProducts) window.LuxeCatalogUI?.renderCollection(homeProducts);
+    catalogLinks();publishedContent();
+  }).catch(()=>{});
   window.addEventListener('luxe:catalog-status',catalogLinks,{signal});
 
   async function selectPiece(next,force=false) {

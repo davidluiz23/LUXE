@@ -32,7 +32,7 @@ function shopProductMatchesColor(product, selectedColor) {
 document.addEventListener("DOMContentLoaded", async () => {
   const PAGE_SIZE = 12;
   const grid = document.getElementById("productGrid");
-  if (grid && !grid.querySelector('.modern-artwork-piece')) window.LuxeCatalogUI.renderArtwork(grid);
+  if (grid && !grid.querySelector('.modern-preview-piece')) window.LuxeCatalogUI.renderCollection(grid, '', { pending: true });
   const toolbar = document.querySelector('.modern-catalog-tools');
   const refine = document.getElementById('catalogFilters');
   if (toolbar) toolbar.hidden = true;
@@ -49,8 +49,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const catalog = typeof getProducts === "function" ? getProducts() : window.products || [];
   if (!catalog.length && !new URLSearchParams(window.location.search).get('q')) {
-    const count = window.LuxeCatalogUI.renderArtwork(grid);
-    document.getElementById('showingCount').parentElement.textContent = `${count} designs`;
+    const count = window.LuxeCatalogUI.renderCollection(grid);
+    document.getElementById('showingCount').parentElement.textContent = `${count} products`;
+    if (toolbar) toolbar.hidden = false;
     document.querySelector('.modern-catalog-tools .modern-select-label').hidden = true;
     document.getElementById('catalogFilters').hidden = true;
     document.getElementById('pagination').hidden = true;

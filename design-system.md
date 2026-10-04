@@ -38,7 +38,9 @@ Product image corners use `calc(var(--modern-radius-card) - var(--modern-card-in
 | Navbar links | Manrope 550, .82rem, -.01em tracking |
 | Campaign and editorial headings | Locally hosted Instrument Serif |
 | Utility panel headings | Manrope 500, 26–28px |
-| Product card names | Instrument Serif 400, 31px |
+| Product card names | Manrope 600, 18px |
+| Collection and utility page headings | Manrope 600, 38px desktop / 32px mobile |
+| Product name | Manrope 600, 36px desktop / 28px mobile |
 | Fields | 16px |
 | Main actions | Manrope 500, 14px |
 
@@ -48,11 +50,14 @@ Cards and form panels use quiet fills without shadows. Active navigation and sel
 
 - `african-modern.css`: navigation, product options, bag, checkout, account, authentication, contact, support, search, and footer.
 - `african-modern-home.css`: campaign, editorial product cards, artwork study, and brand sections.
-- `african-modern-catalog.css` and `catalog-ui.js`: shared homepage-style artwork cards for shop, men, women, saved pieces, and related products. One renderer owns markup; no legacy card enhancer runs. Compact native selects and an inline filter disclosure replace the old sidebar and category pills. Actual inventory drives choices and sold-out states.
+- `african-modern-catalog.css` and `catalog-ui.js`: shared shopping cards for the homepage, shop, men, women, saved pieces, and related products. One renderer owns markup; no legacy card enhancer runs. Product names, actual prices and purchase actions are visible together. Compact native selects and an inline filter disclosure replace the old sidebar and category pills. Actual inventory drives choices and sold-out states.
+- Product details share one layout while loading and after publication. Description and options sit beside the photograph on desktop. Mobile keeps price and Add to cart in a bottom bar, with page padding that leaves the footer accessible. The separate editorial product-detail layout has been removed.
 - `admin-modern.css`: existing separate admin theme; customer selectors exclude admin.
 - Existing semantic HTML, native form controls, Solar SVG icons, commerce hooks, and GSAP/Lenis motion remain the component conventions.
 
 All garment and editorial image containers use rounded rectangles, including the collection header, artwork study, and story photograph. The campaign portrait, circular icon buttons and avatars, and large section transitions are deliberate shape exceptions. Interior form sections remain open inside their shared panel. Policy text, captions, and dividers are not interactive cards.
+
+Commerce refinement reference: `https://www.raterapp.site/`, inspected on 2026-10-04. Transfer its consistent typography, restrained borders, clear actions and mobile reflow into the existing ALKEBULAN palette and Manrope UI. Preserve the approved campaign imagery. Shopping and account screens use compact sans-serif headings; expressive display type remains in brand storytelling.
 
 ## Verification provenance
 

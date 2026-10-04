@@ -69,7 +69,7 @@ test('the portrait draws again after refresh, autoplay pauses offscreen, and red
   await page.reload({waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>window.__portraitStates.includes('drawing'));
   await page.waitForFunction(()=>document.querySelector('#campaignStage').dataset.pose!=='0',{},{timeout:30000});
-  await page.locator('.modern-manifesto').scrollIntoViewIfNeeded();
+  await page.locator('.modern-care').scrollIntoViewIfNeeded();
   await page.waitForFunction(()=>document.querySelector('#campaignStage').dataset.playback==='paused');
   await page.emulateMedia({reducedMotion:'reduce'});
   await page.waitForFunction(()=>!document.documentElement.hasAttribute('data-modern-motion'));

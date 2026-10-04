@@ -14,16 +14,18 @@ test('unpublished designs stay visible without inventing inventory or availabili
       await page.evaluate(legacy=>{window.__fixture=legacy?window.__fixture.filter(p=>p.id>1003):[];window.__holdProducts=false;window.__releaseProducts();},legacyOnly);
       await page.evaluate(()=>window.productsReady);
       assert.deepEqual(errors,[],name);
-      await page.locator('.modern-artwork-piece').first().waitFor({state:'visible'});
-      assert.equal(await page.locator('.modern-artwork-piece').count(),3);
-      assert.deepEqual(await page.locator('.modern-artwork-piece h3').allTextContents(),['Ijele','Durbar','Dùn Dùn']);
-      for(const image of await page.locator('.modern-artwork-piece img').all()){
+      await page.locator('.modern-preview-piece').first().waitFor({state:'visible'});
+      assert.equal(await page.locator('.modern-preview-piece').count(),3);
+      assert.deepEqual(await page.locator('.modern-preview-piece h3').allTextContents(),['Ijele','Durbar','Dùn Dùn']);
+      for(const image of await page.locator('.modern-preview-piece img').all()){
         await image.scrollIntoViewIfNeeded();
         assert.equal(await image.evaluate(async image=>{await image.decode();return image.naturalWidth>0;}),true);
       }
       assert.equal(await page.locator('.modern-catalog').isVisible(),true);
       assert.equal(await page.locator('#intendedPreview,.modern-shop-piece[data-id]').count(),0);
-      assert.equal(await page.locator('.modern-catalog [data-add-piece],.modern-catalog [data-save-piece],.modern-catalog .modern-piece-price').count(),0);
+      assert.equal(await page.locator('.modern-catalog [data-add-piece],.modern-catalog [data-save-piece]').count(),0);
+      assert.equal(await page.locator('.modern-preview-piece .modern-piece-action:disabled').count(),3);
+      assert.equal(await page.locator('.modern-preview-piece .modern-piece-price').first().innerText(),'Not released');
       assert.equal(await page.evaluate(()=>window.getProducts().length),0);
       assert.equal(await page.locator('#catalogStatusBanner').count(),0);
       assert.doesNotMatch(await page.locator('main').innerText(),/contact us for current availability/i);

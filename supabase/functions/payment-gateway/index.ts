@@ -160,9 +160,15 @@ function notifyAdminInBackground(
   state: "paid" | "review_required" = "paid",
 ) {
   EdgeRuntime.waitUntil(
-    notifyAdminOfPayment(order, reference, state).catch((error) => {
-      console.error("[payment-gateway] Background WhatsApp error:", error);
-    }),
+    notifyAdminOfPayment(order, reference, state)
+      .then((result) => {
+        if (result && !result.sent) {
+          console.error("[payment-gateway] Admin payment notification was not delivered:", result.status);
+        }
+      })
+      .catch((error) => {
+        console.error("[payment-gateway] Background WhatsApp error:", error);
+      }),
   );
 }
 

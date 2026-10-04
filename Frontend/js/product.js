@@ -15,13 +15,14 @@
 const urlParams = new URLSearchParams(window.location.search);
 const productId = parseInt(urlParams.get('id'));
 const collectionDesign = (window.AlkebulanDesigns || []).find(design => design.key === urlParams.get('piece'));
+if (collectionDesign) document.body.dataset.collectionDesign = collectionDesign.key;
 
 // Render product details when DOM is ready
 document.addEventListener('DOMContentLoaded', async () => {
     const relatedGrid = document.getElementById('relatedProducts');
     if (collectionDesign) {
-        renderCollectionDesign(collectionDesign);
-        window.LuxeCatalogUI.renderArtwork(relatedGrid, collectionDesign.key);
+        renderProductDetails(collectionPreview(collectionDesign), { pending: true });
+        window.LuxeCatalogUI.renderCollection(relatedGrid, collectionDesign.key, { pending: true });
     } else if (relatedGrid) window.showProductGridLoading?.(relatedGrid, 4);
 
     // Wait for the live product catalog (Supabase) to finish loading
@@ -32,7 +33,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const product = collectionDesign
         ? window.getProducts().find(product => window.LuxeCollection.keyForProduct(product) === collectionDesign.key)
         : (typeof getProductById === 'function') ? getProductById(productId) : ((window.products || []).find(p => p.id === productId));
-    if (collectionDesign && !product) return;
+    if (collectionDesign && !product) {
+        renderProductDetails(collectionPreview(collectionDesign));
+        window.LuxeCatalogUI.renderCollection(relatedGrid, collectionDesign.key);
+        return;
+    }
 
     // Hide loader again
     const loader = document.getElementById('loader');
@@ -68,42 +73,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function escapeProductHtml(value) { return window.LuxeUtils.escapeHtml(value); }
 
-function renderCollectionDesign(design) {
-    const container = document.getElementById('productDetails');
-    if (!container) return;
-    const escape = escapeProductHtml;
-    document.title = `${design.name} graphic tee | ALKEBULAN`;
-    document.querySelector('meta[name="description"]')?.setAttribute('content', design.description);
-    document.querySelectorAll('script[type="application/ld+json"]').forEach(script => script.remove());
-    container.innerHTML = `<article class="modern-design-detail" data-design="${escape(design.key)}">
-      <div class="modern-design-layout">
-        <div class="modern-piece modern-design-gallery" data-piece-card="${escape(design.key)}">
-          <button class="modern-piece-image modern-design-zoom" type="button" aria-label="Enlarge ${escape(design.name)} artwork">
-            <img src="${escape(design.image)}" alt="The original black ${escape(design.name)} graphic tee" width="1280" height="854" decoding="async" fetchpriority="high">
-            <span class="modern-piece-arrow" aria-hidden="true">+</span>
-          </button>
-          <p class="modern-design-caption">A closer look. Select the artwork to zoom.</p>
-        </div>
-        <div class="modern-design-copy">
-          <p class="modern-design-eyebrow">ALKEBULAN / The original collection</p>
-          <h1>${escape(design.name)}</h1>
-          <p class="modern-design-tagline">${escape(design.tagline)}</p>
-          <p class="modern-design-description">${escape(design.description)}</p>
-          <dl class="modern-design-facts"><div><dt>Piece</dt><dd>Graphic tee</dd></div><div><dt>Canvas</dt><dd>Black</dd></div><div><dt>Expression</dt><dd>${escape(design.name)}</dd></div></dl>
-          <a class="modern-text-link" href="#designStory">Read the story <span aria-hidden="true">&#8595;</span></a>
-        </div>
-      </div>
-      <section class="modern-design-story" id="designStory" aria-labelledby="designStoryTitle">
-        <div><p class="modern-design-eyebrow">Behind the graphic</p><h2 id="designStoryTitle">Wear your<br><em>expression.</em></h2></div>
-        <div><h3>The artwork</h3><p>${escape(design.story)}</p><ul>${design.details.map(detail => `<li>${escape(detail)}</li>`).join('')}</ul></div>
-        <div><h3>Make it yours</h3><p>${escape(design.styling)}</p><a class="modern-text-link" href="shipping.html">Shipping &amp; delivery <span aria-hidden="true">&#8599;</span></a><a class="modern-text-link" href="returns.html">Returns &amp; exchanges <span aria-hidden="true">&#8599;</span></a></div>
-      </section>
-      <dialog class="modern-design-dialog" aria-label="${escape(design.name)} artwork close-up"><button type="button" class="modern-design-close" aria-label="Close artwork">&#215;</button><img src="${escape(design.image)}" alt="${escape(design.name)} artwork close-up" width="1280" height="854"></dialog>
-    </article>`;
-    const dialog = container.querySelector('dialog');
-    container.querySelector('.modern-design-zoom').addEventListener('click', () => dialog.showModal());
-    container.querySelector('.modern-design-close').addEventListener('click', () => dialog.close());
-    dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+function collectionPreview(design) {
+    // Reuse the same product page while the administrator's inventory loads.
+    // A preview cannot enter a cart or advertise a fabricated price/stock.
+    return { ...design, name: `${design.name} graphic tee`, brand: 'ALKEBULAN',
+        subcategory: 'Graphic tee', description: design.description, sizes: [], colors: [] };
 }
 
 function safeProductColor(value) {
@@ -170,9 +144,16 @@ function selectedDetailOptions() {
     };
 }
 
-function renderProductDetails(product) {
+function renderProductDetails(product, { pending = false } = {}) {
     const container = document.getElementById('productDetails');
     if (!container) return;
+
+    const published = Number.isSafeInteger(Number(product.id)) && Number(product.id) > 0;
+    const design = (window.AlkebulanDesigns || []).find(item => item.key === (product.key || window.LuxeCollection?.keyForProduct(product)));
+    const description = product.description || design?.description || '';
+    document.title = `${product.name} | ALKEBULAN`;
+    document.querySelector('meta[name="description"]')?.setAttribute('content', description);
+    if (!published) document.querySelectorAll('script[type="application/ld+json"]').forEach(script => script.remove());
 
     // Generate star rating HTML
     const rating = Math.max(0, Math.min(5, Number(product.rating) || 0));
@@ -180,7 +161,7 @@ function renderProductDetails(product) {
     const colors = productOptionValues(product.colors);
     const sizes = productOptionValues(product.sizes);
     const stockLimit = detailStockLimit(product);
-    const isAvailable = product.inStock !== false && stockLimit > 0;
+    const isAvailable = published && product.inStock !== false && stockLimit > 0;
 
     // Generate color options HTML
     const colorsHtml = colors.map((color, index) => `
@@ -194,7 +175,7 @@ function renderProductDetails(product) {
 
     // Generate specs HTML
     const specsHtml = `
-        <div class="spec-item"><span class="spec-label">Category</span><span class="spec-value">${escapeProductHtml(product.category)}</span></div>
+        ${product.category ? `<div class="spec-item"><span class="spec-label">Category</span><span class="spec-value">${escapeProductHtml(product.category)}</span></div>` : ''}
         <div class="spec-item"><span class="spec-label">Subcategory</span><span class="spec-value">${escapeProductHtml(product.subcategory || 'Collection')}</span></div>
         <div class="spec-item"><span class="spec-label">Brand</span><span class="spec-value">${escapeProductHtml(product.brand || window.LuxeBrand?.name || 'ALKEBULAN')}</span></div>
         ${rating > 0 ? `<div class="spec-item"><span class="spec-label">Rating</span><span class="spec-value">${rating.toFixed(1)} / 5</span></div>` : ''}
@@ -235,14 +216,14 @@ function renderProductDetails(product) {
                 </button>
                 ${discountPercent > 0 ? `<span class="discount-badge-large">${discountPercent}% OFF</span>` : ''}
                 ${product.trending ? `<span class="trending-badge-large"><i class="fas fa-fire"></i> Trending now</span>` : ''}
-                <div class="thumbnail-grid">
+                <div class="thumbnail-grid" ${galleryImages.length < 2 ? 'hidden' : ''}>
                     ${thumbnailsHtml}
                 </div>
             </div>
 
             <!-- Product Info -->
             <div class="product-info">
-                <span class="product-category">${escapeProductHtml(product.category)} / ${escapeProductHtml(product.subcategory || 'Collection')}</span>
+                <span class="product-category">${escapeProductHtml(product.brand || 'ALKEBULAN')} / ${escapeProductHtml(product.subcategory || 'Graphic tee')}</span>
                 <h1>${escapeProductHtml(product.name)}</h1>
                 
                 ${rating > 0 ? `<div class="product-rating" aria-label="Rated ${rating.toFixed(1)} out of 5">
@@ -253,18 +234,13 @@ function renderProductDetails(product) {
                 </div>` : ''}
 
                 <div class="product-price-section">
-                    ${detailPriceMarkup(product)}
+                    ${published ? detailPriceMarkup(product) : `<span class="product-price-pending" role="status">${pending ? 'Loading price…' : window.LuxeCatalogStatus?.state === 'unavailable' ? 'Price unavailable. Please refresh to try again.' : 'Price not published yet'}</span>`}
                 </div>
 
-                <div class="availability ${isAvailable ? '' : 'out-of-stock'}">
-                    <i class="fas ${isAvailable ? 'fa-check-circle' : 'fa-times-circle'}" aria-hidden="true"></i>
-                    ${isAvailable ? `In stock${Number.isInteger(Number(product.stockQuantity)) ? ` · ${stockLimit} available` : ''}` : 'Out of stock'}
-                </div>
+                <p class="product-intro">${escapeProductHtml(description)}</p>
 
-
-
-                <section class="product-options-panel" aria-labelledby="productOptionsHeading">
-                    <h2 class="product-panel-label" id="productOptionsHeading">Choose your options</h2>
+                <section class="product-options-panel" aria-labelledby="productOptionsHeading" ${published ? '' : 'hidden'}>
+                    <h2 class="sr-only" id="productOptionsHeading">Choose your options</h2>
 
                     ${colors.length ? `<!-- Color Selection -->
                     <div class="color-selection" role="group" aria-labelledby="productColorLabel">
@@ -294,30 +270,31 @@ function renderProductDetails(product) {
                 </section>
 
                 <!-- ADD TO CART & WHATSAPP -->
-                <div class="product-actions-detail" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                <div class="commerce-actions">
+                    <div class="product-mobile-summary" aria-hidden="true"><span>${escapeProductHtml(product.name)}</span><strong>${published ? escapeProductHtml(detailMoney(product).ngn || detailMoney(product).usd) : 'Not released'}</strong></div>
                     <button type="button" class="add-to-cart" id="productAddToCart" ${!isAvailable ? 'disabled aria-disabled="true"' : ''}>
-                        <i class="fas ${!isAvailable ? 'fa-ban' : 'fa-shopping-bag'}" aria-hidden="true"></i> ${!isAvailable ? 'Out of stock' : 'Add to cart'}
+                        <i class="fas fa-shopping-bag" aria-hidden="true"></i> ${published && !isAvailable ? 'Sold out' : 'Add to cart'}
                     </button>
-                    <button type="button" class="whatsapp-btn-product" id="productWhatsAppOrder" ${!isAvailable ? 'disabled aria-disabled="true"' : ''} style="background: #25D366; color: white; border: none; padding: 14px 22px; border-radius: 30px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; transition: background 0.3s ease;">
-                        <i class="fab fa-whatsapp" style="font-size: 1.2rem;"></i> Order via WhatsApp
-                    </button>
-                    <button type="button" class="wishlist-btn-product" id="productWishlistButton" data-id="${Number(product.id)}" aria-label="Save ${escapeProductHtml(product.name)} to wishlist" aria-pressed="false">
+                    <button type="button" class="wishlist-btn-product" id="productWishlistButton" ${published ? `data-id="${Number(product.id)}"` : 'disabled'} aria-label="Save ${escapeProductHtml(product.name)} to wishlist" aria-pressed="false">
                         <i class="fas fa-heart" aria-hidden="true"></i>
                     </button>
                 </div>
+                <button type="button" class="whatsapp-btn-product" id="productWhatsAppOrder" ${!isAvailable ? 'disabled aria-disabled="true"' : ''}>
+                    <i class="fab fa-whatsapp" aria-hidden="true"></i> Order via WhatsApp
+                </button>
 
-                <section class="product-description-panel" aria-labelledby="productDetailsHeading">
-                    <h2 class="product-panel-label" id="productDetailsHeading">Product details</h2>
-                    <p class="product-description">${escapeProductHtml(product.description || 'Product information is being updated.')}</p>
-
+                ${!published && !pending && window.LuxeCatalogStatus?.state !== 'unavailable' ? '<p class="product-order-status" role="status">This tee is not open for orders yet.</p>' : ''}
+                <details class="product-description-panel">
+                    <summary class="product-panel-label" id="productDetailsHeading">Product details</summary>
+                    ${design ? `<p class="product-description">${escapeProductHtml(design.story)}</p>` : ''}
                     <div class="product-specs">
                         ${specsHtml}
                     </div>
-                </section>
+                </details>
 
                 <!-- Meta -->
                 <div class="product-meta">
-                    <div class="meta-item"><i class="fas fa-tag"></i> SKU: ${window.LuxeBrand?.skuPrefix || 'ALK'}-${String(product.id).padStart(4, '0')}</div>
+                    ${published ? `<div class="meta-item"><i class="fas fa-tag" aria-hidden="true"></i> SKU: ${window.LuxeBrand?.skuPrefix || 'ALK'}-${String(product.id).padStart(4, '0')}</div>` : ''}
                     <div class="meta-item"><i class="fas fa-box" aria-hidden="true"></i><a href="shipping.html">Shipping &amp; delivery details</a></div>
                     <div class="meta-item"><i class="fas fa-undo" aria-hidden="true"></i><a href="returns.html">Returns &amp; exchanges</a></div>
                     <div class="meta-item"><a href="contact.html">Need help choosing your size? Talk to us ↗</a></div>
@@ -330,8 +307,8 @@ function renderProductDetails(product) {
                 <button class="product-image-viewer-close" type="button" data-close-image-viewer aria-label="Close image viewer">&times;</button>
                 <img id="fullResolutionImage" alt="${escapeProductHtml(product.name)} full-resolution view" decoding="async">
                 <div class="product-image-viewer-meta">
-                    <span>${window.LuxeMedia.isCloudinaryUrl(primaryImage) ? 'Original Cloudinary master · no storefront crop' : 'Original source image · no storefront crop'}</span>
-                    <a id="fullResolutionLink" href="${window.LuxeMedia.escapeAttribute(primaryImage)}" target="_blank" rel="noopener">Open original file <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+                    <span>${escapeProductHtml(product.name)}</span>
+                    <a id="fullResolutionLink" href="${window.LuxeMedia.escapeAttribute(primaryImage)}" target="_blank" rel="noopener">Open image <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
                 </div>
             </div>
         </div>
@@ -418,7 +395,17 @@ function renderProductDetails(product) {
     container.querySelectorAll('[data-quantity-delta]').forEach(button => {
         button.addEventListener('click', () => window.updateQuantity(Number(button.dataset.quantityDelta)));
     });
-    container.querySelector('#productAddToCart')?.addEventListener('click', () => window.addToCartHandler(product.id));
+    container.querySelector('#productAddToCart')?.addEventListener('click', async event => {
+        const button = event.currentTarget;
+        if (!isAvailable || button.disabled) return;
+        button.disabled = true;
+        try {
+            if (await window.addToCartHandler(product.id)) {
+                button.innerHTML = 'Added to cart <span aria-hidden="true">✓</span>';
+                setTimeout(() => { if (button.isConnected) button.innerHTML = '<i class="fas fa-shopping-bag" aria-hidden="true"></i> Add to cart'; }, 1600);
+            }
+        } finally { button.disabled = false; }
+    });
     container.querySelector('#productWhatsAppOrder')?.addEventListener('click', () => {
         const quantity = Number.parseInt(container.querySelector('#quantityDisplay')?.textContent || '1', 10);
         window.sendProductToWhatsApp?.(product.id, quantity, selectedDetailOptions());
@@ -519,14 +506,14 @@ window.addToWishlistHandler = function(id) {
 // Dynamically update document title, social meta tags, and Schema.org Product JSON-LD
 function updateProductSeo(product) {
     if (!product) return;
-    const productName = product.name || 'Luxury Apparel';
+    const productName = product.name || 'Graphic tee';
     const brandName = product.brand || 'ALKEBULAN';
-    const titleText = `${productName} | ${brandName} Luxury Apparel`;
+    const titleText = `${productName} | ${brandName}`;
     document.title = titleText;
 
     const descText = product.description 
-        ? `${product.description.slice(0, 145)}... Handcrafted luxury by ALKEBULAN.` 
-        : `Discover ${productName} by ALKEBULAN. Premium African luxury apparel featuring intricate cultural storytelling and tailored craftsmanship.`;
+        ? product.description.slice(0, 160)
+        : `Shop ${productName} by ALKEBULAN. View product details, sizes and prices.`;
 
     // Update Meta Description
     const metaDesc = document.getElementById('metaDescription') || document.querySelector('meta[name="description"]');
@@ -587,17 +574,16 @@ function updateProductSeo(product) {
             "@type": "Offer",
             "url": currentUrl,
             "priceCurrency": "USD",
-            "price": String(product.price || "180.00"),
-            "priceValidUntil": "2027-12-31",
+            "price": String(product.price),
             "availability": product.inStock !== false ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
             "itemCondition": "https://schema.org/NewCondition"
         }
     };
-    if (product.rating) {
+    if (product.rating > 0 && product.reviewCount > 0) {
         schemaData.aggregateRating = {
             "@type": "AggregateRating",
             "ratingValue": String(product.rating),
-            "reviewCount": "12"
+            "reviewCount": String(product.reviewCount)
         };
     }
     scriptTag.textContent = JSON.stringify(schemaData, null, 2);

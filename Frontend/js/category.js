@@ -30,9 +30,9 @@ function productMatchesCategoryFilter(product, filterValue) {
 
 document.addEventListener("DOMContentLoaded", async () => {
   const grid = document.getElementById("menProductGrid") || document.getElementById("womenProductGrid");
-  if (grid && !grid.querySelector('.modern-artwork-piece')) window.LuxeCatalogUI.renderArtwork(grid);
+  if (grid && !grid.querySelector('.modern-preview-piece')) window.LuxeCatalogUI.renderCollection(grid, '', { pending: true });
   const initialCount = document.getElementById('categoryCount');
-  if (initialCount) initialCount.textContent = '3 designs';
+  if (initialCount) initialCount.textContent = 'Loading products…';
   const controls = document.querySelector('.modern-catalog-controls');
   if (controls) controls.hidden = true;
 
@@ -51,8 +51,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const category = isMen ? "Men" : "Women";
   const allProducts = typeof getProducts === "function" ? getProducts() : window.products || [];
   if (!allProducts.length) {
-    const count = grid.querySelectorAll('.modern-artwork-piece').length || window.LuxeCatalogUI.renderArtwork(grid);
-    document.getElementById('categoryCount').textContent = `${count} designs`;
+    const count = window.LuxeCatalogUI.renderCollection(grid);
+    document.getElementById('categoryCount').textContent = `${count} products`;
     document.querySelector('.modern-catalog-controls').hidden = true;
     return;
   }
@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const categoryName = String(product.category || "").toLocaleLowerCase();
     const subcategory = String(product.subcategory || "").toLocaleLowerCase();
     const tags = (product.tags || []).map((tag) => String(tag).toLocaleLowerCase());
-    return categoryName === category.toLocaleLowerCase()
+    return categoryName === 'unisex' || tags.includes('unisex') || categoryName === category.toLocaleLowerCase()
       || subcategory === category.toLocaleLowerCase()
       || tags.includes(category.toLocaleLowerCase());
   });
@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const selection = categoryProducts.filter(product => productMatchesCategoryFilter(product, categoryFilter?.value || 'all'));
     renderCategoryProducts(sortProducts(selection, sortFilter?.value || 'featured'), grid);
     const count = document.getElementById('categoryCount');
-    if (count) count.textContent = `${selection.length} piece${selection.length === 1 ? '' : 's'}`;
+    if (count) count.textContent = `${selection.length} product${selection.length === 1 ? '' : 's'}`;
   }
   sortFilter?.addEventListener('change', renderSelection);
 

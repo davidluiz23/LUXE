@@ -86,27 +86,7 @@
       content="https://alkebulan.boutique/assets/products/ijele.jpg"
     />
 
-    <!-- Structured Data (JSON-LD) -->
-    <script type="application/ld+json" id="productJsonLd">
-      {
-        "@context": "https://schema.org",
-        "@type": "Product",
-        "name": "ALKEBULAN Luxury Apparel",
-        "brand": {
-          "@type": "Brand",
-          "name": "ALKEBULAN"
-        },
-        "description": "Exquisite limited-edition luxury apparel from ALKEBULAN, handcrafted with cultural storytelling.",
-        "image": "https://alkebulan.boutique/assets/products/ijele.jpg",
-        "offers": {
-          "@type": "Offer",
-          "priceCurrency": "USD",
-          "price": "180.00",
-          "availability": "https://schema.org/InStock",
-          "url": "https://alkebulan.boutique/product.html"
-        }
-      }
-    </script>
+    <!-- Product structured data is populated from the published catalog. -->
     <link rel="stylesheet" href="css/variables.css?v=8b9755a3f0da" />
     <link rel="stylesheet" href="css/style.css?v=61de67e1823a" />
     <link rel="stylesheet" href="css/product.css?v=d76f519788f9" />
@@ -130,10 +110,10 @@
 
 
 <link rel="stylesheet" href="js/african-modern/experience.css?v=1a72e3168803" />
-<link rel="stylesheet" href="css/african-modern.css?v=01d3f9b4940d" />
-<link rel="stylesheet" href="css/african-modern-home.css?v=82db58f2881e" />
-<link rel="stylesheet" href="css/african-modern-catalog.css?v=9c1852f63701" />
-<script type="module" src="js/african-modern/experience.js?v=da478f28afb0"></script>
+<link rel="stylesheet" href="css/african-modern.css?v=01ecf9d56959" />
+<link rel="stylesheet" href="css/african-modern-home.css?v=15bb9e92f3f0" />
+<link rel="stylesheet" href="css/african-modern-catalog.css?v=ad3013a5a7f5" />
+<script type="module" src="js/african-modern/experience.js?v=91cde228b991"></script>
 </head>
   <body id="top" class="african-modern-site page-product">
     <!-- Navigation -->
@@ -159,14 +139,14 @@
     <noscript><nav class="modern-noscript-nav" aria-label="Quick navigation"><a href="shop.html">Collection</a><a href="about.html">Our story</a><a href="cart.html">Your bag</a></nav></noscript>
 
     <main id="mainContent">
-      <nav class="poster-product-breadcrumb" aria-label="Product navigation"><a href="shop.html"><span aria-hidden="true">↖</span> Back to the collection</a><span>ALKEBULAN / Wearable expression</span></nav>
+      <nav class="poster-product-breadcrumb" aria-label="Product navigation"><a href="shop.html"><span aria-hidden="true">↖</span> Back to shop</a><span>ALKEBULAN / Graphic tees</span></nav>
       <!-- Product Section -->
       <section class="section product-section">
         <div class="container">
           <div class="product-details" id="productDetails">
             <!-- Fallback accessible heading for crawlers prior to client-side hydration -->
             <h1 class="sr-only" id="fallbackProductHeading">
-              ALKEBULAN Luxury Apparel Product
+              ALKEBULAN graphic tee
             </h1>
             <!-- Product injected by JS -->
             <div style="text-align: center; padding: 60px 0; color: #777">
@@ -180,7 +160,7 @@
       <!-- Related Products -->
       <section class="section related-products">
         <div class="container">
-          <div class="poster-related-heading"><h2 class="section-title">Keep exploring.</h2><a href="shop.html">All pieces <span aria-hidden="true">↗</span></a></div>
+          <div class="poster-related-heading"><h2 class="section-title">You may also like</h2><a href="shop.html">All pieces <span aria-hidden="true">↗</span></a></div>
           <div class="product-grid" id="relatedProducts"></div>
         </div>
       </section>
@@ -216,16 +196,16 @@
     <script src="js/brand-config.js?v=4f27a7bc0d81"></script>
     <script src="js/icons.js?v=7bf9d059219f"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
-    <script src="js/supabase-client.js?v=f6e5c511b07c"></script>
+    <script src="js/supabase-client.js?v=2d7aadd4e632"></script>
     <script src="js/updates-banner.js?v=080d27864252"></script>
-    <script src="js/collection-designs.js?v=f3d1778367d6"></script>
-    <script src="js/catalog-ui.js?v=a97214b434ce"></script>
-    <script src="js/products.js?v=4cf77b183eea"></script>
+    <script src="js/collection-designs.js?v=f4d87d5abbf4"></script>
+    <script src="js/catalog-ui.js?v=c1948ceb6cce"></script>
+    <script src="js/products.js?v=151608318946"></script>
     <script src="js/cart.js?v=7b4989108be3"></script>
     <script src="js/wishlist.js?v=157248212fe5"></script>
     <script src="js/search.js?v=c05a371877b8"></script>
 
     <script src="js/app.js?v=72e74375f638"></script>
-    <script src="js/product.js?v=187abf2fccb8"></script>
+    <script src="js/product.js?v=9bbb50d45c39"></script>
   </body>
 </html>

@@ -197,9 +197,10 @@
                                 </div>
 
                                 <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                                    <button type="button" class="btn btn-outline" id="importCatalogBtn">
-                                        <i class="fas fa-cloud-upload-alt"></i> Import Starter Catalog
-                                    </button>
+                                    <label class="sr-only" for="addOriginalProduct">Set up an original tee</label>
+                                    <select id="addOriginalProduct" class="btn btn-outline" aria-label="Set up an original tee">
+                                        <option value="">Set up an original tee</option><option value="ijele">Ijele</option><option value="durbar">Durbar</option><option value="dun-dun">Dùn Dùn</option>
+                                    </select>
 
                                     <button type="button" class="btn btn-primary" id="addProductBtn">
                                         <i class="fas fa-plus"></i> Add Product
@@ -226,7 +227,7 @@
 
                             <div class="admin-empty-state" id="productsEmptyState" style="display:none;">
                                 <i class="fas fa-box-open"></i>
-                                <p>No products yet. Import the starter catalog or add a product manually.</p>
+                                <p>Set up the original tees above. Enter prices, sizes and stock to make them available in the store.</p>
                             </div>
                         </div>
                     </div>
@@ -643,7 +644,7 @@
                                 <span class="admin-form-hint admin-upload-status" id="pImageUploadStatus" aria-live="polite"></span>
                                 <span class="admin-image-meta" id="pImageMeta">Recommended: 1200 × 1500 px or larger.</span>
                                 <label class="sr-only" for="pImage">Main image URL</label>
-                                <input type="url" id="pImage" required placeholder="...or paste an image URL">
+                                <input type="text" inputmode="url" id="pImage" required placeholder="...or paste an image URL">
                             </div>
                         </div>
 
@@ -733,12 +734,13 @@
     <script src="js/brand-config.js?v=4f27a7bc0d81"></script>
     <script src="js/icons.js?v=7bf9d059219f"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
-    <script src="js/supabase-client.js?v=f6e5c511b07c"></script>
-    <script src="js/products.js?v=4cf77b183eea"></script>
+    <script src="js/supabase-client.js?v=2d7aadd4e632"></script>
+    <script src="js/collection-designs.js?v=f4d87d5abbf4"></script>
+    <script src="js/products.js?v=151608318946"></script>
     <script src="js/animation.js?v=dc84e97f6d68"></script>
     <script src="js/app.js?v=72e74375f638"></script>
     <script src="js/site-content.js?v=0c3e684f78b6"></script>
     <script src="js/admin-storefront.js?v=3d49612a0203"></script>
-    <script src="js/admin.js?v=69bd75fee79a"></script>
+    <script src="js/admin.js?v=b717a2daaf36"></script>
 </body>
 </html>

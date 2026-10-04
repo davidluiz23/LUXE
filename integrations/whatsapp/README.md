@@ -47,6 +47,12 @@ Keep `receiptDirectory` on persistent private storage. Receipts contain a conten
 
 No bridge URL, credentials, pairing, deployment or customer messages have been configured by this change. Once the existing bot is supplied, attach the callbacks, configure the private endpoint, verify health, and deploy the four changed Edge functions: `order-notifications`, `admin-messaging`, `payment-gateway`, `whatsapp-verification`.
 
+## Current automation boundary
+
+The existing checkout saves the order through the secure database RPC, requests order notifications, and offers the customer's manual WhatsApp chat handoff. A configured admin number enables that checkout option; it does not prove that the bot is connected. New-order and fulfilment notification requests currently originate from the checkout/admin UI. Delivery claims and the bridge deduplicate retries, but a durable background retry worker has not been installed. Payment-alert transport failures are logged; they are not queued automatically.
+
+The contact form saves requests to `contact_messages`. Forwarding support requests to WhatsApp, receiving incoming WhatsApp support messages, and routing them to the existing bot's handlers are not implemented in this adapter. Those handlers must be connected after the bot's folder and command structure are supplied. Do not describe this scaffold as deployed or fully automated.
+
 ## Local checks
 
 `node --test tests/whatsapp.test.cjs` exercises the real HTTP adapter against a fake socket. It covers authentication, order/OTP routing, disconnects, failed acknowledgements, persistent duplicate protection and explicit Meta compatibility without sending WhatsApp messages.

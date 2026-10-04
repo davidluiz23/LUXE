@@ -3,7 +3,9 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../Frontend');
-const port = Number(process.env.PORT || 4173);
+// The linked payment/notification backend allows the existing Live Server
+// origin on 5500. Keep the normal preview on that origin as well.
+const port = Number(process.env.PORT || 5500);
 const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.woff2': 'font/woff2' };
 http.createServer((request, response) => {
     try {

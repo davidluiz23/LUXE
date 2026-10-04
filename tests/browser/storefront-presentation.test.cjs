@@ -168,7 +168,7 @@ test('collection pages show branded pending cards and restore rounded cards with
     try {
       await page.waitForFunction(() => typeof window.__releaseProducts === 'function');
       if (['shop.html', 'men.html', 'women.html'].includes(name)) {
-        assert.equal(await page.locator('.modern-artwork-piece').count(), 3, name);
+        assert.equal(await page.locator('.modern-preview-piece').count(), 3, name);
         assert.equal(await page.locator('.modern-piece-skeleton').count(), 0, name);
       } else {
         const loading = page.locator('.modern-piece-skeleton').first();
@@ -189,7 +189,7 @@ test('collection pages show branded pending cards and restore rounded cards with
           artworkFirst: el.firstElementChild.classList.contains('modern-piece-media'),
           overflow: el.scrollWidth > el.clientWidth || document.documentElement.scrollWidth > innerWidth,
         }));
-        assert.deepEqual(result, { background: 'rgb(240, 237, 230)', radius: width <= 760 ? 22 : 24, actionsBelow: true, artworkFirst: true, overflow: false }, `${name} at ${width}`);
+        assert.deepEqual(result, { background: 'rgba(0, 0, 0, 0)', radius: width <= 760 ? 22 : 24, actionsBelow: true, artworkFirst: true, overflow: false }, `${name} at ${width}`);
         assert.equal(await card.locator('.modern-piece-review').isVisible(), true, name);
         assert.equal(await card.locator('.modern-piece-meta h3 a').isVisible(), true, name);
         assert.equal(await card.locator('.modern-piece-action').isVisible(), true, name);

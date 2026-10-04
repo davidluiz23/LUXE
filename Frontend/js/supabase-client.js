@@ -2220,7 +2220,7 @@ const LuxeProducts = {
       image_public_id: imagePublicId || null,
       hover_image: hoverImage,
       hover_image_public_id: hoverImagePublicId || null,
-      rating: Number.parseFloat(product.rating) || 5.0,
+      rating: Math.max(0, Math.min(5, Number.parseFloat(product.rating) || 0)),
       discount: Boolean(
         (Number.isFinite(oldPrice) &&
           oldPrice > (Number.isFinite(price) ? price : 0)) ||

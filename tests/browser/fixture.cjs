@@ -82,6 +82,17 @@ function sdkMock() {
         const subtotal=args.p_items.reduce((n,i)=>n+(window.__fixture.find(p=>p.id===i.product_id)?.price||0)*i.quantity,0);
         return {data:{subtotal,shipping:10,tax:0,discount:0,total:subtotal+10},error:null};
       }
+      if(name==='create_order_secure_v3') {
+        const stored=JSON.parse(sessionStorage.getItem('__fixtureOrders') || '{}');
+        if(!stored[args.p_idempotency_key]) {
+          const subtotal=args.p_items.reduce((sum,item)=>sum+(window.__fixture.find(p=>p.id===item.product_id)?.price||0)*item.quantity,0);
+          stored[args.p_idempotency_key]={id:'fixture-order-'+(Object.keys(stored).length+1),order_number:'ALK-TEST-001',
+            subtotal,shipping:10,tax:0,discount:0,total:subtotal+10,currency:'USD',payment_provider:args.p_payment_provider,
+            payment_status:'pending',status:args.p_payment_provider==='whatsapp'?'pending':'awaiting_payment'};
+          sessionStorage.setItem('__fixtureOrders',JSON.stringify(stored));
+        }
+        return {data:stored[args.p_idempotency_key],error:null};
+      }
       if(name==='admin_list_orders_v4')return {data:{orders:[],hasMore:false,nextCursor:null},error:null};
       if(name==='public_store_metrics_v1')return {data:{},error:null};
       return {data:[],error:null};
@@ -89,8 +100,10 @@ function sdkMock() {
     functions:{async invoke(name,options){
       window.__requests.push({function:name,body:options?.body});
       if(name==='payment-gateway' && options?.body?.action==='verify')return {data:{status:'paid'},error:null};
-      if(name==='payment-gateway' && options?.body?.action==='initialize')return {data:null,error:{message:'Payment provider offline'}};
-      if(name==='payment-gateway')return {data:{paymentConfig:{adminWhatsApp:'2348000000000',activeProvider:'whatsapp',providers:{whatsapp:{enabled:true},paystack:{enabled:false}}}},error:null};
+      if(name==='payment-gateway' && options?.body?.action==='initialize')return window.__paymentAuthorizationUrl
+        ? {data:{authorizationUrl:window.__paymentAuthorizationUrl},error:null}
+        : {data:null,error:{message:'Payment provider offline'}};
+      if(name==='payment-gateway')return {data:{paymentConfig:window.__paymentConfig || {adminWhatsApp:'2348000000000',activeProvider:'whatsapp',providers:{whatsapp:{enabled:true},paystack:{enabled:false}}}},error:null};
       return {data:{},error:null};
     }},
     channel(){const c={on:()=>c,subscribe:()=>c,unsubscribe:()=>{}};return c;},

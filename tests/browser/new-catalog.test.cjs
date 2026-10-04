@@ -13,14 +13,14 @@ test('new catalog filters persist, saved pieces stay neutral, and bag actions ad
     width: 1440, state: { __auditUser: user }, saved: { luxe_logged_in: true, luxe_user: user },
   });
   try {
-    await page.waitForSelector('.modern-shop-piece');
+    await page.waitForSelector('.modern-shop-piece[data-id]');
     await page.selectOption('#sortBy', 'price-high');
     assert.deepEqual(await page.locator('.modern-shop-piece').evaluateAll(cards => cards.map(card => Number(card.dataset.id))), [1003, 1002, 1001]);
     await page.click('#catalogFilters > summary');
     await page.click('[data-catalog-color][data-color="black"]');
     assert.equal(await page.locator('.modern-shop-piece').count(), 1);
     await page.reload();
-    await page.waitForSelector('.modern-shop-piece');
+    await page.waitForSelector('.modern-shop-piece[data-id]');
     assert.match(page.url(), /color=black/);
     assert.equal(await page.locator('[data-catalog-color][data-color="black"]').getAttribute('aria-pressed'), 'true');
     assert.equal(await page.locator('.modern-shop-piece').count(), 1);

@@ -60,7 +60,7 @@ function renderCatalogStatus() {
     // Collection grids own their empty state; inventory comes from admin.
     // Avoid duplicating that state in a banner above the page.
     if (status.state === 'empty' && document.body.classList.contains('african-modern-site') &&
-        document.querySelector('.modern-collection, .modern-catalog')) {
+        (document.querySelector('.modern-collection, .modern-catalog') || document.body.dataset.collectionDesign)) {
         banner?.remove();
         return;
     }

@@ -6,6 +6,26 @@ const vm = require('node:vm');
 const { stripTypeScriptTypes } = require('node:module');
 const { root } = require('./helpers.cjs');
 
+test('payment alerts report resolved transport failures without failing the payment flow', async () => {
+  const errors=[];
+  let background;
+  const source=fs.readFileSync(path.join(root,'supabase/functions/payment-gateway/index.ts'),'utf8')
+    .replace(/^import\s+[\s\S]*?;\s*/gm,'');
+  const context=vm.createContext({
+    Request,Response,URL,TextEncoder,crypto:globalThis.crypto,AbortSignal,
+    console:{error(...args){errors.push(args);},log(){},warn(){}},
+    Deno:{env:{get(key){return key==='WHATSAPP_ADMIN_NUMBER'?'2348012345678':undefined;}},serve(){}},
+    EdgeRuntime:{waitUntil(promise){background=promise;}},
+    sendWhatsAppMessage:async()=>({sent:false,status:'failed',reason:'Disconnected'}),
+  });
+  vm.runInContext(stripTypeScriptTypes(source),context);
+  context.notifyAdminInBackground({order_number:'TEST-1',total:25,currency:'USD'},'test-reference');
+  await background;
+  assert.equal(errors.length,1);
+  assert.match(errors[0][0],/not delivered/);
+  assert.equal(errors[0][1],'failed');
+});
+
 for (const name of ['payment-gateway', 'push-notifications', 'order-notifications']) {
   test(`${name} returns a controlled 400 for non-object JSON bodies`, async () => {
     let handler;

@@ -1497,12 +1497,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    if (!Number.isInteger(stockQuantity) || stockQuantity < 0 || stockQuantity > 1000000) {
+    if (!getValue("pStockQuantity") || !Number.isInteger(stockQuantity) || stockQuantity < 0 || stockQuantity > 1000000) {
       showToast("Inventory quantity must be a whole number from 0 to 1,000,000", true);
       return;
     }
 
-    if (!isSafeHttpsUrl(getValue("pImage"))) {
+    const originalImage = (window.AlkebulanDesigns || []).some(design => design.image === getValue("pImage"));
+    if (!originalImage && !isSafeHttpsUrl(getValue("pImage"))) {
       showToast("Main image must use a secure https:// URL", true);
       return;
     }
@@ -1516,7 +1517,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       brand: getValue("pBrand") || adminBrandName(),
       category: getValue("pCategory"),
       subcategory: getValue("pSubcategory") || "General",
-      rating: getValue("pRating") || 5,
+      rating: getValue("pRating") === "" ? 0 : Number(getValue("pRating")),
       price,
       priceNGN,
       oldPrice: getValue("pOldPrice") || null,
@@ -1587,43 +1588,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     await loadProducts();
   }
 
-  document.getElementById("importCatalogBtn")?.addEventListener("click", async () => {
-    const button = document.getElementById("importCatalogBtn");
-    if (!window.getStarterProducts?.().length) {
-      showToast("No starter products are bundled. Add your products in the catalog editor.");
-      return;
-    }
-
-    const confirmed = await requestAdminConfirmation({
-      title: "Import the starter catalog?",
-      message: "New catalog products will be published to the live storefront. Existing matching products will not be duplicated.",
-    });
-    if (!confirmed) return;
-
-    if (button) {
-      button.disabled = true;
-      button.textContent = "Importing...";
-    }
-
-    const { error, imported } = await window.importStarterCatalog();
-
-    if (button) {
-      button.disabled = false;
-      button.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Import Starter Catalog';
-    }
-
-    if (error) {
-      showToast(error.message || "Import failed", true);
-      return;
-    }
-
-    showToast(
-      imported
-        ? `Imported ${imported} product(s)`
-        : "Already up to date — nothing new to import"
-    );
-
-    await loadProducts();
+  document.getElementById("addOriginalProduct")?.addEventListener("change", event => {
+    const design = (window.AlkebulanDesigns || []).find(item => item.key === event.target.value);
+    event.target.value = "";
+    if (!design) return;
+    const existing = [...adminProductCache.values()].find(product => window.LuxeCollection?.keyForProduct(product) === design.key);
+    if (existing) { openProductModal(existing.id); return; }
+    openProductModal(null);
+    setText("productModalTitle", "Set up " + design.name);
+    setValue("pName", design.name + " graphic tee");
+    setValue("pBrand", "ALKEBULAN");
+    setValue("pSubcategory", "Graphic tees");
+    setValue("pDescription", design.description);
+    setValue("pImage", design.image);
+    setValue("pColors", "Black");
+    setValue("pRating", "0");
+    setValue("pPrice", "");
+    setValue("pPriceNGN", "");
+    setValue("pStockQuantity", "");
+    document.getElementById("pInStock").checked = false;
+    setImagePreview("pImagePreview", "pImagePreviewIcon", design.image);
+    setText("pImageMeta", "Original ALKEBULAN product photograph.");
+    renderProductLivePreview();
+    document.getElementById("pPrice")?.focus();
   });
 
   const updatesList = document.getElementById("updatesList");

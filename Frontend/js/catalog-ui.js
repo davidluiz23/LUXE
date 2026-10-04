@@ -1,4 +1,4 @@
-// One renderer for the approved artwork cards and live shopping controls.
+// One product card for the collection, homepage, saved items and recommendations.
 (function () {
   'use strict';
   const escape = value => window.LuxeUtils.escapeHtml(String(value ?? ''));
@@ -25,22 +25,12 @@
     });
   }
 
-  // Editorial designs have no invented product ID, price, or stock.
-  function renderArtwork(grid, excludeKey = '') {
+  function renderCollection(grid, excludeKey = '', { pending = false } = {}) {
     if (!grid) return 0;
+    const catalog = window.getProducts?.() || [];
     const designs = (window.AlkebulanDesigns || []).filter(design => design.key !== excludeKey);
-    ownGrid(grid);
-    window.finishProductGridLoading?.(grid);
-    grid.innerHTML = designs.map((design, index) => `<article class="modern-piece modern-shop-piece modern-artwork-piece" data-piece-card="${escape(design.key)}" data-custom-photo="false">
-      <div class="modern-piece-media"><a class="modern-piece-image" href="product.html?piece=${escape(design.key)}" aria-label="Read about ${escape(design.name)}">
-        <img ${window.LuxeMedia.attributes(design.image, { preset: 'card', alt: `The original black ${design.name} graphic tee`, priority: index === 0 })}>
-        <span class="modern-piece-arrow" aria-hidden="true">&#8599;</span></a>
-        <span class="modern-piece-loading" aria-hidden="true">${window.LuxeIcons.loader()}</span>
-      </div>
-      <div class="modern-piece-meta"><div><h3><a href="product.html?piece=${escape(design.key)}">${escape(design.name)}</a></h3><p>Graphic tee</p></div></div>
-    </article>`).join('');
-    window.LuxeMedia.hydrate(grid);
-    finishImages(grid);
+    render(grid, designs.map(design => catalog.find(product => window.LuxeCollection?.keyForProduct(product) === design.key)
+      || { ...design, subcategory: 'Graphic tee', preview: true, pending }));
     return designs.length;
   }
 
@@ -53,33 +43,34 @@
 
   function card(product, index) {
     const id = Number(product.id);
-    if (!Number.isSafeInteger(id) || id < 1) return '';
+    const published = Number.isSafeInteger(id) && id > 0;
+    if (!published && !product.preview) return '';
     const name = escape(product.name || 'Graphic tee');
-    const key = window.LuxeCollection?.keyForProduct(product) || '';
+    const key = product.key || window.LuxeCollection?.keyForProduct(product) || '';
     const custom = product.image !== `assets/products/${originals[key]}`;
     const options = !!(product.sizes?.length || product.colors?.length);
-    const soldOut = product.inStock === false;
-    const href = `product.html?id=${id}`;
+    const soldOut = product.inStock === false || product.stockQuantity === 0;
+    const href = published ? `product.html?id=${id}` : `product.html?piece=${encodeURIComponent(key)}`;
     const rating = Number(product.rating), reviews = Number(product.reviewCount);
     const review = rating > 0 && reviews > 0
       ? `<p class="modern-piece-review">${Math.min(5, rating).toFixed(1)} / 5 <span>&middot; ${reviews} review${reviews === 1 ? '' : 's'}</span></p>` : '';
-    return `<article class="modern-piece modern-shop-piece" data-id="${id}" data-piece-card="${escape(key)}" data-custom-photo="${custom}">
+    return `<article class="modern-piece modern-shop-piece${published ? '' : ' modern-preview-piece'}" ${published ? `data-id="${id}"` : ''} data-piece-card="${escape(key)}" data-custom-photo="${custom}">
       <div class="modern-piece-media">
         <a class="modern-piece-image" href="${href}" aria-label="View ${name}">
           <img ${window.LuxeMedia.attributes(product.image, { preset: 'card', alt: product.name, priority: index === 0 })}>
           <span class="modern-piece-arrow" aria-hidden="true">&#8599;</span>
         </a>
         <span class="modern-piece-loading" aria-hidden="true">${window.LuxeIcons.loader()}</span>
-        <button class="modern-piece-save" type="button" data-save-piece data-id="${id}" aria-label="Save ${name} to wishlist" aria-pressed="false">${window.LuxeIcons.svg('heart')}</button>
+        ${published ? `<button class="modern-piece-save" type="button" data-save-piece data-id="${id}" aria-label="Save ${name} to wishlist" aria-pressed="false">${window.LuxeIcons.svg('heart')}</button>` : ''}
       </div>
       <div class="modern-piece-meta">
         <div><h3><a href="${href}">${name}</a></h3><p>${escape(product.subcategory || 'Graphic tee')}</p></div>
-        <div class="modern-piece-price">${price(product)}</div>
+        <div class="modern-piece-price">${published ? price(product) : `<span>${product.pending ? 'Loading price…' : window.LuxeCatalogStatus?.state === 'unavailable' ? 'Price unavailable' : 'Not released'}</span>`}</div>
       </div>
       <div class="modern-piece-bottom">${review}
-        ${soldOut ? '<button class="modern-piece-action" type="button" disabled>Sold out</button>' : options
+        ${!published ? '<button class="modern-piece-action" type="button" disabled>Add to cart <span aria-hidden="true">+</span></button>' : soldOut ? '<button class="modern-piece-action" type="button" disabled>Sold out</button>' : options
           ? `<a class="modern-piece-action" href="${href}" aria-label="Choose options for ${name}">Choose options <span aria-hidden="true">&#8599;</span></a>`
-          : `<button class="modern-piece-action" type="button" data-add-piece data-id="${id}" aria-label="Add ${name} to bag">Add to bag <span aria-hidden="true">+</span></button>`}
+          : `<button class="modern-piece-action" type="button" data-add-piece data-id="${id}" aria-label="Add ${name} to cart">Add to cart <span aria-hidden="true">+</span></button>`}
       </div>
     </article>`;
   }
@@ -98,8 +89,8 @@
       try {
         const added = await window.addToCart?.(Number(button.dataset.id));
         if (added === true) {
-          button.textContent = 'Added to bag';
-          setTimeout(() => { if (button.isConnected) button.innerHTML = 'Add to bag <span aria-hidden="true">+</span>'; }, 1400);
+          button.textContent = 'Added to cart';
+          setTimeout(() => { if (button.isConnected) button.innerHTML = 'Add to cart <span aria-hidden="true">+</span>'; }, 1400);
         }
       } catch {
         window.showNotification?.('Could not add this piece. Please try again.', 'alert');
@@ -116,5 +107,5 @@
       `<article class="modern-piece modern-piece-skeleton" aria-hidden="true"><div class="modern-piece-image">${window.LuxeIcons?.loader() || ''}</div><div class="modern-piece-meta"><span></span></div></article>`).join('')}`;
   }
 
-  window.LuxeCatalogUI = Object.freeze({ render, loading, renderArtwork });
+  window.LuxeCatalogUI = Object.freeze({ render, loading, renderCollection });
 })();
