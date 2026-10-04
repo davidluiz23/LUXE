@@ -3,6 +3,8 @@ import { sendPushToUsers } from "../_shared/web-push.ts";
 import { getSupabaseServiceKey } from "../_shared/supabase-server.ts";
 import { escapeEmailHtml, sendBrevoEmail } from "../_shared/brevo-email.ts";
 
+import { sendWhatsAppMessage, whatsAppProvider } from "../_shared/whatsapp.ts";
+
 type DeliveryResult = { status: string; reference?: string };
 
 const MAX_REQUEST_BYTES = 16_384;
@@ -69,50 +71,20 @@ async function sendWhatsApp(
   name: string,
   title: string,
   message: string,
+  deliveryId: string,
 ): Promise<DeliveryResult> {
   if (!optedIn) return { status: "not_opted_in" };
   if (!phone) return { status: "unavailable" };
-  const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
-  const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
   const templateName = Deno.env.get("WHATSAPP_ADMIN_CUSTOMER_MESSAGE_TEMPLATE");
-  if (!token || !phoneNumberId || !templateName) return { status: "not_configured" };
-
-  const digits = phone.replace(/\D/g, "");
-  const version = Deno.env.get("WHATSAPP_GRAPH_VERSION") || "v23.0";
-  let response: Response;
-  try {
-    response = await fetch(`https://graph.facebook.com/${version}/${phoneNumberId}/messages`, {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        recipient_type: "individual",
-        to: digits,
-        type: "template",
-        template: {
-          name: templateName,
-          language: { code: Deno.env.get("WHATSAPP_TEMPLATE_LANGUAGE") || "en" },
-          components: [{
-            type: "body",
-            parameters: [name, title, message].map((text) => ({
-              type: "text",
-              text: text.slice(0, 1024),
-            })),
-          }],
-        },
-      }),
-      signal: AbortSignal.timeout(10000),
-    });
-  } catch (error) {
-    console.error("[admin-messaging] WhatsApp request failed:", error);
-    return { status: "failed" };
-  }
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    console.error("[admin-messaging] WhatsApp failed:", response.status, payload);
-    return { status: "failed" };
-  }
-  return { status: "sent", reference: String(payload.messages?.[0]?.id || "") };
+  if (whatsAppProvider() === "meta" && !templateName) return { status: "not_configured" };
+  const brand = (Deno.env.get("BRAND_NAME") || "ALKEBULAN").trim().slice(0, 80);
+  const result = await sendWhatsAppMessage({
+    to: phone,
+    text: [brand, title, `Hello ${name},`, message].join("\n\n"),
+    idempotencyKey: `admin-message:${deliveryId}`,
+    template: templateName ? { name: templateName, parameters: [name, title, message] } : undefined,
+  });
+  return { status: result.status, reference: result.messageId };
 }
 
 Deno.serve(async (request) => {
@@ -221,6 +193,7 @@ Deno.serve(async (request) => {
         name,
         title,
         message,
+        delivery.id,
       )
       : Promise.resolve<DeliveryResult>({ status: "not_requested" }),
     sendPushToUsers(service, [userId], {

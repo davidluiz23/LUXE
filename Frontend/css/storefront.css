@@ -635,7 +635,7 @@ html.alkebulan-site
 }
 html.alkebulan-site
   body:not(.page-admin)
-  :is(.category-hero, .about-hero, .contact-hero) {
+  :is(.about-hero, .contact-hero) {
   width: min(calc(100% - var(--sf-gutter) * 2), 1320px);
   min-height: 420px;
   margin: 28px auto 0;
@@ -644,14 +644,14 @@ html.alkebulan-site
 }
 html.alkebulan-site
   body:not(.page-admin)
-  :is(.category-hero h1, .about-hero h1, .contact-hero h1) {
+  :is(.about-hero h1, .contact-hero h1) {
   font-size: clamp(3.5rem, 7vw, 7rem);
   font-weight: 500;
   line-height: 0.98;
 }
 html.alkebulan-site
   body:not(.page-admin)
-  :is(.category-hero p, .about-hero p, .contact-hero p) {
+  :is(.about-hero p, .contact-hero p) {
   font-size: 1rem;
 }
 
@@ -1566,17 +1566,14 @@ html.alkebulan-site body:not(.page-admin) .luxury-footer-bottom {
   }
   html.alkebulan-site
     body:not(.page-admin)
-    :is(.category-hero, .about-hero, .contact-hero) {
+    :is(.about-hero, .contact-hero) {
     min-height: 350px;
     margin-top: 20px;
     border-radius: 24px;
   }
-  html.alkebulan-site body:not(.page-admin) .category-hero-content {
-    padding-inline: 24px;
-  }
   html.alkebulan-site
     body:not(.page-admin)
-    :is(.category-hero h1, .about-hero h1, .contact-hero h1) {
+    :is(.about-hero h1, .contact-hero h1) {
     font-size: clamp(3rem, 13vw, 4.7rem);
   }
   html.alkebulan-site body:not(.page-admin) .category-filter-bar {

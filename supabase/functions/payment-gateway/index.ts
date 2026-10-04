@@ -4,6 +4,8 @@ import {
   type SupabaseServiceClient,
 } from "../_shared/supabase-server.ts";
 
+import { sendWhatsAppMessage } from "../_shared/whatsapp.ts";
+
 declare const EdgeRuntime: { waitUntil(promise: Promise<unknown>): void };
 
 function originFor(request: Request): string | null {
@@ -137,33 +139,19 @@ async function notifyAdminOfPayment(
   reference: string,
   state: "paid" | "review_required" = "paid",
 ) {
-  const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
-  const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
   const to = normalizePhone(Deno.env.get("WHATSAPP_ADMIN_NUMBER"));
-  if (!token || !phoneNumberId || !to) return;
+  if (!to) return;
   const templateName = Deno.env.get("WHATSAPP_ADMIN_PAYMENT_TEMPLATE");
   const total = `${String(order.currency || "USD").toUpperCase()} ${Number(order.total || 0).toFixed(2)}`;
-  const heading = state === "review_required"
-    ? "PAYMENT NEEDS MANUAL REVIEW"
-    : "PAYMENT CONFIRMED";
-  const body = templateName && state === "paid" ? {
-    messaging_product: "whatsapp", to, type: "template",
-    template: {
-      name: templateName,
-      language: { code: Deno.env.get("WHATSAPP_TEMPLATE_LANGUAGE") || "en" },
-      components: [{ type: "body", parameters: [order.order_number, total, reference].map((text) => ({ type: "text", text: String(text) })) }],
-    },
-  } : {
-    messaging_product: "whatsapp", to, type: "text",
-    text: { preview_url: false, body: `${heading}\nOrder: ${order.order_number}\nTotal: ${total}\nReference: ${reference}` },
-  };
-  const version = Deno.env.get("WHATSAPP_GRAPH_VERSION") || "v23.0";
-  const response = await fetchWithTimeout(`https://graph.facebook.com/${version}/${phoneNumberId}/messages`, {
-    method: "POST",
-    headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+  const heading = state === "review_required" ? "PAYMENT NEEDS MANUAL REVIEW" : "PAYMENT CONFIRMED";
+  return sendWhatsAppMessage({
+    to,
+    text: `${heading}\nOrder: ${order.order_number}\nTotal: ${total}\nReference: ${reference}`,
+    idempotencyKey: `payment:${reference}:${state}`,
+    template: templateName && state === "paid" ? {
+      name: templateName, parameters: [String(order.order_number), total, reference],
+    } : undefined,
   });
-  if (!response.ok) console.error("[payment-gateway] Admin payment WhatsApp failed:", response.status, await response.text());
 }
 
 function notifyAdminInBackground(

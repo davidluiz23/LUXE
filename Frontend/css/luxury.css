@@ -650,12 +650,6 @@ html.alkebulan-site .pagination button { min-width: 42px; height: 42px; backgrou
 html.alkebulan-site .pagination button.active,
 html.alkebulan-site .pagination button:hover { background: var(--alk-ink); color: var(--alk-white); border-color: var(--alk-ink); }
 
-html.alkebulan-site .category-hero { min-height: 650px; margin: 0; border-radius: 0; background-attachment: scroll; }
-html.alkebulan-site .category-hero::before { background: linear-gradient(90deg, rgba(0,0,0,.73), rgba(0,0,0,.14)); }
-html.alkebulan-site .category-hero-content { max-width: 1440px; padding-inline: 32px; text-align: left; }
-html.alkebulan-site .category-hero-content::before { display: block; margin-bottom: 26px; color: rgba(255,255,255,.72); content: "ALKEBULAN / CURRENT EDIT"; font-size: .52rem; font-weight: 600; letter-spacing: .16em; }
-html.alkebulan-site .category-hero h1 { max-width: 760px; color: var(--alk-white); font-size: clamp(5.2rem, 11vw, 11rem); font-weight: 400; letter-spacing: -.075em; line-height: .78; }
-html.alkebulan-site .category-hero p { max-width: 480px; margin: 30px 0 0; font-size: .82rem; line-height: 1.8; }
 html.alkebulan-site .category-filter-bar { display: flex; align-items: center; justify-content: space-between; }
 html.alkebulan-site .filter-option-btn { min-height: 38px; padding: 8px 13px; background: transparent; color: var(--alk-muted); border: 1px solid transparent; border-radius: 0; font-size: .54rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
 html.alkebulan-site .filter-option-btn:hover,
@@ -1616,7 +1610,6 @@ html.alkebulan-site .back-to-top:active {
     html.alkebulan-site .hamburger { display: none !important; }
     html.alkebulan-site .nav-icons { grid-column: auto; gap: 4px; }
     html.alkebulan-site .nav-icons a { width: 32px; }
-    html.alkebulan-site .filter-toggle { display: inline-flex; }
     html.alkebulan-site .shop-toolbar { grid-template-columns: auto 1fr auto; }
     html.alkebulan-site .section,
     html.alkebulan-site .section:first-of-type { padding: clamp(72px, 8vw, 96px) 0 !important; }
@@ -1633,29 +1626,6 @@ html.alkebulan-site .back-to-top:active {
     .house-story { grid-template-columns: 1fr; }
     .house-story-image { min-height: 70vw; }
     .house-story-copy { min-height: 590px; }
-
-    html.alkebulan-site .shop-layout { grid-template-columns: 1fr; }
-    html.alkebulan-site .shop-sidebar {
-        position: fixed;
-        z-index: 12000;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        display: block;
-        width: min(420px, 92vw);
-        padding: 70px 28px 32px;
-        overflow-y: auto;
-        background: var(--alk-white);
-        border-right: 1px solid var(--alk-line);
-        opacity: 0;
-        transform: translateX(-100%);
-        visibility: hidden;
-        transition: opacity var(--alk-fast), transform var(--alk-normal) var(--alk-ease), visibility 0s var(--alk-normal);
-    }
-    html.alkebulan-site .shop-sidebar.active { opacity: 1; transform: translateX(0); visibility: visible; transition-delay: 0s; }
-    html.alkebulan-site .sidebar-close { display: grid; top: 20px; right: 20px; width: 42px; height: 42px; place-items: center; color: var(--alk-ink); border: 1px solid var(--alk-line); }
-    body.filters-open { overflow: hidden; }
-    body.filters-open::after { position: fixed; z-index: 11000; inset: 0; background: rgba(17,17,15,.48); content: ""; backdrop-filter: blur(3px); }
 
     html.alkebulan-site .product-detail-grid { grid-template-columns: 1fr; }
     html.alkebulan-site .main-image { height: auto; aspect-ratio: 4 / 5; }
@@ -1801,13 +1771,10 @@ html.alkebulan-site .back-to-top:active {
     html.alkebulan-site .shop-sort { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr; }
     html.alkebulan-site .shop-sort select { width: 100%; }
 
-    html.alkebulan-site .category-hero,
     html.alkebulan-site .about-hero,
     html.alkebulan-site .contact-hero { min-height: 540px; }
-    html.alkebulan-site .category-hero-content,
     html.alkebulan-site .about-hero-content,
     html.alkebulan-site .contact-hero-content { padding-inline: 18px; }
-    html.alkebulan-site .category-hero h1,
     html.alkebulan-site .about-hero h1,
     html.alkebulan-site .contact-hero h1 { font-size: clamp(4.2rem, 20vw, 7.5rem); }
     html.alkebulan-site .category-filter-bar {

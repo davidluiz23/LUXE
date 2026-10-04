@@ -29,19 +29,12 @@ function start() {
 
   function catalogLinks() {
     const catalog = window.getProducts?.() || [];
-    const preview=document.getElementById('intendedPreview');
-    if(preview){
-      const show=['ready','empty','offline'].includes(window.LuxeCatalogStatus?.state)&&catalog.length===0;
-      preview.hidden=!show;
-      const listing=document.querySelector('.shop-section,.category-products');
-      if(listing)listing.hidden=show;
-    }
     document.querySelectorAll('[data-piece-link]').forEach(link=>{
       const piece=pieces.find(p=>p.key===link.dataset.pieceLink) || originals.find(p=>p.key===link.dataset.pieceLink);
       if(!piece)return;
       const matches=catalog.filter(p=>piece.productId ? String(p.id)===String(piece.productId) : window.LuxeCollection?.keyForProduct(p)===piece.key);
       const product=matches.length===1?matches[0]:null;
-      link.href=product?'product.html?id='+encodeURIComponent(product.id):'shop.html';
+      link.href=product?'product.html?id='+encodeURIComponent(product.id):'product.html?piece='+encodeURIComponent(piece.key);
       link.setAttribute('aria-label',product?'View '+product.name:'Explore '+piece.name+' in the collection');
     });
     document.querySelectorAll('[data-piece-price]').forEach(label=>{
@@ -51,8 +44,6 @@ function start() {
         label.textContent=window.LuxeMoney?.forProduct?.(matches[0]).text || new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(matches[0].price);
       } else label.textContent='Graphic tee';
     });
-    const availability=document.getElementById('collectionAvailability');
-    if(availability)availability.textContent=catalog.length?'Explore each piece for sizes and current availability.':'Explore the artwork. Contact us for current availability.';
   }
   catalogLinks();
   Promise.resolve(window.productsReady).then(()=>{if(live){catalogLinks();publishedContent();}}).catch(()=>{});

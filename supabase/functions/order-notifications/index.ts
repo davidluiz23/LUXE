@@ -9,6 +9,8 @@ import {
   type SupabaseServiceClient,
 } from "../_shared/supabase-server.ts";
 
+import { sendWhatsAppMessage } from "../_shared/whatsapp.ts";
+
 type NotificationAction = "order_created" | "order_updated";
 
 type EmailDeliveryClaim = {
@@ -79,52 +81,12 @@ async function sendWhatsApp(
   templateName: string | null,
   parameters: string[],
   fallbackText: string,
+  idempotencyKey: string,
 ) {
-  const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
-  const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
-  const graphVersion = Deno.env.get("WHATSAPP_GRAPH_VERSION") || "v23.0";
-  if (!token || !phoneNumberId || !to) {
-    return { sent: false, reason: "WhatsApp Cloud API is not fully configured." };
-  }
-
-  const body = templateName
-    ? {
-      messaging_product: "whatsapp",
-      to,
-      type: "template",
-      template: {
-        name: templateName,
-        language: { code: Deno.env.get("WHATSAPP_TEMPLATE_LANGUAGE") || "en" },
-        components: [{
-          type: "body",
-          parameters: parameters.map((text) => ({ type: "text", text: text.slice(0, 1024) })),
-        }],
-      },
-    }
-    : {
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to,
-      type: "text",
-      text: { preview_url: false, body: fallbackText.slice(0, 4096) },
-    };
-
-  const response = await fetch(
-    `https://graph.facebook.com/${graphVersion}/${phoneNumberId}/messages`,
-    {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(12_000),
-    },
-  );
-
-  if (!response.ok) {
-    const detail = await response.text();
-    console.error("[order-notifications] WhatsApp send failed:", response.status, detail);
-    return { sent: false, reason: `WhatsApp returned ${response.status}.` };
-  }
-  return { sent: true };
+  return sendWhatsAppMessage({
+    to, text: fallbackText, idempotencyKey,
+    template: templateName ? { name: templateName, parameters } : undefined,
+  });
 }
 
 async function deliverWithClaim(
@@ -342,6 +304,7 @@ Deno.serve(async (request) => {
           Deno.env.get("WHATSAPP_ADMIN_ORDER_TEMPLATE") || null,
           [order.order_number, order.contact_name, order.contact_phone, itemSummary, total, addressText],
           adminText,
+          `order:${order.id}:${eventKey}:admin`,
         )),
       !order.whatsapp_opt_in_at
         ? Promise.resolve({ sent: false, skipped: true, delivered: false, reason: "Customer did not opt in." })
@@ -352,6 +315,7 @@ Deno.serve(async (request) => {
           Deno.env.get("WHATSAPP_CUSTOMER_ORDER_TEMPLATE") || null,
           [order.contact_name, order.order_number, itemSummary, total],
           customerText,
+          `order:${order.id}:${eventKey}:customer`,
         )),
       order.admin_push_notified_at
         ? Promise.resolve({ status: "sent", configured: true, attempted: 0, sent: 0, failed: 0, expired: 0, delivered: true })
@@ -413,6 +377,7 @@ Deno.serve(async (request) => {
         Deno.env.get("WHATSAPP_CUSTOMER_UPDATE_TEMPLATE") || null,
         [order.contact_name, order.order_number, String(order.status).replaceAll("_", " "), eta, order.waybill_url || "Not available"],
         updateText,
+        `order:${order.id}:${eventKey}:customer`,
       )),
     pushAlreadySent
       ? Promise.resolve({ status: "sent", configured: true, attempted: 0, sent: 0, failed: 0, expired: 0, delivered: true })

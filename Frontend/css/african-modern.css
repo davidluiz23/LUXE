@@ -128,10 +128,7 @@ html.alkebulan-site body.african-modern-site:not(.page-admin) .form-group label 
 
 /* The collection: a generous title, a small artwork study, and clear shopping. */
 html.alkebulan-site body.african-modern-site:not(.page-admin) .poster-catalog-hero { display: grid; grid-template-columns: minmax(0,1fr) 300px; align-items: center; gap: 64px; width: min(calc(100% - var(--modern-edge) * 2),1360px); min-height: 370px; height: auto; margin: 0 auto; padding: 34px 0 50px; border: 0; border-bottom: 1px solid var(--modern-line); border-radius: 0; background: transparent; color: var(--modern-ink); text-align: left; }
-html.alkebulan-site body.african-modern-site:not(.page-admin) .poster-catalog-hero::before,
-html.alkebulan-site body.african-modern-site:not(.page-admin) .poster-catalog-hero::after { display: none; }
 html.alkebulan-site body.african-modern-site:not(.page-admin) .poster-catalog-heading { position: static; max-width: none; padding: 0; transform: none; color: inherit; text-align: left; }
-html.alkebulan-site body.african-modern-site:not(.page-admin) .poster-catalog-heading::before { display: none; content: none; }
 html.alkebulan-site body.african-modern-site:not(.page-admin) .poster-catalog-heading > p { opacity: 1; }
 html.alkebulan-site body.african-modern-site:not(.page-admin) .poster-catalog-heading h1 { margin: 0 0 22px; font: 400 84px/.98 var(--font-display); letter-spacing: -.045em; text-transform: none; color: inherit; }
 html.alkebulan-site body.african-modern-site:not(.page-admin) .poster-catalog-heading h1 em { font-weight: 400; color: var(--modern-red-dark); }
@@ -369,6 +366,16 @@ html.alkebulan-site body.african-modern-site:not(.page-admin) .modern-footer-bot
   html.alkebulan-site body.african-modern-site:not(.page-admin) :is(.cart-grid,.checkout-grid) { gap: 35px; grid-template-columns: minmax(0,1fr) 330px; }
   html.alkebulan-site body.african-modern-site:not(.page-admin) .modern-footer-main { gap: 30px; }
 }
+/* Match the filter drawer threshold in shop.js. The grid and drawer switch together. */
+@media (max-width: 1020px) {
+  html.alkebulan-site body.african-modern-site:not(.page-admin) .shop-layout { grid-template-columns: 1fr; }
+  html.alkebulan-site body.african-modern-site:not(.page-admin) .filter-toggle { display: inline-flex; min-height: 48px; padding: 10px 18px; border: 1px solid var(--modern-line); border-radius: 999px; }
+  html.alkebulan-site body.african-modern-site:not(.page-admin) .shop-sidebar { display: block; position: fixed; inset: 0 auto 0 0; z-index: 1200; width: min(360px,90vw); max-height: 100dvh; padding: 76px 28px 32px; overflow-y: auto; background: var(--modern-paper); border-right: 1px solid var(--modern-line); border-radius:0 var(--modern-radius-media) var(--modern-radius-media) 0; opacity: 0; visibility: hidden; transform: translateX(-100%); transition: opacity var(--alk-fast), transform var(--alk-normal) var(--alk-ease), visibility 0s var(--alk-normal); }
+  html.alkebulan-site body.african-modern-site:not(.page-admin) .shop-sidebar.active { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+  html.alkebulan-site body.african-modern-site:not(.page-admin) .sidebar-close { display: grid; place-items: center; top: 20px; right: 20px; color: var(--modern-ink); border: 1px solid var(--modern-line); width: 48px; height: 48px; }
+  html.alkebulan-site body.african-modern-site.filters-open { overflow: hidden; }
+  html.alkebulan-site body.african-modern-site.filters-open::after { position: fixed; z-index: 1100; inset: 0; background: #24231f55; content: ""; backdrop-filter: blur(3px); }
+}
 @media (max-width: 1000px) {
   html.alkebulan-site body.african-modern-site:not(.page-admin) .nav-links { display: none !important; }
   html.alkebulan-site body.african-modern-site:not(.page-admin) .nav-icons .hamburger { display: flex !important; }
@@ -376,11 +383,6 @@ html.alkebulan-site body.african-modern-site:not(.page-admin) .modern-footer-bot
   html.alkebulan-site body.african-modern-site:not(.page-admin) .nav-icons .notification-icon { display: grid; }
   html.alkebulan-site body.african-modern-site:not(.page-admin) .poster-catalog-hero { grid-template-columns: minmax(0,1fr) 240px; gap: 35px; }
   html.alkebulan-site body.african-modern-site:not(.page-admin) .poster-catalog-art { height: 260px; }
-  html.alkebulan-site body.african-modern-site:not(.page-admin) .shop-layout { grid-template-columns: 1fr; }
-  html.alkebulan-site body.african-modern-site:not(.page-admin) .filter-toggle { display: inline-flex; min-height: 48px; padding: 10px 18px; border: 1px solid var(--modern-line); border-radius: 999px; }
-  html.alkebulan-site body.african-modern-site:not(.page-admin) .shop-sidebar { position: fixed; inset: 0 auto 0 0; z-index: 1200; width: min(360px,90vw); max-height: 100dvh; padding: 76px 28px 32px; overflow-y: auto; background: var(--modern-paper); border-right: 1px solid var(--modern-line); border-radius:0 var(--modern-radius-media) var(--modern-radius-media) 0; opacity: 0; visibility: hidden; transform: translateX(-100%); }
-  html.alkebulan-site body.african-modern-site:not(.page-admin) .shop-sidebar.active { opacity: 1; visibility: visible; transform: none; }
-  html.alkebulan-site body.african-modern-site:not(.page-admin) .sidebar-close { display: grid; place-items: center; width: 48px; height: 48px; }
   html.alkebulan-site body.african-modern-site:not(.page-admin) .auth-container { gap:0; }
   html.alkebulan-site body.african-modern-site:not(.page-admin) .auth-form-wrapper h1 { font-size: 64px; }
   html.alkebulan-site body.african-modern-site:not(.page-admin) .auth-image-content { inset-inline: 28px; }
@@ -519,6 +521,4 @@ html.alkebulan-site body.african-modern-site:not(.page-admin) .login-image-topli
 html.alkebulan-site body.african-modern-site:not(.page-admin) .login-actions { display:grid; grid-template-columns:1fr; gap:12px; }
 html.alkebulan-site body.african-modern-site:not(.page-admin) .auth-form input[type=checkbox] { appearance:auto; width:18px; height:18px; min-height:18px; padding:0; border-radius:3px; }
 html.alkebulan-site body.african-modern-site:not(.page-admin) .auth-form-wrapper .checkbox-label { gap:10px; align-items:center; }
-html.alkebulan-site body.african-modern-site:not(.page-admin) .intended-preview { margin-block:40px 60px; }
-html.alkebulan-site body.african-modern-site:not(.page-admin) .intended-preview>p { max-width:600px; margin:0 0 28px; color:var(--modern-muted); }
 @media(max-width:900px){html.alkebulan-site body.african-modern-site:not(.page-admin) :is(.product-grid,.wishlist-grid){grid-template-columns:repeat(2,minmax(0,1fr));}}

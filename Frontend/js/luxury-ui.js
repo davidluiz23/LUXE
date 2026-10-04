@@ -238,91 +238,6 @@
     });
   }
 
-  function catalog() {
-    if (typeof window.getProducts === "function") return window.getProducts() || [];
-    return window.products || [];
-  }
-
-  function enhanceProductCards() {
-    const products = catalog();
-    $$(".product-card, .wishlist-item").forEach((card, index) => {
-      if (card.classList.contains("product-card-skeleton")) return;
-      if (card.dataset.luxuryCard) {
-        $(".luxury-card-meta", card)?.remove();
-        return;
-      }
-      card.dataset.luxuryCard = "true";
-      card.classList.add("product-card");
-      card.style.setProperty("--card-order", index);
-      card.style.setProperty("--card-delay", `${Math.min(index, 8) * 45}ms`);
-      const id = Number(card.dataset.id);
-      const product = products.find((item) => Number(item.id) === id);
-      const imageWrap = $(".product-image", card);
-      const info = $(".product-info", card);
-      if (page !== "index") {
-        const actions = $(".product-actions", card);
-        if (actions && actions.parentElement !== card) card.appendChild(actions);
-        const category = $(".product-category", info || card);
-        if (category && info && info.firstElementChild !== category) info.prepend(category);
-      }
-      const primaryImage = $(".product-image > img", card);
-      if (primaryImage) {
-        card.classList.add("is-image-loading");
-        imageWrap.setAttribute("aria-busy", "true");
-        imageWrap.insertAdjacentHTML("beforeend", window.LuxeIcons?.loader() || "");
-        const finishImageLoading = async () => {
-          if (primaryImage.naturalWidth > 0 && typeof primaryImage.decode === "function") {
-            try { await primaryImage.decode(); } catch (_) { /* The load event is still a safe fallback. */ }
-          }
-          card.classList.remove("is-image-loading");
-          imageWrap.setAttribute("aria-busy", "false");
-          $(".product-loading-lockup", imageWrap)?.remove();
-        };
-        if (primaryImage.complete) finishImageLoading();
-        else {
-          primaryImage.addEventListener("load", finishImageLoading, { once: true });
-          primaryImage.addEventListener("error", finishImageLoading, { once: true });
-        }
-      }
-      if (imageWrap && product?.hoverImage && !$(".luxury-secondary-image", imageWrap)) {
-        const secondary = document.createElement("img");
-        secondary.className = "luxury-secondary-image";
-        if (window.LuxeMedia) {
-          window.LuxeMedia.apply(secondary, product.hoverImage, { preset: "card", alt: "" });
-        } else {
-          secondary.src = product.hoverImage;
-          secondary.alt = "";
-          secondary.loading = "lazy";
-          secondary.decoding = "async";
-        }
-        imageWrap.appendChild(secondary);
-      }
-      if (imageWrap && !$(".luxury-card-status", imageWrap)) {
-        const status = document.createElement("span");
-        status.className = `luxury-card-status${product?.inStock === false ? " is-sold" : ""}`;
-        status.textContent = product?.inStock === false ? "Sold out" : "Available";
-        imageWrap.appendChild(status);
-      }
-      $(".luxury-card-meta", info || card)?.remove();
-      $$("button", card).forEach((button) => {
-        if (!button.type) button.type = "button";
-        if (!button.getAttribute("aria-label")) {
-          if (button.classList.contains("wishlist-btn")) button.setAttribute("aria-label", "Save piece");
-          if (button.classList.contains("quick-view")) button.setAttribute("aria-label", "View piece");
-        }
-        if (page !== "index" && button.classList.contains("add-cart") && product?.inStock !== false) {
-          const hasOptions = button.dataset.hasOptions === "true";
-          button.innerHTML = hasOptions ? "Options" : `${window.LuxeIcons?.svg("bag") || ""}<span>Add</span>`;
-        }
-        if (button.classList.contains("add-cart") && product?.inStock === false) {
-          button.disabled = true;
-          button.setAttribute("aria-disabled", "true");
-          button.innerHTML = '<i class="fas fa-ban" aria-hidden="true"></i> Sold out';
-        }
-      });
-    });
-  }
-
   function enhanceEmptyStates() {
     const selectors = [".empty-cart", ".empty-wishlist", ".checkout-empty"];
     selectors.forEach((selector) => {
@@ -425,12 +340,10 @@
     if (window.productsReady) {
       try { await window.productsReady; } catch (_) { /* Offline catalog fallback remains available. */ }
     }
-    enhanceProductCards();
     enhanceEmptyStates();
     enhanceIcons();
 
     const observer = new MutationObserver(() => {
-      enhanceProductCards();
       enhanceEmptyStates();
       enhanceIcons();
     });

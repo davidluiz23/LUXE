@@ -14,18 +14,25 @@
 // Get product ID from URL
 const urlParams = new URLSearchParams(window.location.search);
 const productId = parseInt(urlParams.get('id'));
+const collectionDesign = (window.AlkebulanDesigns || []).find(design => design.key === urlParams.get('piece'));
 
 // Render product details when DOM is ready
 document.addEventListener('DOMContentLoaded', async () => {
     const relatedGrid = document.getElementById('relatedProducts');
-    if (relatedGrid) window.showProductGridLoading?.(relatedGrid, 4);
+    if (collectionDesign) {
+        renderCollectionDesign(collectionDesign);
+        window.LuxeCatalogUI.renderArtwork(relatedGrid, collectionDesign.key);
+    } else if (relatedGrid) window.showProductGridLoading?.(relatedGrid, 4);
 
     // Wait for the live product catalog (Supabase) to finish loading
     // before looking up this product — it used to be looked up
     // synchronously at script load, before the catalog had a chance
     // to arrive from the network, which risked a false "Not Found".
     if (window.productsReady) await window.productsReady;
-    const product = (typeof getProductById === 'function') ? getProductById(productId) : ((window.products || []).find(p => p.id === productId));
+    const product = collectionDesign
+        ? window.getProducts().find(product => window.LuxeCollection.keyForProduct(product) === collectionDesign.key)
+        : (typeof getProductById === 'function') ? getProductById(productId) : ((window.products || []).find(p => p.id === productId));
+    if (collectionDesign && !product) return;
 
     // Hide loader again
     const loader = document.getElementById('loader');
@@ -60,6 +67,44 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function escapeProductHtml(value) { return window.LuxeUtils.escapeHtml(value); }
+
+function renderCollectionDesign(design) {
+    const container = document.getElementById('productDetails');
+    if (!container) return;
+    const escape = escapeProductHtml;
+    document.title = `${design.name} graphic tee | ALKEBULAN`;
+    document.querySelector('meta[name="description"]')?.setAttribute('content', design.description);
+    document.querySelectorAll('script[type="application/ld+json"]').forEach(script => script.remove());
+    container.innerHTML = `<article class="modern-design-detail" data-design="${escape(design.key)}">
+      <div class="modern-design-layout">
+        <div class="modern-piece modern-design-gallery" data-piece-card="${escape(design.key)}">
+          <button class="modern-piece-image modern-design-zoom" type="button" aria-label="Enlarge ${escape(design.name)} artwork">
+            <img src="${escape(design.image)}" alt="The original black ${escape(design.name)} graphic tee" width="1280" height="854" decoding="async" fetchpriority="high">
+            <span class="modern-piece-arrow" aria-hidden="true">+</span>
+          </button>
+          <p class="modern-design-caption">A closer look. Select the artwork to zoom.</p>
+        </div>
+        <div class="modern-design-copy">
+          <p class="modern-design-eyebrow">ALKEBULAN / The original collection</p>
+          <h1>${escape(design.name)}</h1>
+          <p class="modern-design-tagline">${escape(design.tagline)}</p>
+          <p class="modern-design-description">${escape(design.description)}</p>
+          <dl class="modern-design-facts"><div><dt>Piece</dt><dd>Graphic tee</dd></div><div><dt>Canvas</dt><dd>Black</dd></div><div><dt>Expression</dt><dd>${escape(design.name)}</dd></div></dl>
+          <a class="modern-text-link" href="#designStory">Read the story <span aria-hidden="true">&#8595;</span></a>
+        </div>
+      </div>
+      <section class="modern-design-story" id="designStory" aria-labelledby="designStoryTitle">
+        <div><p class="modern-design-eyebrow">Behind the graphic</p><h2 id="designStoryTitle">Wear your<br><em>expression.</em></h2></div>
+        <div><h3>The artwork</h3><p>${escape(design.story)}</p><ul>${design.details.map(detail => `<li>${escape(detail)}</li>`).join('')}</ul></div>
+        <div><h3>Make it yours</h3><p>${escape(design.styling)}</p><a class="modern-text-link" href="shipping.html">Shipping &amp; delivery <span aria-hidden="true">&#8599;</span></a><a class="modern-text-link" href="returns.html">Returns &amp; exchanges <span aria-hidden="true">&#8599;</span></a></div>
+      </section>
+      <dialog class="modern-design-dialog" aria-label="${escape(design.name)} artwork close-up"><button type="button" class="modern-design-close" aria-label="Close artwork">&#215;</button><img src="${escape(design.image)}" alt="${escape(design.name)} artwork close-up" width="1280" height="854"></dialog>
+    </article>`;
+    const dialog = container.querySelector('dialog');
+    container.querySelector('.modern-design-zoom').addEventListener('click', () => dialog.showModal());
+    container.querySelector('.modern-design-close').addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+}
 
 function safeProductColor(value) {
     const aliases = {
@@ -420,53 +465,7 @@ function renderRelatedProducts(product) {
         return;
     }
 
-    container.innerHTML = related.map(p => {
-        const relatedId = Number.parseInt(p.id, 10);
-        if (!Number.isFinite(relatedId)) return '';
-        const safeName = escapeProductHtml(p.name || 'Product');
-        const hasOptions = productOptionValues(p.sizes).length > 0 || productOptionValues(p.colors).length > 0;
-        return `
-        <article class="product-card" data-id="${relatedId}">
-            <div class="product-image">
-                <img ${window.LuxeMedia.attributes(p.image, { preset: 'card', alt: p.name })}>
-                ${p.discount && p.oldPrice ? `<span class="discount-badge">${Math.round((1 - p.price / p.oldPrice) * 100)}% OFF</span>` : ''}
-                ${p.trending ? `<span class="trending-badge"><i class="fas fa-fire" aria-hidden="true"></i> Trending</span>` : ''}
-                <div class="product-actions">
-                    <button type="button" class="add-cart" data-id="${relatedId}" data-has-options="${hasOptions}" aria-label="${hasOptions ? 'Choose options for' : 'Add'} ${safeName}"><i class="fas fa-shopping-bag" aria-hidden="true"></i> ${hasOptions ? 'Choose options' : 'Add'}</button>
-                    <button type="button" class="wishlist-btn" data-id="${relatedId}" aria-label="Save ${safeName} to wishlist" aria-pressed="false"><i class="fas fa-heart" aria-hidden="true"></i></button>
-                </div>
-            </div>
-            <div class="product-info">
-                <h4 class="product-name"><a class="product-name-link" href="product.html?id=${relatedId}" style="color:inherit;text-decoration:none">${safeName}</a></h4>
-                <p class="product-category">${escapeProductHtml(p.category || '')}</p>
-                <div class="product-price">${detailPriceMarkup(p)}</div>
-                ${p.rating ? `
-                    <div class="product-rating" aria-label="Rated ${Math.max(0, Math.min(5, Number(p.rating) || 0)).toFixed(1)} out of 5">
-                        ${window.LuxeIcons?.rating(p.rating) || ''}
-                        <span class="rating-count">${p.reviewCount !== null && p.reviewCount !== undefined
-                            ? `${Math.max(0, Number(p.reviewCount) || 0)} review${Number(p.reviewCount) === 1 ? '' : 's'}`
-                            : `${Math.max(0, Math.min(5, Number(p.rating) || 0)).toFixed(1)} / 5`}</span>
-                    </div>
-                ` : ''}
-            </div>
-        </article>`;
-    }).join('');
-    window.LuxeMedia.hydrate(container);
-    window.syncWishlistButtons?.(container);
-    container.querySelectorAll('.product-card').forEach(card => {
-        const open = () => { window.location.href = `product.html?id=${Number.parseInt(card.dataset.id, 10)}`; };
-        card.addEventListener('click', event => { if (!event.target.closest('button, a')) open(); });
-    });
-    container.querySelectorAll('.add-cart').forEach(button => button.addEventListener('click', event => {
-        event.stopPropagation();
-        const id = Number.parseInt(button.dataset.id, 10);
-        if (button.dataset.hasOptions === 'true') window.location.href = `product.html?id=${id}`;
-        else window.addToCart?.(id);
-    }));
-    container.querySelectorAll('.wishlist-btn').forEach(button => button.addEventListener('click', event => {
-        event.stopPropagation();
-        window.toggleWishlist?.(Number.parseInt(button.dataset.id, 10), button);
-    }));
+    window.LuxeCatalogUI.render(container, related);
 }
 
 // Global window functions for inline onclick handlers

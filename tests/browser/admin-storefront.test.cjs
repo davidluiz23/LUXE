@@ -79,13 +79,26 @@ test('an admin can add, reorder, remove and publish images that appear on the st
     assert.equal(await page.locator('.culture-piece-select button').count(), 3);
     for (const kind of ['men', 'women']) {
       await page.goto(fixture.base + '/' + kind + '.html');
-      const hero = page.locator('.' + kind + '-hero');
+      const hero = page.locator('.poster-catalog-hero');
       const image = hero.locator('.poster-catalog-art img');
       await page.waitForFunction(() => document.querySelector('.poster-catalog-art img').src.includes('images.example.com'));
       assert.equal(await image.getAttribute('src'), `https://images.example.com/${kind}.jpg`);
       assert.equal(await hero.evaluate(element => getComputedStyle(element).backgroundImage), 'none');
       assert.equal(await hero.locator('img').count(), 1);
       if (kind === 'women') assert.match(await image.evaluate(element => element.style.objectPosition), /72%/);
+      // Refreshes load the published cache before the service responds. Neither
+      // application may append a banner or restore the previous background.
+      await page.reload();
+      await page.waitForFunction(() => document.querySelector('.poster-catalog-art img').src.includes('images.example.com'));
+      await page.evaluate(async () => {
+        await window.LuxeSiteContent.load();
+        window.LuxeSiteContent.applyImages();
+        window.dispatchEvent(new CustomEvent('luxe:catalog-status'));
+      });
+      assert.equal(await image.getAttribute('src'), `https://images.example.com/${kind}.jpg`);
+      assert.equal(await hero.locator('img').count(), 1);
+      assert.equal(await hero.evaluate(element => getComputedStyle(element).backgroundImage), 'none');
+      assert.equal(await page.locator('.category-campaign, .category-hero').count(), 0);
     }
     assert.deepEqual(errors, []);
   } finally { await context.close(); }

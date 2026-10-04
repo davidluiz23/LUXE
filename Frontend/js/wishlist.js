@@ -224,13 +224,13 @@ function syncWishlistButton(button, savedIds = loadWishlist()) {
         'aria-label',
         saved ? `Remove ${productName} from wishlist` : `Save ${productName} to wishlist`,
     );
-    button.style.color = saved ? '#E74C3C' : '';
+    button.style.removeProperty('color');
 }
 
 function syncWishlistButtons(root = document, wishlist = loadWishlist()) {
     const scope = root?.querySelectorAll ? root : document;
     const savedIds = new Set(normalizeWishlist(wishlist));
-    scope.querySelectorAll('.wishlist-btn[data-id], .wishlist-btn-product[data-id]')
+    scope.querySelectorAll('[data-save-piece][data-id], .wishlist-btn[data-id], .wishlist-btn-product[data-id]')
         .forEach((button) => syncWishlistButton(button, savedIds));
 }
 
@@ -365,20 +365,6 @@ function updateWishlistCount(wishlist = loadWishlist()) {
 
 function escapeWishlistHtml(value) { return window.LuxeUtils.escapeHtml(value); }
 
-function wishlistMoney(product, oldPrice = false) {
-    const fallbackValue = oldPrice ? product?.oldPrice : product?.price;
-    const formatted = window.LuxeMoney?.forProduct?.(product, oldPrice) || {
-        usd: fallbackValue === null || fallbackValue === undefined || fallbackValue === ''
-            ? ''
-            : `$${Number(fallbackValue).toFixed(2)}`,
-        ngn: '',
-    };
-    return {
-        usd: escapeWishlistHtml(formatted.usd || ''),
-        ngn: escapeWishlistHtml(formatted.ngn || ''),
-    };
-}
-
 function renderWishlistPage() {
     const container = document.getElementById('wishlistGrid');
     if (!container) return;
@@ -395,79 +381,16 @@ function renderWishlistPage() {
     if (!wishlist.length) {
         const unavailable = saved.length > 0 && window.LuxeCatalogStatus?.state === 'unavailable';
         container.innerHTML = `
-            <div class="empty-wishlist">
+            <div class="modern-catalog-empty">
                 <i class="fas fa-heart" aria-hidden="true"></i>
                 <h3>${unavailable ? 'Saved pieces are temporarily unavailable' : 'Your wishlist is empty'}</h3>
                 <p>${unavailable ? 'The live catalog could not be verified. Please try again shortly.' : 'Save pieces you love by selecting the heart button on a product.'}</p>
-                <a href="${unavailable ? window.location.href : 'shop.html'}" class="btn btn-primary">${unavailable ? 'Try again' : 'Explore products'}</a>
+                <a href="${unavailable ? window.location.href : 'shop.html'}" class="modern-text-link">${unavailable ? 'Try again' : 'Explore products'}</a>
             </div>`;
         return;
     }
 
-    container.innerHTML = wishlist.map((id) => {
-        const product = wishlistProduct(id);
-        if (!product) return '';
-        const productId = Number(product.id);
-        const safeName = escapeWishlistHtml(product.name || 'Product');
-        const safeBrand = escapeWishlistHtml(product.brand || '');
-        const safeCategory = escapeWishlistHtml(product.category || '');
-        const safeSubcategory = escapeWishlistHtml(product.subcategory || '');
-        const money = wishlistMoney(product);
-        const oldMoney = wishlistMoney(product, true);
-        const hasOptions = (Array.isArray(product.sizes) && product.sizes.length > 0)
-            || (Array.isArray(product.colors) && product.colors.length > 0);
-        return `
-            <article class="wishlist-item" data-id="${productId}">
-                <div class="product-image">
-                    <img ${window.LuxeMedia.attributes(product.image, { preset: 'card', alt: product.name })}>
-                    ${product.brand ? `<span class="wishlist-badge">${safeBrand}</span>` : ''}
-                    <div class="product-actions">
-                        <button type="button" class="add-cart" data-action="add" data-has-options="${hasOptions}" aria-label="${hasOptions ? 'Choose options for' : 'Add'} ${safeName}">
-                            <i class="fas fa-shopping-bag" aria-hidden="true"></i> ${hasOptions ? 'Choose options' : 'Add to cart'}
-                        </button>
-                        <button type="button" class="remove-wishlist" data-action="remove" aria-label="Remove ${safeName} from wishlist">
-                            <i class="fas fa-trash-alt" aria-hidden="true"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="product-info">
-                    ${product.brand ? `<div class="product-brand">${safeBrand}</div>` : ''}
-                    <h4 class="product-name"><a class="product-name-link" href="product.html?id=${productId}" style="color:inherit;text-decoration:none">${safeName}</a></h4>
-                    <p class="product-category">${safeCategory}${product.subcategory ? ` / ${safeSubcategory}` : ''}</p>
-                    <div class="product-price">
-                        <span class="product-current-price">${money.ngn || money.usd}</span>
-                        ${money.ngn && money.usd ? `<span class="product-price-secondary">${money.usd}</span>` : ''}
-                        ${oldMoney.ngn || oldMoney.usd ? `<span class="old-price">${oldMoney.ngn || oldMoney.usd}</span>` : ''}
-                    </div>
-                    ${product.rating ? `
-                        <div class="product-rating" aria-label="Rated ${Math.max(0, Math.min(5, Number(product.rating) || 0)).toFixed(1)} out of 5">
-                            ${window.LuxeIcons?.rating(product.rating) || ''}
-                            <span class="rating-count">${product.reviewCount !== null && product.reviewCount !== undefined
-                                ? `${Math.max(0, Number(product.reviewCount) || 0)} review${Number(product.reviewCount) === 1 ? '' : 's'}`
-                                : `${Math.max(0, Math.min(5, Number(product.rating) || 0)).toFixed(1)} / 5`}</span>
-                        </div>
-                    ` : ''}
-                </div>
-            </article>`;
-    }).join('');
-    window.LuxeMedia.hydrate(container);
-
-    container.querySelectorAll('.wishlist-item').forEach((card) => {
-        const open = () => { window.location.href = `product.html?id=${Number(card.dataset.id)}`; };
-        card.addEventListener('click', (event) => {
-            const action = event.target.closest('[data-action]');
-            if (!action) {
-                if (!event.target.closest('a')) open();
-                return;
-            }
-            event.stopPropagation();
-            if (action.dataset.action === 'remove') window.removeFromWishlist(Number(card.dataset.id));
-            if (action.dataset.action === 'add') {
-                if (action.dataset.hasOptions === 'true') open();
-                else window.addToCart?.(Number(card.dataset.id));
-            }
-        });
-    });
+    window.LuxeCatalogUI.render(container, wishlist.map(wishlistProduct).filter(Boolean));
 }
 
 captureWishlistIntentFromLoginUrl();

@@ -69,6 +69,7 @@ test('collection headers stay compact after published images load with populated
       try {
         await page.evaluate(() => document.fonts.ready);
         await page.waitForFunction(() => document.querySelector('.poster-catalog-art img').dataset.imageFallback === 'false');
+        assert.equal(await page.locator('.category-hero, .men-hero, .women-hero, .category-campaign').count(), 0, 'retired banner hooks must not reactivate a second layout');
         for (const width of [1440, 1005, 768, 390, 320]) {
           await page.setViewportSize({ width, height: 900 });
           const layout = await page.locator('.poster-catalog-hero').evaluate(hero => {
@@ -81,6 +82,7 @@ test('collection headers stay compact after published images load with populated
               height: box.height,
               background: getComputedStyle(hero).backgroundImage,
               imageCount: hero.querySelectorAll('img').length,
+              childCount: hero.children.length,
               extraLabel: getComputedStyle(heading, '::before').content,
               titleInside: title.top >= box.top && title.bottom <= box.bottom,
               imageBesideTitle: getComputedStyle(frame).display === 'none' || title.right <= image.left,
@@ -91,6 +93,7 @@ test('collection headers stay compact after published images load with populated
           assert.ok(layout.height <= 500, `${viewport}: header grew to ${layout.height}px`);
           assert.equal(layout.background, 'none', viewport);
           assert.equal(layout.imageCount, 1, viewport);
+          assert.equal(layout.childCount, 2, viewport);
           assert.equal(layout.extraLabel, 'none', viewport);
           assert.equal(layout.titleInside && layout.imageBesideTitle && !layout.overflow, true, viewport);
         }
@@ -104,6 +107,43 @@ test('collection headers stay compact after published images load with populated
   }
 });
 
+test('new collection cards fill the page and compact filters work without overlays', async () => {
+  const { page, context, errors } = await fixture.openPage('shop.html', { width: 1440 });
+  try {
+    await page.waitForSelector('#productGrid .modern-shop-piece');
+    for (const width of [1440, 1021, 1020, 1005, 1000, 768, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      const layout = await page.evaluate(() => {
+        const grid = document.querySelector('.modern-catalog').getBoundingClientRect();
+        const main = document.querySelector('#productGrid').getBoundingClientRect();
+        return {
+          mainWidth: main.width,
+          gridWidth: grid.width,
+          cardWidths: [...document.querySelectorAll('#productGrid .modern-shop-piece')].map(card => card.getBoundingClientRect().width),
+          overflow: document.documentElement.scrollWidth > innerWidth,
+        };
+      });
+      assert.ok(Math.abs(layout.mainWidth - layout.gridWidth) < 1, `products must fill the grid at ${width}px: ${JSON.stringify(layout)}`);
+      assert.ok(layout.cardWidths.every(cardWidth => cardWidth >= 120), `collapsed cards at ${width}px: ${JSON.stringify(layout)}`);
+      assert.equal(layout.overflow, false, `${width}px`);
+      if ([1005, 390].includes(width)) {
+        const summary = page.locator('#catalogFilters > summary');
+        await summary.click();
+        assert.equal(await page.locator('#catalogFilters').getAttribute('open'), '');
+        await page.click('[data-catalog-category][data-category="women"]');
+        assert.equal(await page.locator('#productGrid .modern-shop-piece').count(), 1);
+        await page.click('#resetFilters');
+        assert.equal(await page.locator('#productGrid .modern-shop-piece').count(), 3);
+        await summary.focus();
+        await page.keyboard.press('Enter');
+        assert.equal(await page.locator('#catalogFilters').getAttribute('open'), null);
+        assert.equal(await page.locator('#shopSidebar,.sidebar-overlay,.product-card').count(), 0);
+      }
+    }
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});
+
 test('homepage back to top works before the catalog resolves', async () => {
   const { page, context, errors } = await fixture.openPage('index.html', { state: { __holdProducts: true } });
   try {
@@ -113,7 +153,7 @@ test('homepage back to top works before the catalog resolves', async () => {
     await page.click('#backToTop');
     await page.waitForFunction(() => scrollY === 0);
     assert.equal(await page.locator('#backToTop').getAttribute('tabindex'), '-1');
-    assert.equal(await page.locator('#collectionGrid .product-card').count(), 0);
+    assert.equal(await page.locator('#collectionGrid .modern-shop-piece').count(), 0);
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });
@@ -127,27 +167,32 @@ test('collection pages show branded pending cards and restore rounded cards with
     });
     try {
       await page.waitForFunction(() => typeof window.__releaseProducts === 'function');
-      const loading = page.locator('.product-card-skeleton').first();
-      assert.equal(await loading.locator('.product-loading-name').textContent(), 'ALKEBULAN', name);
-      assert.ok((await loading.locator('.product-image').boundingBox()).height > 120, name);
-      assert.equal(await loading.locator('.product-loading-mark').evaluate(el => getComputedStyle(el).animationName), 'none');
+      if (['shop.html', 'men.html', 'women.html'].includes(name)) {
+        assert.equal(await page.locator('.modern-artwork-piece').count(), 3, name);
+        assert.equal(await page.locator('.modern-piece-skeleton').count(), 0, name);
+      } else {
+        const loading = page.locator('.modern-piece-skeleton').first();
+        assert.equal(await loading.locator('.product-loading-name').textContent(), 'ALKEBULAN', name);
+        assert.ok((await loading.locator('.modern-piece-image').boundingBox()).height > 120, name);
+        assert.equal(await loading.locator('.product-loading-mark').evaluate(el => getComputedStyle(el).animationName), 'none');
+      }
       await page.evaluate(() => { window.__holdProducts = false; window.__releaseProducts(); });
-      await page.waitForSelector('.product-card[data-luxury-card]');
-      assert.equal(await page.locator('.product-card-skeleton').count(), 0, name);
+      await page.waitForSelector('.modern-shop-piece[data-id]');
+      assert.equal(await page.locator('.modern-piece-skeleton').count(), 0, name);
       for (const width of [1440, 320]) {
         await page.setViewportSize({ width, height: 900 });
-        const card = page.locator('.product-card[data-luxury-card]').first();
+        const card = page.locator('.modern-shop-piece').first();
         const result = await card.evaluate(el => ({
           background: getComputedStyle(el).backgroundColor,
           radius: parseFloat(getComputedStyle(el).borderRadius),
-          actionsBelow: el.querySelector('.product-actions').parentElement === el,
-          categoryFirst: el.querySelector('.product-info').firstElementChild.classList.contains('product-category'),
+          actionsBelow: el.querySelector('.modern-piece-bottom').parentElement === el,
+          artworkFirst: el.firstElementChild.classList.contains('modern-piece-media'),
           overflow: el.scrollWidth > el.clientWidth || document.documentElement.scrollWidth > innerWidth,
         }));
-        assert.deepEqual(result, { background: 'rgb(240, 237, 230)', radius: width <= 760 ? 22 : 24, actionsBelow: true, categoryFirst: true, overflow: false }, `${name} at ${width}`);
-        assert.equal(await card.locator('.product-rating').isVisible(), true, name);
-        assert.equal(await card.locator('.product-name-link').isVisible(), true, name);
-        assert.equal(await card.locator('.add-cart').isVisible(), true, name);
+        assert.deepEqual(result, { background: 'rgb(240, 237, 230)', radius: width <= 760 ? 22 : 24, actionsBelow: true, artworkFirst: true, overflow: false }, `${name} at ${width}`);
+        assert.equal(await card.locator('.modern-piece-review').isVisible(), true, name);
+        assert.equal(await card.locator('.modern-piece-meta h3 a').isVisible(), true, name);
+        assert.equal(await card.locator('.modern-piece-action').isVisible(), true, name);
       }
       assert.deepEqual(errors, [], name);
     } finally { await context.close(); }
@@ -171,19 +216,19 @@ test('branded image loading clears on success and failure, with shopping actions
       window.__holdProducts = false;
       window.__releaseProducts();
     });
-    const first = page.locator('.product-card[data-id="1001"]');
-    const second = page.locator('.product-card[data-id="1002"]');
+    const first = page.locator('.modern-shop-piece[data-id="1001"]');
+    const second = page.locator('.modern-shop-piece[data-id="1002"]');
     await first.scrollIntoViewIfNeeded();
-    await page.waitForSelector('.product-card.is-image-loading .product-loading-lockup');
+    await page.waitForSelector('.modern-shop-piece.is-image-loading .product-loading-lockup');
     assert.equal(await first.locator('.product-loading-name').textContent(), 'ALKEBULAN');
     assert.equal(await second.locator('.product-loading-name').textContent(), 'ALKEBULAN');
     releaseImages();
     await page.waitForFunction(() => [1001, 1002].every(id => {
-      const card = document.querySelector(`.product-card[data-id="${id}"]`);
+      const card = document.querySelector(`.modern-shop-piece[data-id="${id}"]`);
       return !card.classList.contains('is-image-loading') && !card.querySelector('.product-loading-lockup');
     }));
-    assert.ok(await first.locator('.product-image > img').first().evaluate(img => img.naturalWidth > 0));
-    await second.locator('.add-cart').click();
+    assert.ok(await first.locator('.modern-piece-image > img').first().evaluate(img => img.naturalWidth > 0));
+    await second.locator('[data-add-piece]').click();
     await page.waitForFunction(() => Number(document.querySelector('.cart-count').textContent) > 0);
     assert.deepEqual(errors, []);
   } finally { releaseImages(); await context.close(); }

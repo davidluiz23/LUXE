@@ -57,10 +57,10 @@ function renderCatalogStatus() {
     if (document.readyState === 'loading') return;
     const status = window.LuxeCatalogStatus;
     let banner = document.getElementById('catalogStatusBanner');
-    // The curated campaign and collection preview carry their own availability
-    // copy. Avoid a duplicate banner shifting the art-directed first viewport.
+    // Collection grids own their empty state; inventory comes from admin.
+    // Avoid duplicating that state in a banner above the page.
     if (status.state === 'empty' && document.body.classList.contains('african-modern-site') &&
-        (document.getElementById('intendedPreview') || document.getElementById('collectionAvailability'))) {
+        document.querySelector('.modern-collection, .modern-catalog')) {
         banner?.remove();
         return;
     }
@@ -98,6 +98,7 @@ if (document.readyState === 'loading') {
 
 function showProductGridLoading(grid, requestedCount = 8) {
     if (!grid) return;
+    if (window.LuxeCatalogUI) return window.LuxeCatalogUI.loading(grid, requestedCount);
 
     const count = window.matchMedia('(max-width: 768px)').matches
         ? Math.min(4, requestedCount)

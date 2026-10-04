@@ -117,7 +117,7 @@ test('unavailable product pages stop their related-product loading state', async
   try {
     await page.waitForFunction(()=>document.querySelector('#productDetails').textContent.includes('Product not found'));
     assert.equal(await page.locator('#relatedProducts').getAttribute('aria-busy'), 'false');
-    assert.equal(await page.locator('.product-card-skeleton').count(),0);
+    assert.equal(await page.locator('.modern-piece-skeleton').count(),0);
   } finally { await context.close(); }
 });
 

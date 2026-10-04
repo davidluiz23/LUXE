@@ -2,6 +2,8 @@
 
 The `lights-perspective` campaign uses the rounded interface treatment from the `Alkebulan` branch. The active sources are `Frontend/css/african-modern.css` and `Frontend/css/african-modern-home.css`, loaded after the legacy storefront styles by `scripts/build-african-modern.cjs`.
 
+Collection headers use only `.poster-catalog-hero` and `.poster-catalog-heading`; retired photo-banner classes and rules are removed. Published collection imagery updates the existing `[data-collection-image]` element without inserting layout nodes or painting a background. Product filtering identifies the collection from its grid, independently of the header's appearance. The build versions every local CSS/JS reference from its file contents so all pages request matching shared assets after updates.
+
 ## Shape and spacing
 
 These values follow rendered reference components, rather than unused legacy token declarations.
@@ -36,7 +38,7 @@ Product image corners use `calc(var(--modern-radius-card) - var(--modern-card-in
 | Navbar links | Manrope 550, .82rem, -.01em tracking |
 | Campaign and editorial headings | Locally hosted Instrument Serif |
 | Utility panel headings | Manrope 500, 26–28px |
-| Product card names | Manrope 500, 18px desktop / 16px mobile |
+| Product card names | Instrument Serif 400, 31px |
 | Fields | 16px |
 | Main actions | Manrope 500, 14px |
 
@@ -44,8 +46,9 @@ Cards and form panels use quiet fills without shadows. Active navigation and sel
 
 ## Components and scope
 
-- `african-modern.css`: navigation, filters, catalog cards, product options, bag, checkout, account, authentication, contact, support, search, and footer.
+- `african-modern.css`: navigation, product options, bag, checkout, account, authentication, contact, support, search, and footer.
 - `african-modern-home.css`: campaign, editorial product cards, artwork study, and brand sections.
+- `african-modern-catalog.css` and `catalog-ui.js`: shared homepage-style artwork cards for shop, men, women, saved pieces, and related products. One renderer owns markup; no legacy card enhancer runs. Compact native selects and an inline filter disclosure replace the old sidebar and category pills. Actual inventory drives choices and sold-out states.
 - `admin-modern.css`: existing separate admin theme; customer selectors exclude admin.
 - Existing semantic HTML, native form controls, Solar SVG icons, commerce hooks, and GSAP/Lenis motion remain the component conventions.
 

@@ -1,6 +1,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.4";
 import { getSupabaseServiceKey } from "../_shared/supabase-server.ts";
 
+import { isWhatsAppConfigured, sendWhatsAppMessage, whatsAppProvider } from "../_shared/whatsapp.ts";
+
 type VerificationAction = "request" | "verify";
 
 const OTP_TTL_MINUTES = 10;
@@ -75,53 +77,25 @@ function constantTimeEqual(left: string, right: string): boolean {
   return mismatch === 0;
 }
 
-async function sendOtp(phone: string, code: string): Promise<boolean> {
-  const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
-  const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
+async function sendOtp(phone: string, code: string, challengeId: string): Promise<boolean> {
   const templateName = Deno.env.get("WHATSAPP_VERIFICATION_TEMPLATE");
-  const graphVersion = Deno.env.get("WHATSAPP_GRAPH_VERSION") || "v23.0";
-  if (!token || !phoneNumberId || !templateName) return false;
-
   const components: Record<string, unknown>[] = [{
-    type: "body",
-    parameters: [{ type: "text", text: code }],
+    type: "body", parameters: [{ type: "text", text: code }],
   }];
   if ((Deno.env.get("WHATSAPP_VERIFICATION_COPY_CODE_BUTTON") || "true") === "true") {
-    components.push({
-      type: "button",
-      sub_type: "url",
-      index: "0",
-      parameters: [{ type: "text", text: code }],
-    });
+    components.push({ type: "button", sub_type: "url", index: "0", parameters: [{ type: "text", text: code }] });
   }
-
-  const response = await fetch(
-    `https://graph.facebook.com/${graphVersion}/${phoneNumberId}/messages`,
-    {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        recipient_type: "individual",
-        to: phone.slice(1),
-        type: "template",
-        template: {
-          name: templateName,
-          language: {
-            code: Deno.env.get("WHATSAPP_VERIFICATION_TEMPLATE_LANGUAGE") ||
-              Deno.env.get("WHATSAPP_TEMPLATE_LANGUAGE") || "en",
-          },
-          components,
-        },
-      }),
-    },
-  );
-
-  if (!response.ok) {
-    console.error("[whatsapp-verification] Meta send failed:", response.status, await response.text());
-    return false;
-  }
-  return true;
+  const brand = (Deno.env.get("BRAND_NAME") || "ALKEBULAN").trim().slice(0, 80);
+  const result = await sendWhatsAppMessage({
+    to: phone,
+    text: `${brand} verification code: ${code}. Expires in ${OTP_TTL_MINUTES} minutes. Do not share this code.`,
+    idempotencyKey: `verification:${challengeId}`,
+    template: templateName ? {
+      name: templateName, components,
+      language: Deno.env.get("WHATSAPP_VERIFICATION_TEMPLATE_LANGUAGE") || Deno.env.get("WHATSAPP_TEMPLATE_LANGUAGE") || "en",
+    } : undefined,
+  });
+  return result.sent;
 }
 
 Deno.serve(async (request) => {
@@ -178,8 +152,7 @@ Deno.serve(async (request) => {
   if (!phone) return json({ error: "invalid_phone" }, 400, origin);
 
   if (action === "request") {
-    if (!Deno.env.get("WHATSAPP_ACCESS_TOKEN") || !Deno.env.get("WHATSAPP_PHONE_NUMBER_ID") ||
-      !Deno.env.get("WHATSAPP_VERIFICATION_TEMPLATE")) {
+    if (!isWhatsAppConfigured() || (whatsAppProvider() === "meta" && !Deno.env.get("WHATSAPP_VERIFICATION_TEMPLATE"))) {
       return json({ error: "verification_not_configured" }, 503, origin);
     }
 
@@ -242,7 +215,7 @@ Deno.serve(async (request) => {
         insertError?.code === "23505" ? 429 : 500, origin);
     }
 
-    if (!await sendOtp(phone, code)) {
+    if (!await sendOtp(phone, code, challenge.id)) {
       await service.from("whatsapp_verification_challenges")
         .update({ consumed_at: new Date().toISOString() })
         .eq("id", challenge.id);

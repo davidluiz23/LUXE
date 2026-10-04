@@ -131,42 +131,18 @@
         return matches.length === 1 ? matches[0] : null;
     }
     function applyImages() {
+        // Published content replaces the image owned by the page. It never
+        // creates layout nodes or paints a second copy behind the header.
         for (const key of ['men', 'women']) {
-            const hero = document.querySelector(`.${key}-hero`);
+            const image = document.querySelector(`[data-collection-image="${key}"]`);
+            if (!image) continue;
             const settings = current.content.collections[key];
-            if (hero) {
-                const url = imageUrl(settings.image, Math.min(1920, Math.ceil(window.innerWidth * (window.devicePixelRatio || 1))));
-                // The current collection layout already owns its image panel.
-                // Adding the legacy campaign would create another grid row.
-                const posterImage = hero.querySelector('.poster-catalog-art img');
-                if (posterImage) {
-                    resolveImage(posterImage, url, (source, fallback) => {
-                        posterImage.src = source;
-                        posterImage.dataset.imageFallback = String(fallback);
-                    });
-                    posterImage.style.objectPosition = `center ${settings.focusY ?? 50}%`;
-                    continue;
-                }
-                resolveImage(hero, url, (source, fallback) => {
-                    hero.style.backgroundImage = `linear-gradient(rgba(0,0,0,.4),rgba(0,0,0,.4)), url("${source}")`;
-                    hero.dataset.imageFallback = String(fallback);
-                    let campaign = hero.querySelector('.category-campaign');
-                    if (!campaign) {
-                        campaign = document.createElement('div');
-                        campaign.className = 'category-campaign';
-                        campaign.setAttribute('aria-hidden', 'true');
-                        const photo = document.createElement('img');
-                        photo.alt = '';
-                        photo.decoding = 'async';
-                        campaign.append(photo);
-                        hero.append(campaign);
-                    }
-                    const photo = campaign.querySelector('img');
-                    photo.src = source;
-                    photo.style.objectPosition = `center ${settings.focusY ?? 50}%`;
-                });
-                hero.style.backgroundPosition = `center ${settings.focusY ?? 50}%`;
-            }
+            const url = imageUrl(settings.image, Math.min(1920, Math.ceil(window.innerWidth * (window.devicePixelRatio || 1))));
+            resolveImage(image, url, (source, fallback) => {
+                image.src = source;
+                image.dataset.imageFallback = String(fallback);
+            });
+            image.style.objectPosition = `center ${settings.focusY ?? 50}%`;
         }
         const detail = current.content.detail;
         const detailImage = document.querySelector('.detail-image img');
@@ -184,7 +160,7 @@
         const detailLink = document.getElementById('detailLink');
         if (detailLink) {
             const product = detailProduct();
-            detailLink.href = product ? `product.html?id=${encodeURIComponent(product.id)}` : 'shop.html';
+            detailLink.href = product ? `product.html?id=${encodeURIComponent(product.id)}` : 'product.html?piece=durbar';
             detailLink.setAttribute('aria-label', product ? `${detail.linkLabel} — ${product.name}` : `${detail.linkLabel} in the collection`);
             if (detailLink.firstChild?.nodeType === Node.TEXT_NODE) detailLink.firstChild.textContent = detail.linkLabel + ' ';
         }
