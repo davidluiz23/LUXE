@@ -1,6 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
+const { pathToFileURL } = require('node:url');
 const { chromium } = require('playwright');
 const root = path.resolve(__dirname, '../..');
 const frontend = path.join(root, 'Frontend');
@@ -121,7 +122,7 @@ async function startFixture() {
   ].find(file => fs.existsSync(file));
   // Headless Chromium normally hides the scrollbars these layout checks need to see.
   const browser = await chromium.launch({ executablePath, headless: true, ignoreDefaultArgs: ['--hide-scrollbars'] });
-  async function openPage(name, {width = 390, height = 900, state = {}, saved = {}, reducedMotion = 'reduce', javaScriptEnabled = true} = {}) {
+  async function openPage(name, {width = 390, height = 900, state = {}, saved = {}, reducedMotion = 'reduce', javaScriptEnabled = true, localFile = false} = {}) {
     const context = await browser.newContext({ viewport: {width, height}, serviceWorkers: 'block', reducedMotion, javaScriptEnabled });
     await context.addInitScript(({products, state, saved}) => {
       window.__fixture = products;
@@ -131,6 +132,7 @@ async function startFixture() {
     }, {products: fixture, state, saved});
     await context.route('**/*', async route => {
       const request = route.request(), url = new URL(request.url());
+      if (localFile && url.protocol === 'file:') return route.continue();
       if (url.origin === base) return route.continue();
       if (url.hostname === 'cdn.jsdelivr.net' && url.pathname.includes('supabase')) return route.fulfill({contentType: 'text/javascript', body: '(' + sdkMock.toString() + ')();'});
       if (request.resourceType() === 'image') return route.fulfill({contentType: 'image/svg+xml', body: fs.readFileSync(path.join(frontend, 'assets/brand/product-placeholder.svg'))});
@@ -140,7 +142,9 @@ async function startFixture() {
     page.setDefaultTimeout(20000);
     page.setDefaultNavigationTimeout(60000);
     page.on('pageerror', error => errors.push(error.message));
-    await page.goto(base + '/' + name, {waitUntil: 'load'});
+    const [filename, query] = name.split('?');
+    const address = localFile ? pathToFileURL(path.join(frontend, filename)).href + (query ? '?' + query : '') : base + '/' + name;
+    await page.goto(address, {waitUntil: 'load'});
     return {page, context, errors};
   }
   return {base, openPage, pages: fs.readdirSync(frontend).filter(name => name.endsWith('.html')), async close() {await browser.close(); await new Promise(resolve => server.close(resolve));}};

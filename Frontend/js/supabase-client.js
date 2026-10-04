@@ -1718,8 +1718,23 @@ const LuxeMedia = {
     if (!candidate) return "";
     if (allowLocalPreview && /^(blob:|data:image\/)/i.test(candidate)) return candidate;
     try {
-      const url = new URL(candidate, typeof window !== "undefined" ? window.location.href : undefined);
+      const base = typeof document !== "undefined" && document.baseURI
+        ? document.baseURI
+        : typeof window !== "undefined" ? window.location.href : undefined;
+      const url = new URL(candidate, base);
       if (url.protocol === "https:") return url.href;
+      // Bundled photos must survive hydration in file previews and on the
+      // store's own HTTP origin. Restrict file access to this site's assets.
+      if (base && ["file:", "http:"].includes(url.protocol)) {
+        const assets = new URL("assets/", base);
+        const decodedPath = decodeURIComponent(url.pathname);
+        if (
+          url.protocol === assets.protocol &&
+          url.host === assets.host &&
+          url.pathname.startsWith(assets.pathname) &&
+          !decodedPath.split(/[\\/]/).includes("..")
+        ) return url.href;
+      }
       if (
         url.protocol === "http:" &&
         ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)

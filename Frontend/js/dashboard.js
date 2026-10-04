@@ -551,6 +551,7 @@ function setNotificationBadge(count) {
 
 function safeImageUrl(value) {
     if (typeof value !== 'string' || !value.trim()) return '';
+    if (window.LuxeMedia?.safeImageUrl) return window.LuxeMedia.safeImageUrl(value);
     try {
         const url = new URL(value, document.baseURI);
         const isSameOriginHttp = url.protocol === 'http:' && url.origin === window.location.origin;
